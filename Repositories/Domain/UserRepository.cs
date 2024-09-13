@@ -4,6 +4,7 @@ using Spider_QAMS.Repositories.Skeleton;
 using System.Data.SqlClient;
 using System.Data;
 using Spider_QAMS.Utilities;
+using static Spider_QAMS.Utilities.Constants;
 
 namespace Spider_QAMS.Repositories.Domain
 {
@@ -11,9 +12,10 @@ namespace Spider_QAMS.Repositories.Domain
     {
         public async Task<ApplicationUser> GetUserByEmailAsyncRepo(string email)
         {
+            ApplicationUser ActualUser = new ApplicationUser();
             try
             {
-                string commandText = "SELECT * FROM AspNetUsers WHERE Email = @Email";
+                string commandText = "SELECT * FROM Users u WHERE u.EmailID = @Email";
                 SqlParameter[] sqlParameters = new SqlParameter[]
                 {
                 new SqlParameter("@Email", SqlDbType.VarChar, 100) { Value = email }
@@ -22,17 +24,18 @@ namespace Spider_QAMS.Repositories.Domain
                 DataTable dataTable = SqlDBHelper.ExecuteParameterizedSelectCommand(commandText, CommandType.Text, sqlParameters);
                 if (dataTable.Rows.Count > 0)
                 {
-                    DataRow dataRow = dataTable.Rows[0];
-                    return new ApplicationUser
+                    // Map the DataTable to the ApplicationUser object
+                    List<ApplicationUser> users = DataTableHelper.MapDataTableToList<ApplicationUser>(dataTable);
+                    ActualUser = users.FirstOrDefault();
+                    if (ActualUser != null && ActualUser.UserId <= 0)
                     {
-                        UserId = Convert.ToInt32(dataRow["UserId"]),
-                        FullName = dataRow["FullName"].ToString(),
-                        EmailID = dataRow["Email"].ToString(),
-                        UserName = dataRow["Username"].ToString()
-                        // Populate other fields as necessary
-                    };
+                        return null;
+                    }
                 }
-                return null;
+                else
+                {
+                    return null;
+                }
             }
             catch (SqlException sqlEx)
             {
@@ -42,6 +45,7 @@ namespace Spider_QAMS.Repositories.Domain
             {
                 throw new Exception("Error in Getting User by Email.", ex);
             }
+            return ActualUser;
         }
 
         public async Task<ApplicationUser> GetUserByIdAsyncRepo(int userId)
@@ -79,14 +83,14 @@ namespace Spider_QAMS.Repositories.Domain
             }
         }
 
-        public async Task<IEnumerable<string>> GetUserRolesAsyncRepo(int userId)
+        public async Task<IList<string>> GetUserRolesAsyncRepo(int userId)
         {
             try
             {
-                string commandText = "SELECT r.RoleName FROM AspNetUserRoles ur INNER JOIN AspNetRoles r ON ur.RoleId = r.Id WHERE ur.UserId = @UserId";
+                string commandText = "SELECT DISTINCT p.ProfileName FROM Profiles p INNER JOIN UserProfile up ON p.ProfileID = up.ProfileID INNER JOIN Users u ON up.UserID = @UserId";
                 SqlParameter[] sqlParameters = new SqlParameter[]
                 {
-                new SqlParameter("@UserId", SqlDbType.Int) { Value = userId }
+                    new SqlParameter("@UserId", SqlDbType.Int) { Value = userId }
                 };
 
                 DataTable dataTable = SqlDBHelper.ExecuteParameterizedSelectCommand(commandText, CommandType.Text, sqlParameters);
@@ -94,7 +98,7 @@ namespace Spider_QAMS.Repositories.Domain
 
                 foreach (DataRow dataRow in dataTable.Rows)
                 {
-                    roles.Add(dataRow["RoleName"].ToString());
+                    roles.Add(dataRow["ProfileName"].ToString());
                 }
                 return roles;
             }
@@ -118,7 +122,7 @@ namespace Spider_QAMS.Repositories.Domain
                 {
                     new SqlParameter("@NewFullName", SqlDbType.VarChar, 200) { Value = user.FullName },
                     new SqlParameter("@NewEmail", SqlDbType.VarChar, 100) { Value = user.EmailID },
-                    new SqlParameter("@NewPasswordSalt", SqlDbType.VarChar, 255) { Value = user.PasswordSalt }, 
+                    new SqlParameter("@NewPasswordSalt", SqlDbType.VarChar, 255) { Value = user.PasswordSalt },
                     new SqlParameter("@NewPasswordHash", SqlDbType.VarChar, 255) { Value = user.PasswordHash },
                 };
 
@@ -157,15 +161,29 @@ namespace Spider_QAMS.Repositories.Domain
         {
             try
             {
-                string commandText = "UPDATE AspNetUsers SET EmailConfirmed = @EmailConfirmed WHERE Id = @UserId";
+                int isUnique = 0;
+
+                // User Profile Creation
                 SqlParameter[] sqlParameters = new SqlParameter[]
                 {
-                    new SqlParameter("@EmailConfirmed", SqlDbType.Bit) { Value = true },
-                    new SqlParameter("@UserId", SqlDbType.Int) { Value = userId }
+                    new SqlParameter("@TextCriteria", SqlDbType.Int) { Value = (int)UserFlagsProperty.EmailConfirmed },
+                    new SqlParameter("@InputFlag", SqlDbType.Bit) { Value = true },
+                    new SqlParameter("@UserId", SqlDbType.Int) { Value = userId },
+                    new SqlParameter("@NewUpdateUserId", SqlDbType.Int) { Value = userId },
                 };
 
-                bool rowsAffected = SqlDBHelper.ExecuteNonQuery(commandText, CommandType.Text, sqlParameters);
-                return rowsAffected;
+                // Execute the command
+                List<DataTable> tables = SqlDBHelper.ExecuteParameterizedNonQuery(SP_UpdateUserFlags, CommandType.StoredProcedure, sqlParameters);
+                if (tables.Count > 0)
+                {
+                    DataTable dataTable = tables[0];
+                    if (dataTable.Rows.Count > 0)
+                    {
+                        DataRow dataRow = dataTable.Rows[0];
+                        isUnique = (int)dataRow["RowsAffected"];
+                    }
+                }
+                return isUnique > 0;
             }
             catch (Exception ex)
             {

@@ -1,0 +1,130 @@
+﻿@page
+@model Spider_QAMS.Pages.Account.UserRoleAssignmentModel
+@{
+    ViewData["Title"] = "User Role Assignment";
+    TempData["NavigationalPageName"] = "User Role Assignment";
+}
+
+<div class="mb-2" style="display:flex; flex-direction:column;justify-content:space-evenly;">
+    <form id="updateProfileForm" method="post" enctype="multipart/form-data">
+        <div id="updateProfileSection" class="container form-control pt-4 pb-2 mt-3" style="height:auto; background-color: #f4f0ec; width:45rem;">
+            <div class="container form-control border-2 mb-2" style="display:flex; justify-content:space-around; height:auto; flex-direction:column; ">
+                <div class="row pb-1 pt-2">
+                    <div style="color:#17a2b8; text-align:center; font-size:1.7rem; font-weight:500">User Role Assignment Screen</div>
+                    <div>
+                        <hr />
+                    </div>
+                </div>
+                <div class="card">
+                    <div class="card-header">
+                        <div class="card-title fw-bold" style="font-size:1.2rem">User Role Allotment Screen</div>
+                        <div class="card-tools">
+                            <button type="button" class="btn btn-tool" data-card-widget="collapse">
+                                <i class="fas fa-minus"></i>
+                            </button>
+                            <button type="button" class="btn btn-tool" data-card-widget="remove">
+                                <i class="fas fa-times"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <!-- Validation Summary -->
+                        <div asp-validation-summary="All" class="text-danger fw-bold"></div>
+
+                        <!-- Full Name Field -->
+                        <div class="mb-3">
+                            <label asp-for="UserRoleAssignmentVMData.FullName" class="form-label"></label>
+                            <div class="input-group mb-3">
+                                <div class="input-group-prepend">
+                                    <span class="input-group-text"><i class="fas fa-id-card"></i></span>
+                                </div>
+                                <input type="text" asp-for="UserRoleAssignmentVMData.FullName" placeholder="Full Name" class="form-control" disabled />
+                            </div>
+                            <span asp-validation-for="UserRoleAssignmentVMData.FullName" class="text-danger fw-bold"></span>
+                        </div>
+
+                        <!-- Email -->
+                        <div class="mb-3" style="display: flex; justify-content: space-between;">
+                            <div style="flex: 1; margin-right: 10px;">
+                                <label asp-for="UserRoleAssignmentVMData.EmailId" class="form-label"></label>
+                                <div class="input-group mb-3">
+                                    <div class="input-group-prepend">
+                                        <span class="input-group-text"><i class="fas fa-envelope"></i></span>
+                                    </div>
+                                    <input type="email" asp-for="UserRoleAssignmentVMData.EmailId" placeholder="Email Address" class="form-control" disabled />
+                                </div>
+                                <span asp-validation-for="UserRoleAssignmentVMData.EmailId" class="text-danger fw-bold"></span>
+                            </div>
+                        </div>
+
+                        <!-- Dropdown to Select Profile Name -->
+                        <div class="mb-3">
+                            <label asp-for="UserRoleAssignmentVMData.ProfileSiteData.ProfileName" class="form-label"></label>
+                            <div class="input-group mb-3">
+                                <div class="input-group-prepend">
+                                    <span class="input-group-text"><i class="fas fa-user"></i></span>
+                                </div>
+                                <select asp-for="UserRoleAssignmentVMData.ProfileSiteData.ProfileName" class="form-select striped-select" id="profileSelect">
+                                    @if (!string.IsNullOrEmpty(Model.UserRoleAssignmentVMData.ProfileSiteData.ProfileName))
+                                    {
+                                        <option value="@Model.UserRoleAssignmentVMData.ProfileSiteData.ProfileName" selected disabled>@Model.UserRoleAssignmentVMData.ProfileSiteData.ProfileName</option>
+                                    }
+                                    else
+                                    {
+                                        <option value="" disabled selected>Select a Profile</option>
+                                    }
+                                </select>
+                            </div>
+                            <span asp-validation-for="UserRoleAssignmentVMData.ProfileSiteData.ProfileName" class="text-danger fw-bold"></span>
+                        </div>
+
+                        <!-- Hidden fields Profile Id -->
+                        <input type="hidden" asp-for="UserRoleAssignmentVMData.ProfileSiteData.ProfileId" id="profileIdHidden" />
+
+                        <div style="display: flex; justify-content:space-around;height:auto;">
+                            <div class="row">
+                                <div class="col-2"></div>
+                                <div class="col-3 me-4">
+                                    <button type="submit" onclick="prepareFormSubmission()" class="btn create-btn" style="width:140px;" disabled>Next</button>
+                                </div>
+                                <div class="col-4 ms-3">
+                                    <a asp-page="/Dashboard" class="btn btn-secondary" style="width:180px;"> Back to Dashboard</a>
+                                </div>
+                                <div class="col-3"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </form>
+</div>
+
+@section scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script>
+        function prepareFormSubmission() {
+            // Get the selected profile ID
+            var selectedProfileId = $('#profileSelect option:selected').attr('data-profileid');
+
+            // Set the hidden fields with ProfileId and ProfileName
+            $('#profileIdHidden').val(selectedProfileId);     // Set ProfileName to selected profile id
+        }
+        $('#profileSelect').change(function () {
+            var selectedProfileId = $(this).find('option:selected').attr('data-profileid');
+            if (selectedProfileId) {
+                $('#submitButton').prop('disabled', false);
+                $('input, select').prop('disabled', false);
+            } else {
+                $('#submitButton').prop('disabled', true);
+                $('input, select').prop('disabled', true);
+            }
+        });
+
+        $(document).ready(function () {
+            $('#submitButton').prop('disabled', true);
+            $('input, select').prop('disabled', true);
+            $('#profileSelect').prop('disabled', false);
+        });
+    </script>
+}

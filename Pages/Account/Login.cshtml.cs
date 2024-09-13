@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Spider_QAMS.Controllers;
+using Spider_QAMS.Models;
 using Spider_QAMS.Models.ViewModels;
 using Spider_QAMS.Utilities;
 using System.Security.Claims;
@@ -37,19 +38,44 @@ namespace Spider_QAMS.Pages.Account
                 TempData["error"] = "Invalid login attempt. Please check your input and try again.";
                 return Page();
             }
-            var claims = new List<Claim>
+
+            if (user.EmailConfirmed == false)
             {
-                new Claim(ClaimTypes.NameIdentifier, user.UserId.ToString()),
-                new Claim(ClaimTypes.Email, user.EmailID)
-            };
-            var roles = await _applicationUserBusinessLogic.GetUserRolesAsync(user.UserId);
-            claims.AddRange(roles.Select(role => new Claim(ClaimTypes.Role, role)));
+                TempData["error"] = $"Email is not confirmed for {user.EmailID}. Please confirm your email.";
+                ModelState.AddModelError("Login", "You must have a confirmed email to log in.");
+                return Page();
+            }
 
-            var token = _applicationUserBusinessLogic.GenerateJSONWebToken(claims);
-            _applicationUserBusinessLogic.SetJWTCookie(token, Constants.JwtCookieName);
+            await _applicationUserBusinessLogic.SignOutAsync();
 
-            TempData["success"] = $"{user.EmailID} - Login successful.";
-            return RedirectToPage("/Dashboard");
+            await ManageUserClaimsAndPermissions(user);
+
+            if (user.UserVerificationSetupEnabled == null || user.UserVerificationSetupEnabled == true)
+            {
+                TempData["success"] = "Please complete your user verification setup.";
+                return RedirectToPage("/Account/UserVerificationSetup");
+            }
+            else if (user.UserVerificationSetupEnabled == true && user.RoleAssignmentEnabled == false)
+            {
+                TempData["success"] = "Firstly User need to be assigned with Appropriate Role for further accessibility";
+                return RedirectToPage("/Account/UserRoleAssignment");
+            }
+            else if (user.UserVerificationSetupEnabled == true && user.RoleAssignmentEnabled == true)
+            {
+                TempData["success"] = "Login successful.";
+                return RedirectToPage("/Dashboard");
+            }
+            return Page();
+        }
+        private async Task ManageUserClaimsAndPermissions(ApplicationUser user)
+        {
+            // Role and claim management
+            var claims = await _applicationUserBusinessLogic.GetCurrentUserClaimsAsync(user);
+            var accessToken = _applicationUserBusinessLogic.GenerateJSONWebToken(claims);
+            _applicationUserBusinessLogic.SetJWTCookie(accessToken, Constants.JwtCookieName);
+
+            // Fetch and cache user permissions from API
+            // await _currentUserService.FetchAndCacheUserPermissions(accessToken);
         }
     }
 }

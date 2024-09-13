@@ -30,5 +30,13 @@ namespace Spider_QAMS.Utilities
                 return Convert.ToBase64String(keyBytes);
             }
         }
+
+        // Verify if a password matches the hashed password
+        public static bool VerifyPassword(string password, string salt, string hash)
+        {
+            var hashedPassword = HashPassword(password, salt);
+            return hashedPassword == hash;
+        }
+
     }
 }

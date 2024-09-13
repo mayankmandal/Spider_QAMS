@@ -1,13 +1,15 @@
-﻿using Microsoft.AspNetCore.WebUtilities;
-using Microsoft.Extensions.WebEncoders;
+﻿using Microsoft.AspNetCore.DataProtection;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.IdentityModel.Tokens;
 using Spider_QAMS.Models;
 using Spider_QAMS.Repositories.Domain;
 using Spider_QAMS.Utilities;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
-using System.Security.Cryptography;
 using System.Text;
+using System.Text.Json;
+using static Spider_QAMS.Utilities.Constants;
 
 namespace Spider_QAMS.Controllers
 {
@@ -15,11 +17,12 @@ namespace Spider_QAMS.Controllers
     {
         private readonly IHttpContextAccessor _httpContextAccessor;
         private readonly IConfiguration _configuration;
-
-        public ApplicationUserBusinessLogic(IHttpContextAccessor httpContextAccessor, IConfiguration configuration)
+        private readonly IDataProtector _protector;
+        public ApplicationUserBusinessLogic(IHttpContextAccessor httpContextAccessor, IConfiguration configuration, IDataProtectionProvider dataProtectionProvider)
         {
             _httpContextAccessor = httpContextAccessor;
             _configuration = configuration;
+            _protector = dataProtectionProvider.CreateProtector("EmailConfirmation");
         }
 
         public HttpContext UserContext => _httpContextAccessor.HttpContext;
@@ -42,21 +45,45 @@ namespace Spider_QAMS.Controllers
             throw new ArgumentException("Invalid User ID");
         }
 
-        public async Task<OperationResult> ConfirmEmailAsync(ApplicationUser user, string token)
+        // Method to refresh the cache on demand
+        public async Task RefreshCurrentUserAsync()
+        {
+            _httpContextAccessor.HttpContext.Session.Remove(SessionKeys.CurrentUserKey);
+        }
+
+        public async Task<OperationResult> ConfirmEmailAsync(string userId,string token)
         {
             // Validate the token (this will depend on token generation logic)
-            if(string.IsNullOrEmpty(token) || user == null)
+            if(string.IsNullOrEmpty(token))
             {
                 return OperationResult.Failure("Invalid token or user");
-            }
-            if(!Guid.TryParse(token, out _))
-            {
-                return OperationResult.Failure("Invalid confirmation token");
             }
 
             try
             {
-                bool isConfirmed = await ConfirmEmailAsyncRepo(user.UserId);
+                var tokenParts = DecodeEmailConfirmationToken(token);
+                if (tokenParts == null || tokenParts.Length != 2)
+                {
+                    return OperationResult.Failure("Invalid confirmation token format");
+                }
+
+                var userIdFromToken = tokenParts[0];
+                var timestamp = DateTime.Parse(tokenParts[1]);
+
+                // Check if the token has expired
+                if (timestamp < DateTime.UtcNow)
+                {
+                    return OperationResult.Failure("Token has expired");
+                }
+
+                // Verify that the user ID from the token matches the actual user's ID
+                if(userIdFromToken != userId)
+                {
+                    return OperationResult.Failure("Invalid confirmation token");
+                }
+
+                // Proceed with confirming the email if the token is valid
+                bool isConfirmed = await ConfirmEmailAsyncRepo(Convert.ToInt32(userIdFromToken));
                 if(!isConfirmed)
                 {
                     return OperationResult.Failure("Failed to confirm email.");
@@ -68,24 +95,31 @@ namespace Spider_QAMS.Controllers
                 return OperationResult.Failure("Failed to confirm email.", ex.Message);
             }
         }
-
-
-        public async Task<int> GetCurrentUserIdAsync()
+        public async Task<ApplicationUser> GetCurrentUserAsync(string jwtToken)
         {
-            var token = GetJWTCookie(Constants.JwtCookieName);
-            if (!string.IsNullOrEmpty(token))
+            if (!string.IsNullOrEmpty(jwtToken))
             {
-                var principal = GetPrincipalFromToken(token);
-                var userIdClaim = principal?.Claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier)?.Value;
-                if (int.TryParse(userIdClaim, out int userId))
+                var principal = GetPrincipalFromToken(jwtToken);
+                var emailClaim = principal?.Claims.FirstOrDefault(c => c.Type == ClaimTypes.Email)?.Value;
+                if (!string.IsNullOrEmpty(emailClaim))
                 {
-                    return userId;
+                    return await GetUserByEmailAsync(emailClaim);
                 }
             }
-            throw new InvalidOperationException("User is not authenticated");
+            return null; // Return null if no user found
         }
 
-        public async Task<IEnumerable<string>> GetUserRolesAsync(int userId)
+        public async Task<int> GetCurrentUserIdAsync(string? jwtToken = null)
+        {
+            var user = await GetCurrentUserAsync(jwtToken);
+            if (user == null)
+            {
+                throw new InvalidOperationException("User is not authenticated");
+            }
+            return user.UserId;
+        }
+
+        public async Task<IList<string>> GetUserRolesAsync(int userId)
         {
             return await GetUserRolesAsyncRepo(userId);
         }
@@ -93,9 +127,23 @@ namespace Spider_QAMS.Controllers
         public async Task<ApplicationUser> AuthenticateUserAsync(string email, string password)
         {
             var user = await GetUserByEmailAsync(email);
-            if (user != null && user.PasswordHash == ComputeHash(password))
+            if (user != null)
             {
-                return user;
+                try
+                {
+                    // Verify the password against the stored hash and salt
+                    bool isPasswordValid = PasswordHelper.VerifyPassword(password, user.PasswordSalt, user.PasswordHash);
+                    if (isPasswordValid)
+                    {
+                        return user;
+                    }
+                }
+                finally
+                {
+                    // Nullify sensitive data before returning the user
+                    user.PasswordHash = null;
+                    user.PasswordSalt = null;
+                }
             }
             return null;
         }
@@ -160,19 +208,36 @@ namespace Spider_QAMS.Controllers
         {
             // User-specific data for token generation
             var userId = user.UserId.ToString();
-            var timestamp = DateTime.UtcNow.AddHours(24).ToString("o"); // Token valid for 24 hours
+            var timestamp = DateTime.UtcNow.AddHours(24); // Token valid for 24 hours
 
             // Combine data into a single string
-            var tokenData = $"{userId}|{timestamp}";
+            var tokenData = $"{userId}|{timestamp:o}";
 
-            // Generate a hash for the token data 
-            var tokenHash = ComputeHash(tokenData);
+            // Protect (encrypt) the token data
+            var protectedToken = _protector.Protect(tokenData);
 
-            // Combine token data with hash and encode
-            var token = $"{tokenData}|{tokenHash}";
-            var encodedToken = WebEncoders.Base64UrlEncode(Encoding.UTF8.GetBytes(token));
+            // Encode the token to make it URL-safe
+            var encodedToken = WebEncoders.Base64UrlEncode(Encoding.UTF8.GetBytes(protectedToken));
 
             return encodedToken;
+        }
+
+        public string[] DecodeEmailConfirmationToken(string token)
+        {
+            // Decode the token from Base64
+            var decodedTokenBytes = WebEncoders.Base64UrlDecode(token);
+            var decodedToken = Encoding.UTF8.GetString(decodedTokenBytes);
+
+            // Unprotect (decrypt) the token data
+            var unprotectedToken = _protector.Unprotect(decodedToken);
+
+            // Extract the token data
+            var tokenParts = unprotectedToken.Split('|');
+            if(tokenParts.Length != 2)
+            {
+                return null;
+            }
+            return tokenParts;
         }
 
         public async Task<OperationResult> SignOutAsync()
@@ -196,15 +261,74 @@ namespace Spider_QAMS.Controllers
             }
         }
 
-        private string ComputeHash(string input)
+        public async Task<ApplicationUser> GetCurrentUserAsync(ApplicationUser? user = null)
         {
-            // Implement a password hashing mechanism here
-            using (var sha256 = SHA256.Create())
+            if (!_httpContextAccessor.HttpContext.Session.TryGetValue(SessionKeys.CurrentUserKey, out byte[] currentUserData))
             {
-                var inputBytes = Encoding.UTF8.GetBytes(input);
-                var hashBytes = sha256.ComputeHash(inputBytes);
-                return Convert.ToBase64String(hashBytes);
+                // Session key not found, fetch user data
+                if (user == null)
+                {
+                    // Retrieve JWT or other identifier
+                    var token = GetJWTCookie(JwtCookieName);
+                    if (!string.IsNullOrEmpty(token))
+                    {
+                        var principal = GetPrincipalFromToken(token);
+                        var emailClaim = principal.Claims.FirstOrDefault(c => c.Type == ClaimTypes.Email)?.Value;
+                        if (!string.IsNullOrEmpty(emailClaim))
+                        {
+                            var currentUser = await GetUserByEmailAsync(emailClaim);
+                            if (currentUser != null)
+                            {
+                                _httpContextAccessor.HttpContext.Session.Set(SessionKeys.CurrentUserKey, Encoding.UTF8.GetBytes(JsonSerializer.Serialize(currentUser)));
+                                return currentUser;
+                            }
+                        }
+                    }
+                    return null; // No user found, return null
+                }
+                else
+                {
+                    // Set the session with the provided user
+                    _httpContextAccessor.HttpContext.Session.Set(SessionKeys.CurrentUserKey, Encoding.UTF8.GetBytes(JsonSerializer.Serialize(user)));
+                }
             }
+            else
+            {
+                // Retrieve and deserialize the user data from the session
+                user = JsonSerializer.Deserialize<ApplicationUser>(Encoding.UTF8.GetString(currentUserData));
+            }
+            return user;
+        }
+
+        public async Task<IList<Claim>> GetCurrentUserClaimsAsync(ApplicationUser user)
+        {
+            if (!_httpContextAccessor.HttpContext.Session.TryGetValue(Constants.SessionKeys.CurrentUserClaimsKey, out byte[] claimsData))
+            {
+                if (user != null)
+                {
+                    var claims = new List<Claim>
+                    {
+                        new Claim(ClaimTypes.NameIdentifier, user.UserId.ToString()),
+                        new Claim(ClaimTypes.Email, user.EmailID)
+                    };
+
+                    var roles = await GetUserRolesAsync(user.UserId);
+                    foreach (var role in roles)
+                    {
+                        claims.Add(new Claim(ClaimTypes.Role, role));
+                    }
+
+                    _httpContextAccessor.HttpContext.Session.Set(Constants.SessionKeys.CurrentUserClaimsKey, Encoding.UTF8.GetBytes(JsonSerializer.Serialize(claims)));
+                    await GetCurrentUserAsync(user);
+
+                    return claims;
+                }
+            }
+            else
+            {
+                return JsonSerializer.Deserialize<IList<Claim>>(Encoding.UTF8.GetString(claimsData));
+            }
+            return null;
         }
 
         private ClaimsPrincipal GetPrincipalFromToken(string token)

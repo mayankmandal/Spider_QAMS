@@ -23,15 +23,7 @@ namespace Spider_QAMS.Pages.Account
                 return RedirectToPage("/Account/Login");
             }
 
-            var user = await _applicationUserBusinessLogic.FindByIdAsync(userId);
-
-            if (user == null)
-            {
-                TempData["error"] = "Invalid user.";
-                return RedirectToPage("/Account/Login");
-            }
-
-            var result = await _applicationUserBusinessLogic.ConfirmEmailAsync(user, token);
+            var result = await _applicationUserBusinessLogic.ConfirmEmailAsync(userId,token);
             if (result.Succeeded)
             {
                 // Sign out the user after successful email confirmation

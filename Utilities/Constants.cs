@@ -6,6 +6,8 @@ namespace Spider_QAMS.Utilities
     {
         public const string BaseUserRoleName = "Base User Access"; // Needs Attention for Change if required for string value
 
+        public const string CategoryType_UncategorizedPages = "Uncategorized Pages";
+
         public static string SuperUserName = "SuperUser";
         public static string SiteInspectorName = "SiteInspector";
         public static string SiteAuditorName = "SiteAuditor";
@@ -13,8 +15,13 @@ namespace Spider_QAMS.Utilities
         public static string SP_RegisterNewUser = "dbo.uspRegisterNewUser";
         public static string SP_UpdateUserFlags = "dbo.uspUpdateUserFlags";
         public static string SP_UpdateUserVerificationInitialSetup = "dbo.uspUpdateUserVerificationInitialSetup";
+        public const string SP_AddUserPermission = "dbo.uspAddUserPermission";
+        public const string SP_AddNewProfile = "dbo.uspAddNewProfile";
+        public const string SP_DeleteUserPermission = "dbo.uspDeleteUserPermission";
+        public const string SP_AddNewUser = "dbo.uspAddNewUser";
+        public const string SP_UpdateUser = "dbo.uspUpdateUser";
 
-        
+        public const string SP_CheckUniqueness = "dbo.uspCheckUniqueness";
 
         public static List<SelectListItem> GetTimeDropDown()
         {
@@ -32,7 +39,6 @@ namespace Spider_QAMS.Utilities
 
         public const string JwtCookieName = "_next-session-value";
         public const string JwtRefreshTokenName = "_next-session-token";
-        public const string JwtAMRTokenName = "_next-amr-value";
 
         public enum UserFlagsProperty
         {
@@ -45,15 +51,32 @@ namespace Spider_QAMS.Utilities
             PhoneNumberConfirmed = 6
         };
 
+        public enum TableNameCheckUniqueness
+        {
+            User = 1,
+            Profile = 2,
+            PageCategory = 3
+        };
+
+        public static class TableNameClassForUniqueness
+        {
+            public static string[] User = { "emailid", "phonenumber", "username", "profilepicname" };
+            public static string[] Profile = { "profilename" };
+            public static string[] PageCategory = { "categoryname" };
+        };
+
+        public static class UserPermissionStates
+        {
+            public static int PageIdOnly = 1;
+            public static int PageCategoryIdOnly = 2;
+            public static int BothPageIdAndPageCategoryId = 3;
+        };
+
         public static class JWTCookieHelper
         {
             public static string GetJWTCookie(HttpContext httpContext)
             {
-                return httpContext.Request.Cookies[Constants.JwtCookieName];
-            }
-            public static string GetJWTAMRToken(HttpContext httpContext)
-            {
-                return httpContext.Request.Cookies[Constants.JwtAMRTokenName];
+                return httpContext.Request.Cookies[JwtCookieName];
             }
         }
         public static class SessionKeys
@@ -74,8 +97,6 @@ namespace Spider_QAMS.Utilities
             public const string LoginTwoFactorWithAuthenticator = "/Account/LoginTwoFactorWithAuthenticator";
             public const string Logout = "/Account/Logout";
             public const string Register = "/Account/Register";
-            public const string UserRoleAssignment = "/Account/UserRoleAssignment";
-            public const string UserVerificationSetup = "/Account/UserVerificationSetup";
             public const string Dashboard = "/Dashboard";
             public const string ReadUserProfile = "/ReadUserProfile";
             public const string EditSettings = "/EditSettings";

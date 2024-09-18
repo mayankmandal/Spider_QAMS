@@ -21,9 +21,9 @@ namespace Spider_QAMS.Models
         public bool? RoleAssignmentEnabled { get; set; }
         public bool? EmailConfirmed { get; set; }
         public bool? PhoneNumberConfirmed { get; set; }
-        public DateTime? CreateDate { get; set; }
-        public int? CreateUserId { get; set; }
-        public DateTime? UpdateDate { get; set; }
-        public int? UpdateUserId { get; set; }
+        public DateTime CreateDate { get; set; }
+        public int CreateUserId { get; set; }
+        public DateTime UpdateDate { get; set; }
+        public int UpdateUserId { get; set; }
     }
 }

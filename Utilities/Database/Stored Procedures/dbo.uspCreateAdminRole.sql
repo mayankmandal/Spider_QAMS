@@ -10,7 +10,7 @@ GO
 -- Create date: YYYY-MM-DD
 -- Description: Insert New Relationship between User & Profile
 -- =============================================
-CREATE PROCEDURE [dbo].[uspCreateAdminRole]
+ALTER PROCEDURE [dbo].[uspCreateAdminRole]
     -- Add the parameters for the stored procedure here
     @NewProfileName VARCHAR(100),
 	@NewCreateUserId INT,
@@ -50,29 +50,6 @@ BEGIN
             GETDATE(), 
             @NewUpdateUserId
         FROM tblPage WITH (NOLOCK)
-        WHERE PageUrl IN (
-            '/CreateCategory',
-            '/UpdateCategory',
-            '/CreateUserAccessControl',
-            '/UpdateUserAccessControl',
-            '/CreateUserProfile',
-            '/UpdateUserProfile',
-            '/ProfileCategoryAssign',
-            '/DeleteEntityRecord',
-			'/Account/AccessDenied',
-			'/Account/AuthenticatorWithMFASetup',
-			'/Account/ConfirmEmail',
-			'/Account/Login',
-			'/Account/LoginTwoFactorWithAuthenticator',
-			'/Account/Logout',
-			'/Account/Register',
-			'/Account/UserRoleAssignment',
-			'/Account/UserVerificationSetup',
-			'/Dashboard',
-			'/ReadUserProfile',
-			'/EditSettings',
-			'/Error'
-        );
 
 		-- If everything is successful, commit the transaction
         COMMIT TRANSACTION;

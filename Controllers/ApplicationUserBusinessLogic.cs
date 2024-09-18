@@ -1,11 +1,12 @@
 ﻿using Microsoft.AspNetCore.DataProtection;
-using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.IdentityModel.Tokens;
 using Spider_QAMS.Models;
+using Spider_QAMS.Models.ViewModels;
 using Spider_QAMS.Repositories.Domain;
 using Spider_QAMS.Utilities;
 using System.IdentityModel.Tokens.Jwt;
+using System.Net.Http.Headers;
 using System.Security.Claims;
 using System.Text;
 using System.Text.Json;
@@ -18,11 +19,14 @@ namespace Spider_QAMS.Controllers
         private readonly IHttpContextAccessor _httpContextAccessor;
         private readonly IConfiguration _configuration;
         private readonly IDataProtector _protector;
-        public ApplicationUserBusinessLogic(IHttpContextAccessor httpContextAccessor, IConfiguration configuration, IDataProtectionProvider dataProtectionProvider)
+        private readonly IHttpClientFactory _clientFactory;
+        public ApplicationUserBusinessLogic(IHttpContextAccessor httpContextAccessor, IConfiguration configuration, IDataProtectionProvider dataProtectionProvider, IHttpClientFactory clientFactory)
         {
             _httpContextAccessor = httpContextAccessor;
             _configuration = configuration;
             _protector = dataProtectionProvider.CreateProtector("EmailConfirmation");
+            _clientFactory = clientFactory;
+
         }
 
         public HttpContext UserContext => _httpContextAccessor.HttpContext;
@@ -187,6 +191,23 @@ namespace Spider_QAMS.Controllers
             return _httpContextAccessor.HttpContext?.Request.Cookies[name];
         }
 
+        public async Task FetchAndCacheUserPermissions(string AccessTokenValue)
+        {
+            var client = _clientFactory.CreateClient();
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", AccessTokenValue);
+
+            // Fetch pages
+            var pagesResponse = await client.GetStringAsync($"{_configuration["ApiBaseUrl"]}/Navigation/GetCurrentUserPages");
+            var pages = JsonSerializer.Deserialize<List<PageSiteVM>>(pagesResponse, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+
+            _httpContextAccessor.HttpContext.Session.Set(SessionKeys.CurrentUserPagesKey, Encoding.UTF8.GetBytes(JsonSerializer.Serialize(pages)));
+
+            // Fetch categories
+            var categoriesResponse = await client.GetStringAsync($"{_configuration["ApiBaseUrl"]}/Navigation/GetCurrentUserCategories");
+            var categories = JsonSerializer.Deserialize<List<CategoryDisplayViewModel>>(categoriesResponse, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+            _httpContextAccessor.HttpContext.Session.Set(SessionKeys.CurrentUserCategoriesKey, Encoding.UTF8.GetBytes(JsonSerializer.Serialize(categories)));
+        }
+
         public async Task<ApplicationUser> RegisterUserAsync(ApplicationUser user, string password)
         {
             if (user != null || password != null)
@@ -295,7 +316,7 @@ namespace Spider_QAMS.Controllers
             else
             {
                 // Retrieve and deserialize the user data from the session
-                user = JsonSerializer.Deserialize<ApplicationUser>(Encoding.UTF8.GetString(currentUserData));
+                user = JsonSerializer.Deserialize<ApplicationUser>(Encoding.UTF8.GetString(currentUserData),new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
             }
             return user;
         }
@@ -326,12 +347,12 @@ namespace Spider_QAMS.Controllers
             }
             else
             {
-                return JsonSerializer.Deserialize<IList<Claim>>(Encoding.UTF8.GetString(claimsData));
+                return JsonSerializer.Deserialize<IList<Claim>>(Encoding.UTF8.GetString(claimsData), new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
             }
             return null;
         }
 
-        private ClaimsPrincipal GetPrincipalFromToken(string token)
+        public ClaimsPrincipal GetPrincipalFromToken(string token)
         {
             var tokenHandler = new JwtSecurityTokenHandler();
             var validationParameters = new TokenValidationParameters

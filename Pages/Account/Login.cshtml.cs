@@ -50,22 +50,7 @@ namespace Spider_QAMS.Pages.Account
 
             await ManageUserClaimsAndPermissions(user);
 
-            if (user.UserVerificationSetupEnabled == null || user.UserVerificationSetupEnabled == true)
-            {
-                TempData["success"] = "Please complete your user verification setup.";
-                return RedirectToPage("/Account/UserVerificationSetup");
-            }
-            else if (user.UserVerificationSetupEnabled == true && user.RoleAssignmentEnabled == false)
-            {
-                TempData["success"] = "Firstly User need to be assigned with Appropriate Role for further accessibility";
-                return RedirectToPage("/Account/UserRoleAssignment");
-            }
-            else if (user.UserVerificationSetupEnabled == true && user.RoleAssignmentEnabled == true)
-            {
-                TempData["success"] = "Login successful.";
-                return RedirectToPage("/Dashboard");
-            }
-            return Page();
+            return RedirectToPage("/Dashboard");
         }
         private async Task ManageUserClaimsAndPermissions(ApplicationUser user)
         {

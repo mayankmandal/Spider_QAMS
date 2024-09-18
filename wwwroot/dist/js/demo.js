@@ -1,5 +1,5 @@
 /**
- * AdminLTE Demo Menu
+ * SpiderQAMS Demo Menu
  * ------------------
  * You should not use this file in production.
  * This file is for demo purposes only.
@@ -10,13 +10,13 @@
 (function ($) {
   'use strict'
 
-  setTimeout(function () {
-    if (window.___browserSync___ === undefined && Number(localStorage.getItem('AdminLTE:Demo:MessageShowed')) < Date.now()) {
-      localStorage.setItem('AdminLTE:Demo:MessageShowed', (Date.now()) + (15 * 60 * 1000))
+/*  setTimeout(function () {
+    if (window.___browserSync___ === undefined && Number(localStorage.getItem('SpiderQAMS:Demo:MessageShowed')) < Date.now()) {
+      localStorage.setItem('SpiderQAMS:Demo:MessageShowed', (Date.now()) + (15 * 60 * 1000))
       // eslint-disable-next-line no-alert
-      alert('You load AdminLTE\'s "demo.js", \nthis file is only created for testing purposes!')
+      alert('You load SpiderQAMS\'s "demo.js", \nthis file is only created for testing purposes!')
     }
-  }, 1000)
+  }, 1000)*/
 
   function capitalizeFirstLetter(string) {
     return string.charAt(0).toUpperCase() + string.slice(1)
@@ -60,7 +60,7 @@
   // Checkboxes
 
   $container.append(
-    '<h5>Customize AdminLTE</h5><hr class="mb-2"/>'
+    '<h5>Customize SpiderQAMS</h5><hr class="mb-2"/>'
   )
 
   var $dark_mode_checkbox = $('<input />', {

@@ -1,0 +1,15 @@
+﻿@page
+@model Spider_QAMS.Pages.Users.DeleteUserModel
+@{
+    ViewData["Title"] = "Delete User";
+}
+
+<h2>Delete User</h2>
+
+<p>Are you sure you want to delete the user <strong>@Model.User.</strong>?</p>
+
+<form method="post">
+    <input type="hidden" asp-for="User.UserId" />
+    <button type="submit" class="btn btn-danger">Delete</button>
+    <a asp-page="ManageUsers" class="btn btn-secondary">Cancel</a>
+</form>

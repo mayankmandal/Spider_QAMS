@@ -1,0 +1,22 @@
+﻿@using Spider_QAMS.Utilities
+@inject IHttpContextAccessor HttpContextAccessor
+@functions {
+    public string GetTokenC(HttpContext context)
+    {
+        if (context == null)
+        {
+            return null;
+        }
+        // Retrieve the tokenC value from session
+        return Constants.JWTCookieHelper.GetJWTCookie(context);
+    }
+}
+
+@{
+    var tokenC = GetTokenC(HttpContextAccessor.HttpContext);
+}
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        window.tokenC = '@tokenC';
+    });
+</script>

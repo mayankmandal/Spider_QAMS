@@ -1,16 +1,41 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
+using Spider_QAMS.Controllers;
+using Spider_QAMS.Utilities;
 
 namespace Spider_QAMS.Pages.Account
 {
     [Authorize(Policy = "PageAccess")]
     public class LogoutModel : PageModel
     {
-        public IActionResult OnPost()
+        private readonly ApplicationUserBusinessLogic _applicationUserBusinessLogic;
+        public LogoutModel(ApplicationUserBusinessLogic applicationUserBusinessLogic)
         {
-            HttpContext.Session.Remove("Email");
-            return RedirectToPage("Login");
+            _applicationUserBusinessLogic = applicationUserBusinessLogic;
+        }
+        public async Task<IActionResult> OnGetAsync()
+        {
+            return Page();
+        }
+        public async Task <IActionResult> OnPostAsync()
+        {
+            // Call your custom SignOut method
+            var result = await _applicationUserBusinessLogic.SignOutAsync();
+
+            if(result.Succeeded)
+            {
+                // Clear the session and redirect to login
+                HttpContext.Session.Clear();
+                TempData["success"] = $"User logged out Successfully";
+                return RedirectToPage("/Account/Login");
+            }
+            else
+            {
+                ModelState.AddModelError(string.Empty, "Failed to log out.");
+                TempData["error"] = $"Failed to log out.";
+                return Page();
+            }
         }
     }
 }

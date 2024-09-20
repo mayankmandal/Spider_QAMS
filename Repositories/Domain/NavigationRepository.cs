@@ -11,99 +11,6 @@ namespace Spider_QAMS.Repositories.Domain
 {
     public class NavigationRepository : INavigationRepository
     {
-        private object GetDbValue<T>(T newValue, T existingValue)
-        {
-            if (newValue == null || newValue.Equals(DBNull.Value))
-            {
-                return DBNull.Value;
-            }
-            // Handle string case
-            if (typeof(T) == typeof(string))
-            {
-                if (string.IsNullOrEmpty(newValue as string) || (newValue as string) == (existingValue as string))
-                {
-                    return DBNull.Value;
-                }
-            }
-            // Handle other types (int?, bool?, etc.)
-            else if (newValue.Equals(existingValue))
-            {
-                return DBNull.Value;
-            }
-            return newValue;
-        }
-        public async Task<string> UpdateUserVerificationAsync(UserVerifyApiVM userVerifyApiVM, int CurrentUserId)
-        {
-            try
-            {
-                int NumberOfRowsAffected = 0;
-
-                ProfileUserAPIVM profileUserExisting = new ProfileUserAPIVM();
-                string commandText = $"SELECT u.IdNumber, u.FullName, u.Email, u.MobileNo, u.Username, u.Userimgpath, u.IsActive from AspNetUsers u WHERE U.Id = {CurrentUserId}";
-                DataTable dataTable = SqlDBHelper.ExecuteSelectCommand(commandText, CommandType.Text);
-
-                if (dataTable.Rows.Count > 0)
-                {
-                    DataRow dataRow = dataTable.Rows[0];
-                    profileUserExisting = new ProfileUserAPIVM
-                    {
-                        FullName = dataRow["FullName"] != DBNull.Value ? dataRow["FullName"].ToString() : string.Empty,
-                        Designation = dataRow["Designation"] != DBNull.Value ? dataRow["Designation"].ToString() : string.Empty,
-                        EmailID = dataRow["EmailID"] != DBNull.Value ? dataRow["EmailID"].ToString() : string.Empty,
-                        PhoneNumber = dataRow["PhoneNumber"] != DBNull.Value ? dataRow["PhoneNumber"].ToString() : string.Empty,
-                        UserName = dataRow["UserName"] != DBNull.Value ? dataRow["UserName"].ToString() : string.Empty,
-                        ProfilePicName = dataRow["ProfilePicName"] != DBNull.Value ? dataRow["ProfilePicName"].ToString() : string.Empty,
-                        IsActive = dataRow["IsActive"] != DBNull.Value && Convert.ToBoolean(dataRow["IsActive"]),
-                    };
-                }
-
-                // User Profile Updation
-                SqlParameter[] sqlParameters = new SqlParameter[]
-                {
-                    new SqlParameter("@UserId", SqlDbType.Int) { Value = CurrentUserId },
-                    new SqlParameter("@NewDesignation", SqlDbType.VarChar, 200) { Value = GetDbValue(userVerifyApiVM.Designation, profileUserExisting.Designation) },
-                    new SqlParameter("@NewFullName", SqlDbType.VarChar, 200) { Value = GetDbValue(userVerifyApiVM.FullName, profileUserExisting.FullName) },
-                    new SqlParameter("@NewPhoneNumber", SqlDbType.VarChar, 15) { Value = GetDbValue(userVerifyApiVM.PhoneNumber, profileUserExisting.PhoneNumber) },
-                    new SqlParameter("@NewUserName", SqlDbType.VarChar, 100) { Value = GetDbValue(userVerifyApiVM.UserName, profileUserExisting.UserName) },
-                    new SqlParameter("@NewProfilePicName", SqlDbType.VarChar, 255) { Value = GetDbValue(userVerifyApiVM.ProfilePicName, profileUserExisting.ProfilePicName) },
-                    new SqlParameter("@NewIsActive", SqlDbType.Bit) { Value = 1 }, // Makes User Active with User Verification Setup completion
-                    new SqlParameter("@NewUpdateUserId", SqlDbType.Int) { Value = CurrentUserId },
-                    new SqlParameter("@NewCreateUserId", SqlDbType.Int) { Value = CurrentUserId },
-                    new SqlParameter("@TextCriteria", SqlDbType.Int) { Value = (int)UserFlagsProperty.UserVerificationSetupEnabled },
-                    new SqlParameter("@InputFlag", SqlDbType.Bit) { Value = true },
-                    new SqlParameter("@BaseUserRoleName", SqlDbType.VarChar, 200) { Value = Constants.BaseUserRoleName }
-                };
-
-                // Execute the command
-                List<DataTable> tables = SqlDBHelper.ExecuteParameterizedNonQuery(Constants.SP_UpdateUserVerificationInitialSetup, CommandType.StoredProcedure, sqlParameters);
-                if (tables.Count > 0)
-                {
-                    dataTable = tables[0];
-                    if (dataTable.Rows.Count > 0)
-                    {
-                        DataRow dataRow = dataTable.Rows[0];
-                        NumberOfRowsAffected = (int)dataRow["RowsAffected"];
-                        if (NumberOfRowsAffected < 0)
-                        {
-                            return string.Empty;
-                        }
-                    }
-                    else
-                    {
-                        return string.Empty;
-                    }
-                }
-                return profileUserExisting.ProfilePicName;
-            }
-            catch (SqlException sqlEx)
-            {
-                throw new Exception("Error while adding User Profile - SQL Exception.", sqlEx);
-            }
-            catch (Exception ex)
-            {
-                throw new Exception("Error while adding User Profile.", ex);
-            }
-        }
         public async Task<List<ProfileUserAPIVM>> GetAllUsersDataAsync()
         {
             try
@@ -311,92 +218,6 @@ namespace Spider_QAMS.Repositories.Domain
                 throw new Exception("Error in Getting Settings.", ex);
             }
         }
-        public async Task<bool> CreateUserAccessAsync(ProfilePagesAccessDTO profilePagesAccessDTO, int CurrentUserId)
-        {
-            try
-            {
-                SqlParameter[] sqlParameters;
-                bool isFailure;
-                int UserIdentity = 0;
-
-                if (profilePagesAccessDTO.ProfileData.ProfileId > 0)
-                {
-                    // Deletion of existing access for profiles for a user
-                    sqlParameters = new SqlParameter[]
-                    {
-                        new SqlParameter("@ProfileId", SqlDbType.Int){Value = profilePagesAccessDTO.ProfileData.ProfileId},
-                        new SqlParameter("@State", SqlDbType.Int){Value = UserPermissionStates.PageIdOnly},
-                    };
-                    isFailure = SqlDBHelper.ExecuteNonQuery(SP_DeleteUserPermission, CommandType.StoredProcedure, sqlParameters);
-                    if (isFailure)
-                    {
-                        return false;
-                    }
-                    // User Profile Access Allotment
-                    foreach (PageSiteVM pageSite in profilePagesAccessDTO.PagesList)
-                    {
-                        sqlParameters = new SqlParameter[]
-                        {
-                        new SqlParameter("@NewProfileId", SqlDbType.Int){Value = profilePagesAccessDTO.ProfileData.ProfileId},
-                        new SqlParameter("@NewPageId", SqlDbType.Int){Value = pageSite.PageId},
-                        new SqlParameter("@NewPageCatId", SqlDbType.Int){Value = DBNull.Value},
-                        new SqlParameter("@NewCreateUserId", SqlDbType.Int){Value = CurrentUserId},
-                        new SqlParameter("@NewUpdateUserId", SqlDbType.Int){Value = CurrentUserId},
-                        };
-                        isFailure = SqlDBHelper.ExecuteNonQuery(SP_AddUserPermission, CommandType.StoredProcedure, sqlParameters);
-                        if (isFailure)
-                        {
-                            return false;
-                        }
-                    }
-                }
-                else
-                {
-                    SqlParameter userIdentityParam = new SqlParameter("@UserIdentity", SqlDbType.Int) { Direction = ParameterDirection.Output };
-                    sqlParameters = new SqlParameter[]
-                    {
-                        new SqlParameter("@NewProfileName", SqlDbType.VarChar,50){Value = profilePagesAccessDTO.ProfileData.ProfileName},
-                        new SqlParameter("@NewCreateUserId", SqlDbType.Int){Value = CurrentUserId},
-                        new SqlParameter("@NewUpdateUserId", SqlDbType.Int){Value = CurrentUserId},
-                        userIdentityParam
-                    };
-                    // Execute the command
-                    isFailure = SqlDBHelper.ExecuteNonQuery(SP_AddNewProfile, CommandType.StoredProcedure, sqlParameters);
-                    if (isFailure || userIdentityParam.Value == DBNull.Value)
-                    {
-                        return false;
-                    }
-                    UserIdentity = (int)userIdentityParam.Value;
-
-                    // User Profile Access Allotment
-                    foreach (PageSiteVM pageSite in profilePagesAccessDTO.PagesList)
-                    {
-                        sqlParameters = new SqlParameter[]
-                        {
-                            new SqlParameter("@NewProfileId", SqlDbType.Int){Value = UserIdentity},
-                            new SqlParameter("@NewPageId", SqlDbType.Int){Value = pageSite.PageId},
-                            new SqlParameter("@NewPageCatId", SqlDbType.Int){Value = DBNull.Value},
-                            new SqlParameter("@NewCreateUserId", SqlDbType.Int){Value = CurrentUserId},
-                            new SqlParameter("@NewUpdateUserId", SqlDbType.Int){Value = CurrentUserId},
-                        };
-                        isFailure = SqlDBHelper.ExecuteNonQuery(SP_AddUserPermission, CommandType.StoredProcedure, sqlParameters);
-                        if (isFailure)
-                        {
-                            return false;
-                        }
-                    }
-                }
-            }
-            catch (SqlException sqlEx)
-            {
-                throw new Exception("Error adding relationship between new user profile - SQL Exception.", sqlEx);
-            }
-            catch (Exception ex)
-            {
-                throw new Exception("Error adding relationship between new user profile.", ex);
-            }
-            return true;
-        }
         public async Task<bool> CreateUserProfileAsync(ProfileUser userProfileData, int CurrentUserId)
         {
             try
@@ -456,8 +277,8 @@ namespace Spider_QAMS.Repositories.Domain
             {
                 int NumberOfRowsAffected = 0;
 
-                ProfileUserAPIVM profileUserExisting = new ProfileUserAPIVM();
-                string commandText = $"SELECT u.IdNumber, u.FullName, u.Email, u.MobileNo, u.Username, u.Userimgpath, u.IsActive, u.IsActiveDirectoryUser, u.ChangePassword, UR.RoleId AS ProfileId from AspNetUsers u LEFT JOIN AspNetUserRoles ur ON u.Id = ur.UserId WHERE U.Id = {CurrentUserId}";
+                ProfileUserAPIVM profileUserExisting = null;
+                string commandText = $"SELECT u.Designation, u.FullName, u.EmailID, u.PhoneNumber, u.UserName, u.ProfilePicName, u.IsActive, u.IsADUser, u.ProfileId from Users u WHERE U.UserId = {CurrentUserId}";
                 DataTable dataTable = SqlDBHelper.ExecuteSelectCommand(commandText, CommandType.Text);
 
                 if (dataTable.Rows.Count > 0)
@@ -467,17 +288,17 @@ namespace Spider_QAMS.Repositories.Domain
                     {
                         Designation = dataRow["Designation"] != DBNull.Value ? dataRow["Designation"].ToString() : string.Empty,
                         FullName = dataRow["FullName"] != DBNull.Value ? dataRow["FullName"].ToString() : string.Empty,
-                        EmailID = dataRow["Email"] != DBNull.Value ? dataRow["Email"].ToString() : string.Empty,
-                        PhoneNumber = dataRow["MobileNo"] != DBNull.Value ? dataRow["MobileNo"].ToString() : string.Empty,
+                        EmailID = dataRow["EmailID"] != DBNull.Value ? dataRow["EmailID"].ToString() : string.Empty,
+                        PhoneNumber = dataRow["PhoneNumber"] != DBNull.Value ? dataRow["PhoneNumber"].ToString() : string.Empty,
                         ProfileSiteData = new ProfileSite
                         {
                             ProfileId = dataRow["ProfileId"] != DBNull.Value ? Convert.ToInt32(dataRow["ProfileId"]) : 0,
                             ProfileName = string.Empty
                         },
-                        UserName = dataRow["Username"] != DBNull.Value ? dataRow["Username"].ToString() : string.Empty,
-                        ProfilePicName = dataRow["Userimgpath"] != DBNull.Value ? dataRow["Userimgpath"].ToString() : string.Empty,
+                        UserName = dataRow["UserName"] != DBNull.Value ? dataRow["UserName"].ToString() : string.Empty,
+                        ProfilePicName = dataRow["ProfilePicName"] != DBNull.Value ? dataRow["ProfilePicName"].ToString() : string.Empty,
                         IsActive = dataRow["IsActive"] != DBNull.Value ? Convert.ToBoolean(dataRow["IsActive"]) : false,
-                        IsADUser = dataRow["IsActiveDirectoryUser"] != DBNull.Value ? Convert.ToBoolean(dataRow["IsActiveDirectoryUser"]) : false,
+                        IsADUser = dataRow["IsADUser"] != DBNull.Value ? Convert.ToBoolean(dataRow["IsADUser"]) : false,
                     };
                 }
 
@@ -485,15 +306,15 @@ namespace Spider_QAMS.Repositories.Domain
                 SqlParameter[] sqlParameters = new SqlParameter[]
                 {
                     new SqlParameter("@UserId", SqlDbType.Int) { Value = userProfileData.UserId },
-                    new SqlParameter("@NewIdNumber", SqlDbType.VarChar, 10) { Value = GetDbValue(userProfileData.Designation, profileUserExisting.Designation) },
-                    new SqlParameter("@NewFullName", SqlDbType.VarChar, 200) { Value = GetDbValue(userProfileData.FullName, profileUserExisting.FullName) },
-                    new SqlParameter("@NewEmailAddress", SqlDbType.VarChar, 100) { Value = GetDbValue(userProfileData.EmailID, profileUserExisting.EmailID) },
-                    new SqlParameter("@NewMobileNumber", SqlDbType.VarChar, 15) { Value = GetDbValue(userProfileData.PhoneNumber, profileUserExisting.PhoneNumber) },
-                    new SqlParameter("@NewProfileId", SqlDbType.Int) { Value = GetDbValue(userProfileData.ProfileSiteData.ProfileId, profileUserExisting.ProfileSiteData.ProfileId) },
-                    new SqlParameter("@NewUsername", SqlDbType.VarChar, 100) { Value = GetDbValue(userProfileData.UserName, profileUserExisting.UserName) },
-                    new SqlParameter("@NewUserimgpath", SqlDbType.VarChar, 255) { Value = GetDbValue(userProfileData.ProfilePicName, profileUserExisting.ProfilePicName) },
-                    new SqlParameter("@NewIsActive", SqlDbType.Bit) { Value = GetDbValue(userProfileData.IsActive, profileUserExisting.IsActive) },
-                    new SqlParameter("@NewIsActiveDirectoryUser", SqlDbType.Bit) { Value = GetDbValue(userProfileData.IsADUser, profileUserExisting.IsADUser) },
+                    new SqlParameter("@NewDesignation", SqlDbType.VarChar, 10) { Value = userProfileData.Designation == profileUserExisting.Designation ? DBNull.Value : userProfileData.Designation },
+                    new SqlParameter("@NewFullName", SqlDbType.VarChar, 200) { Value = userProfileData.FullName == profileUserExisting.FullName ? DBNull.Value : userProfileData.FullName },
+                    new SqlParameter("@NewEmailID", SqlDbType.VarChar, 100) { Value = userProfileData.EmailID == profileUserExisting.EmailID ? DBNull.Value : userProfileData.EmailID },
+                    new SqlParameter("@NewPhoneNumber", SqlDbType.VarChar, 15) { Value = userProfileData.PhoneNumber == profileUserExisting.PhoneNumber ? DBNull.Value : userProfileData.PhoneNumber },
+                    new SqlParameter("@NewProfileId", SqlDbType.Int) { Value = userProfileData.ProfileSiteData.ProfileId == profileUserExisting.ProfileSiteData.ProfileId ? DBNull.Value : userProfileData.ProfileSiteData.ProfileId },
+                    new SqlParameter("@NewUserName", SqlDbType.VarChar, 100) { Value = userProfileData.UserName == profileUserExisting.UserName ? DBNull.Value : userProfileData.UserName },
+                    new SqlParameter("@NewProfilePicName", SqlDbType.VarChar, 255) { Value = userProfileData.ProfilePicName == profileUserExisting.ProfilePicName ? DBNull.Value : userProfileData.ProfilePicName },
+                    new SqlParameter("@NewIsActive", SqlDbType.Bit) { Value = userProfileData.IsActive == profileUserExisting.IsActive ? DBNull.Value : userProfileData.IsActive },
+                    new SqlParameter("@NewIsADUser", SqlDbType.Bit) { Value = userProfileData.IsADUser == profileUserExisting.IsADUser ? DBNull.Value : userProfileData.IsADUser },
                     new SqlParameter("@NewUpdateUserId", SqlDbType.Int) { Value = CurrentUserId }
                 };
 
@@ -733,6 +554,32 @@ namespace Spider_QAMS.Repositories.Domain
             {
                 // Log or handle other exceptions
                 throw new Exception("Error in Getting Current User Categories.", ex);
+            }
+        }
+        public async Task<bool> DeleteEntityAsync(int deleteId, string deleteType)
+        {
+            try
+            {
+                SqlParameter[] sqlParameters = new SqlParameter[]
+                {
+                    new SqlParameter("@Id", SqlDbType.Int){Value = deleteId},
+                    new SqlParameter("@Type", SqlDbType.VarChar, 10){Value = deleteType},
+                };
+
+                bool isFailure = SqlDBHelper.ExecuteNonQuery(SP_DeleteEntityRecord, CommandType.StoredProcedure, sqlParameters);
+                if (isFailure)
+                {
+                    return false;
+                }
+                return true;
+            }
+            catch (SqlException sqlEx)
+            {
+                throw new Exception($"Error deleting record for {deleteType} - SQL Exception.", sqlEx);
+            }
+            catch (Exception ex)
+            {
+                throw new Exception($"Error deleting record for {deleteType}.", ex);
             }
         }
     }

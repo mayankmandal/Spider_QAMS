@@ -4,52 +4,27 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>@ViewData["Title"] - Spider_QAMS</title>
-
     <partial name="_Styles" />
 
 </head>
-<body class="hold-transition sidebar-mini layout-fixed">
+<body class="hold-transition sidebar-mini layout-fixed" style="background: linear-gradient(45deg, rgba(227,134,175,1) 0%, rgba(148,193,233,1) 100%);">
     @if (ViewData["Title"] == "" || ViewData["Title"] == "Login")
     {
-        <div class="wrapper">
-
-            <!-- Content Wrapper. Contains page content -->
-            <div class="content-wrapper">
-                <!-- Content Header (Page header) -->
-                <div class="content-header">
-                    <div class="container-fluid">
-                        <div class="row mb-2">
-                            <div class="col-sm-6">
-                                <h1 class="m-0">Dashboard</h1>
-                            </div><!-- /.col -->
-                            <div class="col-sm-6">
-                                <ol class="breadcrumb float-sm-right">
-                                    <li class="breadcrumb-item"><a href="#">Home</a></li>
-                                    <li class="breadcrumb-item active">Dashboard v1</li>
-                                </ol>
-                            </div><!-- /.col -->
-                        </div><!-- /.row -->
-                    </div><!-- /.container-fluid -->
-                </div>
-                <!-- /.content-header -->
-                <!-- Main content -->
-                <div class="content">
-                    <div class="container-fluid">
-                        @RenderBody()
-                    </div><!-- /.container-fluid -->
-                </div>
-                @await Html.PartialAsync("_GetToken")
-            </div>
-
-            <!-- Main Footer -->
-            <partial name="_Footer" />
-
+    <!-- Content Wrapper. Contains page content -->
+        <!-- Main content -->
+        <div class="content">
+            <div class="container-fluid">
+                @RenderBody()
+            </div><!-- /.container-fluid -->
         </div>
+        @await Html.PartialAsync("_GetToken")
+        <script src="/plugins/jquery/jquery.min.js"></script>
+        <script src="/plugins/bootstrap/js/bootstrap.bundle.min.js"></script>
+        <script src="/plugins/toastr/toastr.min.js"></script>
     }
     else
     {
         <div class="wrapper">
-
             @await Html.PartialAsync("_GetToken")
 
             <!-- Main Top bar Container -->
@@ -102,10 +77,10 @@
 
         <!-- Side Left Panel Features -->
         <script src="~/js/side-left-panel.js" asp-append-version="true"></script>
-    }
 
-    <!-- REQUIRED SCRIPTS -->
-    <partial name="_Scripts" />
+        <!-- REQUIRED SCRIPTS -->
+        <partial name="_Scripts" />
+    }
 
     @await RenderSectionAsync("Scripts", required: false)
     @await Html.PartialAsync("_Notification")

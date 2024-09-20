@@ -17,10 +17,6 @@ namespace Spider_QAMS.Models
         public string? Location { get; set; }
         public bool? IsADUser { get; set; }
         public bool? IsActive { get; set; }
-        public bool? UserVerificationSetupEnabled { get; set; }
-        public bool? RoleAssignmentEnabled { get; set; }
-        public bool? EmailConfirmed { get; set; }
-        public bool? PhoneNumberConfirmed { get; set; }
         public DateTime CreateDate { get; set; }
         public int CreateUserId { get; set; }
         public DateTime UpdateDate { get; set; }

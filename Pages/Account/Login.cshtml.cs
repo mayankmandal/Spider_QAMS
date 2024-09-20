@@ -39,13 +39,6 @@ namespace Spider_QAMS.Pages.Account
                 return Page();
             }
 
-            if (user.EmailConfirmed == false)
-            {
-                TempData["error"] = $"Email is not confirmed for {user.EmailID}. Please confirm your email.";
-                ModelState.AddModelError("Login", "You must have a confirmed email to log in.");
-                return Page();
-            }
-
             await _applicationUserBusinessLogic.SignOutAsync();
 
             await ManageUserClaimsAndPermissions(user);

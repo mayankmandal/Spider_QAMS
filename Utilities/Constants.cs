@@ -14,7 +14,6 @@ namespace Spider_QAMS.Utilities
 
         public static string SP_RegisterNewUser = "dbo.uspRegisterNewUser";
         public static string SP_UpdateUserFlags = "dbo.uspUpdateUserFlags";
-        public static string SP_UpdateUserVerificationInitialSetup = "dbo.uspUpdateUserVerificationInitialSetup";
         public const string SP_AddUserPermission = "dbo.uspAddUserPermission";
         public const string SP_AddNewProfile = "dbo.uspAddNewProfile";
         public const string SP_DeleteUserPermission = "dbo.uspDeleteUserPermission";
@@ -22,6 +21,8 @@ namespace Spider_QAMS.Utilities
         public const string SP_UpdateUser = "dbo.uspUpdateUser";
 
         public const string SP_CheckUniqueness = "dbo.uspCheckUniqueness";
+
+        public const string SP_DeleteEntityRecord = "dbo.uspDeleteEntityRecord";
 
         public static List<SelectListItem> GetTimeDropDown()
         {
@@ -57,6 +58,13 @@ namespace Spider_QAMS.Utilities
             Profile = 2,
             PageCategory = 3
         };
+
+        public static class DeleteEntityType
+        {
+            public static string User = "User";
+            public static string Profile = "Profile";
+            public static string Category = "Category";
+        }
 
         public static class TableNameClassForUniqueness
         {

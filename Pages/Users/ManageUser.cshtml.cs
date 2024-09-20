@@ -2,7 +2,9 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Spider_QAMS.Models.ViewModels;
+using System.Net.Http.Headers;
 using System.Text.Json;
+using static Spider_QAMS.Utilities.Constants;
 
 namespace Spider_QAMS.Pages.Users
 {
@@ -37,7 +39,7 @@ namespace Spider_QAMS.Pages.Users
         private async Task<List<ProfileUserVM>> GetAllUsersDataAsync()
         {
             var client = _clientFactory.CreateClient();
-            // client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", JWTCookieHelper.GetJWTCookie(HttpContext));
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", JWTCookieHelper.GetJWTCookie(HttpContext));
             var response = await client.GetStringAsync($"{_configuration["ApiBaseUrl"]}/Navigation/GetAllUsers");
             var usersData = JsonSerializer.Deserialize<List<ProfileUserVM>>(response, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
             return usersData;

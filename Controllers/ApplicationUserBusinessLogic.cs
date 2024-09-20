@@ -26,15 +26,12 @@ namespace Spider_QAMS.Controllers
             _configuration = configuration;
             _protector = dataProtectionProvider.CreateProtector("EmailConfirmation");
             _clientFactory = clientFactory;
-
         }
-
         public HttpContext UserContext => _httpContextAccessor.HttpContext;
         public async Task<ApplicationUser> GetUserByEmailAsync(string email)
         {
             return await GetUserByEmailAsyncRepo(email);
         }
-
         public async Task<ApplicationUser> GetUserByIdAsync(int userId)
         {
             return await GetUserByIdAsyncRepo(userId);
@@ -54,7 +51,6 @@ namespace Spider_QAMS.Controllers
         {
             _httpContextAccessor.HttpContext.Session.Remove(SessionKeys.CurrentUserKey);
         }
-
         public async Task<OperationResult> ConfirmEmailAsync(string userId,string token)
         {
             // Validate the token (this will depend on token generation logic)
@@ -112,7 +108,6 @@ namespace Spider_QAMS.Controllers
             }
             return null; // Return null if no user found
         }
-
         public async Task<int> GetCurrentUserIdAsync(string? jwtToken = null)
         {
             var user = await GetCurrentUserAsync(jwtToken);
@@ -127,7 +122,6 @@ namespace Spider_QAMS.Controllers
         {
             return await GetUserRolesAsyncRepo(userId);
         }
-
         public async Task<ApplicationUser> AuthenticateUserAsync(string email, string password)
         {
             var user = await GetUserByEmailAsync(email);
@@ -151,13 +145,11 @@ namespace Spider_QAMS.Controllers
             }
             return null;
         }
-
         public async Task<bool> CheckUserExistsAsync(string email)
         {
             var user = await GetUserByEmailAsync(email);
             return user != null;
         }
-
         public string GenerateJSONWebToken(IEnumerable<Claim> claims)
         {
             var tokenDescriptor = new SecurityTokenDescriptor
@@ -173,7 +165,6 @@ namespace Spider_QAMS.Controllers
             var token = tokenHandler.CreateToken(tokenDescriptor);
             return tokenHandler.WriteToken(token);
         }
-
         public void SetJWTCookie(string token, string name)
         {
             var cookieOptions = new CookieOptions
@@ -185,12 +176,10 @@ namespace Spider_QAMS.Controllers
             };
             _httpContextAccessor.HttpContext.Response.Cookies.Append(name, token, cookieOptions);
         }
-
         public string GetJWTCookie(string name)
         {
             return _httpContextAccessor.HttpContext?.Request.Cookies[name];
         }
-
         public async Task FetchAndCacheUserPermissions(string AccessTokenValue)
         {
             var client = _clientFactory.CreateClient();
@@ -207,7 +196,6 @@ namespace Spider_QAMS.Controllers
             var categories = JsonSerializer.Deserialize<List<CategoryDisplayViewModel>>(categoriesResponse, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
             _httpContextAccessor.HttpContext.Session.Set(SessionKeys.CurrentUserCategoriesKey, Encoding.UTF8.GetBytes(JsonSerializer.Serialize(categories)));
         }
-
         public async Task<ApplicationUser> RegisterUserAsync(ApplicationUser user, string password)
         {
             if (user != null || password != null)
@@ -224,7 +212,6 @@ namespace Spider_QAMS.Controllers
             }
             return null;
         }
-
         public string GenerateEmailConfirmationToken(ApplicationUser user)
         {
             // User-specific data for token generation
@@ -242,7 +229,6 @@ namespace Spider_QAMS.Controllers
 
             return encodedToken;
         }
-
         public string[] DecodeEmailConfirmationToken(string token)
         {
             // Decode the token from Base64
@@ -260,28 +246,30 @@ namespace Spider_QAMS.Controllers
             }
             return tokenParts;
         }
-
         public async Task<OperationResult> SignOutAsync()
         {
             try
             {
-                // Remove the JWT cookie to log out the user
-                _httpContextAccessor.HttpContext.Response.Cookies.Delete(Constants.JwtCookieName);
+                // Retrieve the JWT token from the cookie before deleting it
+                var jwtToken = GetJWTCookie(JwtCookieName);
 
-                // Retrieve the JWT token from the cookie
-                var jwtToken = GetJWTCookie(Constants.JwtCookieName);
                 if (string.IsNullOrEmpty(jwtToken))
                 {
-                    return OperationResult.Success(); // Token not present, just proceed
+                    return OperationResult.Failure("JWT token not found. Already logged out or cookie missing.");
                 }
-                return OperationResult.Failure("Failed to clear out the Cookies.");
+
+                // Remove the JWT cookie to log out the user
+                _httpContextAccessor.HttpContext.Response.Cookies.Delete(JwtCookieName);
+                _httpContextAccessor.HttpContext.Session.Clear();
+
+                // Token is successfully removed, proceed
+                return OperationResult.Success();
             }
             catch(Exception ex)
             {
                 return OperationResult.Failure("Failed to sign out user.", ex.Message);
             }
         }
-
         public async Task<ApplicationUser> GetCurrentUserAsync(ApplicationUser? user = null)
         {
             if (!_httpContextAccessor.HttpContext.Session.TryGetValue(SessionKeys.CurrentUserKey, out byte[] currentUserData))
@@ -320,7 +308,6 @@ namespace Spider_QAMS.Controllers
             }
             return user;
         }
-
         public async Task<IList<Claim>> GetCurrentUserClaimsAsync(ApplicationUser user)
         {
             if (!_httpContextAccessor.HttpContext.Session.TryGetValue(Constants.SessionKeys.CurrentUserClaimsKey, out byte[] claimsData))
@@ -351,7 +338,6 @@ namespace Spider_QAMS.Controllers
             }
             return null;
         }
-
         public ClaimsPrincipal GetPrincipalFromToken(string token)
         {
             var tokenHandler = new JwtSecurityTokenHandler();

@@ -5,6 +5,8 @@ using System.Text.Json;
 using Spider_QAMS.Models;
 using System.Text;
 using Microsoft.AspNetCore.Authorization;
+using System.Net.Http.Headers;
+using static Spider_QAMS.Utilities.Constants;
 
 namespace Spider_QAMS.Pages.Users
 {
@@ -40,7 +42,7 @@ namespace Spider_QAMS.Pages.Users
         private async Task LoadAllProfilesData()
         {
             var client = _clientFactory.CreateClient();
-            // client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", JWTCookieHelper.GetJWTCookie(HttpContext));
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", JWTCookieHelper.GetJWTCookie(HttpContext));
             var response = await client.GetStringAsync($"{_configuration["ApiBaseUrl"]}/Navigation/GetAllProfiles");
             ProfilesData = JsonSerializer.Deserialize<List<ProfileSiteVM>>(response, new JsonSerializerOptions{PropertyNameCaseInsensitive = true});
         }
@@ -105,8 +107,8 @@ namespace Spider_QAMS.Pages.Users
                 };
 
                 var client = _clientFactory.CreateClient();
-                // client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", JWTCookieHelper.GetJWTCookie(HttpContext));
-                var apiUrl = $"{_configuration["ApiBaseUrl"]}/Navigation/CreateUserProfile";
+                client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", JWTCookieHelper.GetJWTCookie(HttpContext));
+                var apiUrl = $"{_configuration["ApiBaseUrl"]}/Navigation/CreateUser";
                 var jsonContent = JsonSerializer.Serialize(profileUserAPIVM);
                 var httpContent = new StringContent(jsonContent, Encoding.UTF8, "application/json");
                 HttpResponseMessage response = await client.PostAsync(apiUrl, httpContent);

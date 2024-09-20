@@ -4,7 +4,7 @@
     ViewData["Title"] = "Manage Users";
 }
 
-<div class="container">
+<div>
     <div class="row pt-1 mb-3">
         <!-- Title on the left -->
         <div class="col-6">
@@ -31,7 +31,7 @@
         <label for="findByName" class="me-2">Find by name:</label>
         <input type="text" id="findByName" asp-for="SearchTerm" class="form-control me-2" style="width: 300px;" />
         <button type="button" class="btn btn-outline-primary me-2" onclick="SearchUser()">Search</button>
-        <a href="/ManageUsers" class="btn btn-link">Back to full list</a>
+        <a href="/Users/ManageUser" class="btn btn-link">Back to full list</a>
     </div>
 
     <table class="table table-bordered table-striped rounded">
@@ -44,7 +44,7 @@
                 <th>Profile Name</th>
                 <th>Phone Number</th>
                 <th>Is Active</th>
-                <th>Is AD User</th>
+                <th>Is ADUser</th>
                 <th>Actions</th>
             </tr>
         </thead>
@@ -64,7 +64,7 @@
                     <td>
                         <input class="form-check-input ms-2" type="checkbox" disabled="disabled" @(user.IsADUser ? "checked" : "") />
                     </td>
-                    <td>
+                    <td style="white-space: nowrap;">
                         <a asp-page="/Users/UpdateUser" asp-route-userId="@user.UserId" asp- class="btn btn-primary btn-sm"><i class="fas fa-edit"></i></a>
                         <a asp-page="/Users/DeleteUser" asp-route-userId="@user.UserId" class="btn btn-danger btn-sm"><i class="fas fa-trash-alt"></i></a>
                     </td>

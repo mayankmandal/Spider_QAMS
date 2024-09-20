@@ -5,10 +5,9 @@
     TempData["NavigationalPageName"] = "Create User";
 }
 
-<div class="mb-2" style="display:flex; flex-direction:column;justify-content:space-evenly;">
+<div style="display:flex; flex-direction:column; justify-content:center; align-items:center; min-height:20vh;">
     <form method="post" enctype="multipart/form-data" id="createProfileForm">
-        <div id="createProfileSection" class="container form-control pt-4 pb-2" style="height:auto; background-color: #f4f0ec; width:60%;">
-
+        <div id="createProfileSection" class="container form-control pt-4 pb-2" style="height:auto; background-color: #f4f0ec; width:50rem;">
             <div class="container form-control border-2 mb-2" style="display:flex; justify-content:space-around; height:auto; flex-direction:column;">
                 <div class="row pb-1 pt-2">
                     <div style="color:#17a2b8; text-align:center; font-size:1.7rem; font-weight:500">CREATE NEW USER</div>
@@ -193,7 +192,7 @@
                                     <button type="submit" onclick="prepareFormSubmission()" class="btn create-btn" style="width:140px;">Create</button>
                                 </div>
                                 <div class="col-4 ms-3">
-                                    <a asp-page="/Dashboard" class="btn btn-secondary" style="width:180px;"> Back to Dashboard</a>
+                                    <a asp-page="/Users/ManageUser" class="btn btn-secondary" style="width:180px;"> Back to All Users</a>
                                 </div>
                                 <div class="col-3"></div>
                             </div>

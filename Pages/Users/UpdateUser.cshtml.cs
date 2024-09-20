@@ -3,8 +3,10 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Spider_QAMS.Models;
 using Spider_QAMS.Models.ViewModels;
+using System.Net.Http.Headers;
 using System.Text;
 using System.Text.Json;
+using static Spider_QAMS.Utilities.Constants;
 
 namespace Spider_QAMS.Pages.Users
 {
@@ -50,7 +52,7 @@ namespace Spider_QAMS.Pages.Users
         private async Task<UpdateProfileUserVM> GetUserProfileDataAsync(string userId)
         {
             var client = _clientFactory.CreateClient();
-            // client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", JWTCookieHelper.GetJWTCookie(HttpContext));
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", JWTCookieHelper.GetJWTCookie(HttpContext));
             var apiUrl = $"{_configuration["ApiBaseUrl"]}/Navigation/FetchUserRecord";
             var requestBody = new UserIdRequest { UserId = userId };
             var jsonContent = JsonSerializer.Serialize(requestBody);
@@ -92,7 +94,7 @@ namespace Spider_QAMS.Pages.Users
         private async Task LoadAllProfilesData()
         {
             var client = _clientFactory.CreateClient();
-            // client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", JWTCookieHelper.GetJWTCookie(HttpContext));
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", JWTCookieHelper.GetJWTCookie(HttpContext));
             var response = await client.GetStringAsync($"{_configuration["ApiBaseUrl"]}/Navigation/GetAllProfiles");
             ProfilesData = JsonSerializer.Deserialize<List<ProfileSiteVM>>(response, new JsonSerializerOptions
             {
@@ -107,7 +109,7 @@ namespace Spider_QAMS.Pages.Users
             if (ProfileUsersData.UserId != null)
             {
                 var client = _clientFactory.CreateClient();
-                // client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", JWTCookieHelper.GetJWTCookie(HttpContext));
+                client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", JWTCookieHelper.GetJWTCookie(HttpContext));
                 var apiUrl = $"{_configuration["ApiBaseUrl"]}/Navigation/FetchUserRecord";
                 // Create a request with the user ID in the body
                 UserIdRequest requestBody = new UserIdRequest { UserId = ProfileUsersData.UserId.ToString() };
@@ -218,8 +220,8 @@ namespace Spider_QAMS.Pages.Users
                 };
 
                 var client = _clientFactory.CreateClient();
-                // client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", JWTCookieHelper.GetJWTCookie(HttpContext));
-                var apiUrl = $"{_configuration["ApiBaseUrl"]}/Navigation/UpdateUserProfile";
+                client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", JWTCookieHelper.GetJWTCookie(HttpContext));
+                var apiUrl = $"{_configuration["ApiBaseUrl"]}/Navigation/UpdateUser";
                 var jsonContent = JsonSerializer.Serialize(profileUserAPIVM);
                 var httpContent = new StringContent(jsonContent, Encoding.UTF8, "application/json");
                 HttpResponseMessage response = await client.PostAsync(apiUrl, httpContent);
@@ -227,7 +229,7 @@ namespace Spider_QAMS.Pages.Users
                 if (response.IsSuccessStatusCode)
                 {
                     TempData["success"] = $"{ProfileUsersData.FullName} - Profile Updated Successfully";
-                    return RedirectToPage();
+                    return RedirectToPage("/Users/ManageUser");
                 }
                 else
                 {

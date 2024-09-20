@@ -43,7 +43,7 @@ namespace Spider_QAMS.Repositories.Domain
         }
         private class ApiResponse
         {
-            public bool IsUnique;
+            public bool IsUnique { get; set; }
         }
     }
     public class UniquenessCheckRequest

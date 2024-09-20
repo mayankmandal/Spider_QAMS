@@ -5,10 +5,9 @@
     TempData["NavigationalPageName"] = "Update User"; ViewData["Title"] = "Update User";
 }
 
-<div class="mb-2" style="display:flex; flex-direction:column;justify-content:space-evenly;">
+<div style="display:flex; flex-direction:column; justify-content:center; align-items:center; min-height:100vh;">
     <form id="updateProfileForm" method="post" enctype="multipart/form-data">
-        <div id="updateProfileSection" class="container form-control pt-4 pb-2 mt-3" style="height:auto; background-color: #f4f0ec; width:60%;">
-
+        <div id="updateProfileSection" class="container form-control pt-4 pb-2 mt-3" style="height:auto; background-color: #f4f0ec; width:50rem;">
             <div class="container form-control border-2 mb-2" style="display:flex; justify-content:space-around; height:auto; flex-direction:column; ">
                 <div class="row pb-1 pt-2">
                     <div style="color:#17a2b8; text-align:center; font-size:1.7rem; font-weight:500">UPDATE USER</div>
@@ -67,7 +66,7 @@
                                     <div class="input-group-prepend">
                                         <span class="input-group-text"><i class="fas fa-briefcase"></i></span>
                                     </div>
-                                    <input type="text" asp-for="ProfileUsersData.Designation" placeholder="National/Iqama Number" class="form-control" />
+                                    <input type="text" asp-for="ProfileUsersData.Designation" placeholder="Designation" class="form-control" />
                                 </div>
                                 <span asp-validation-for="ProfileUsersData.Designation" class="text-danger fw-bold"></span>
                             </div>
@@ -211,7 +210,7 @@
                                     <button type="submit" onclick="prepareFormSubmission()" class="btn create-btn" style="width:140px;">Update</button>
                                 </div>
                                 <div class="col-4 ms-3">
-                                    <a asp-page="/Dashboard" class="btn btn-secondary" style="width:180px;"> Back to All Users</a>
+                                    <a asp-page="/Users/ManageUser" class="btn btn-secondary" style="width:180px;"> Back to All Users</a>
                                 </div>
                                 <div class="col-3"></div>
                             </div>

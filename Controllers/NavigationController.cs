@@ -63,7 +63,7 @@ namespace Spider_QAMS.Controllers
                 CurrentUser currentUser = new CurrentUser
                 {
                     UserId = currentUserData.UserId,
-                    ProfilePicName = Path.Combine(_configuration["UserProfileImgPath"], currentUserData.ProfilePicName == null ? string.Empty : currentUserData.ProfilePicName),
+                    ProfilePicName = Path.Combine(_configuration["BaseUrl"], _configuration["UserProfileImgPath"], currentUserData.ProfilePicName == null ? string.Empty : currentUserData.ProfilePicName),
                     UserName = currentUserData.UserName,
                     Designation = currentUserData.Designation,
                     FullName = currentUserData.FullName,
@@ -274,6 +274,16 @@ namespace Spider_QAMS.Controllers
         {
             try
             {
+                var jwtToken = Request.Headers["Authorization"].ToString().Replace("Bearer ", "");
+                if (string.IsNullOrEmpty(jwtToken))
+                {
+                    return Unauthorized("JWT Token is missing");
+                }
+                var userId = await _applicationUserBusinessLogic.GetCurrentUserIdAsync(jwtToken);
+                if (userId == null)
+                {
+                    return Unauthorized("User is not authenticated.");
+                }
                 var allUsersData = await _navigationRepository.GetAllUsersDataAsync();
                 foreach (var profileUserAPIVM in allUsersData)
                 {
@@ -294,6 +304,16 @@ namespace Spider_QAMS.Controllers
         {
             try
             {
+                var jwtToken = Request.Headers["Authorization"].ToString().Replace("Bearer ", "");
+                if (string.IsNullOrEmpty(jwtToken))
+                {
+                    return Unauthorized("JWT Token is missing");
+                }
+                var userId = await _applicationUserBusinessLogic.GetCurrentUserIdAsync(jwtToken);
+                if (userId == null)
+                {
+                    return Unauthorized("User is not authenticated.");
+                }
                 List<ProfileSiteVM> profileSiteVMs = new List<ProfileSiteVM>();
                 var allProfilesData = await _navigationRepository.GetAllProfilesAsync();
                 foreach (var profileSiteData in allProfilesData)
@@ -320,6 +340,16 @@ namespace Spider_QAMS.Controllers
         {
             try
             {
+                var jwtToken = Request.Headers["Authorization"].ToString().Replace("Bearer ", "");
+                if (string.IsNullOrEmpty(jwtToken))
+                {
+                    return Unauthorized("JWT Token is missing");
+                }
+                var userId = await _applicationUserBusinessLogic.GetCurrentUserIdAsync(jwtToken);
+                if (userId == null)
+                {
+                    return Unauthorized("User is not authenticated.");
+                }
                 List<PageSiteVM> pageSiteVMs = new List<PageSiteVM>();
                 var allPagesData = await _navigationRepository.GetAllPagesAsync();
                 foreach (var page in allPagesData)
@@ -348,6 +378,16 @@ namespace Spider_QAMS.Controllers
         {
             try
             {
+                var jwtToken = Request.Headers["Authorization"].ToString().Replace("Bearer ", "");
+                if (string.IsNullOrEmpty(jwtToken))
+                {
+                    return Unauthorized("JWT Token is missing");
+                }
+                var userId = await _applicationUserBusinessLogic.GetCurrentUserIdAsync(jwtToken);
+                if (userId == null)
+                {
+                    return Unauthorized("User is not authenticated.");
+                }
                 List<PageCategoryVM> pageCategoryVMs = new List<PageCategoryVM>();
                 var allPageCategoryData = await _navigationRepository.GetAllCategoriesAsync();
                 foreach (var pageCategoryData in allPageCategoryData)
@@ -376,6 +416,16 @@ namespace Spider_QAMS.Controllers
         {
             try
             {
+                var jwtToken = Request.Headers["Authorization"].ToString().Replace("Bearer ", "");
+                if (string.IsNullOrEmpty(jwtToken))
+                {
+                    return Unauthorized("JWT Token is missing");
+                }
+                var userId = await _applicationUserBusinessLogic.GetCurrentUserIdAsync(jwtToken);
+                if (userId == null)
+                {
+                    return Unauthorized("User is not authenticated.");
+                }
                 bool isUniqueValue = false;
                 isUniqueValue = await _navigationRepository.CheckUniquenessAsync(uniqueRequest.Field, uniqueRequest.Value);
                 return Ok(new { IsUnique = isUniqueValue });
@@ -393,24 +443,6 @@ namespace Spider_QAMS.Controllers
         {
             try
             {
-                ProfileUserAPIVM profileUserAPIVM = await _navigationRepository.GetUserRecordAsync(request.UserId);
-                return Ok(profileUserAPIVM);
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, $"Internal Server Error: {ex.Message}");
-            }
-        }
-
-        [HttpPost("UpdateUserVerification")]
-        [ProducesResponseType(StatusCodes.Status200OK)]
-        [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
-        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-        public async Task<IActionResult> UpdateUserVerification([FromBody] UserVerifyApiVM userVerifyApiVM)
-        {
-            try
-            {
                 var jwtToken = Request.Headers["Authorization"].ToString().Replace("Bearer ", "");
                 if (string.IsNullOrEmpty(jwtToken))
                 {
@@ -421,25 +453,8 @@ namespace Spider_QAMS.Controllers
                 {
                     return Unauthorized("User is not authenticated.");
                 }
-                if (userVerifyApiVM == null)
-                {
-                    return BadRequest();
-                }
-
-                string PreviousProfilePhotoPath = await _navigationRepository.UpdateUserVerificationAsync(userVerifyApiVM, userId);
-
-                // Remove the cached item to force a refresh next time
-                _httpContextAccessor.HttpContext.Session.Remove(SessionKeys.CurrentUserProfileKey);
-                _httpContextAccessor.HttpContext.Session.Remove(SessionKeys.CurrentUserPagesKey);
-                _httpContextAccessor.HttpContext.Session.Remove(SessionKeys.CurrentUserCategoriesKey);
-
-                if (!string.IsNullOrEmpty(userVerifyApiVM.ProfilePicName) && !string.IsNullOrEmpty(PreviousProfilePhotoPath))
-                {
-                    string oldFilePath = Path.Combine(_webHostEnvironment.WebRootPath, _configuration["UserProfileImgPath"], PreviousProfilePhotoPath);
-                    bool isSucess = await DeleteFileAsync(oldFilePath);
-                    return Ok(isSucess);
-                }
-                return Ok();
+                ProfileUserAPIVM profileUserAPIVM = await _navigationRepository.GetUserRecordAsync(request.UserId);
+                return Ok(profileUserAPIVM);
             }
             catch (Exception ex)
             {
@@ -447,7 +462,7 @@ namespace Spider_QAMS.Controllers
             }
         }
 
-        [HttpPost("CreateUserProfile")]
+        [HttpPost("CreateUser")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
@@ -509,7 +524,7 @@ namespace Spider_QAMS.Controllers
             }
         }
 
-        [HttpPost("UpdateUserProfile")]
+        [HttpPost("UpdateUser")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
@@ -546,65 +561,20 @@ namespace Spider_QAMS.Controllers
                 {
                     return NotFound("Target user does not have an associated role.");
                 }
+                string PreviousProfilePhotoPath = await _navigationRepository.UpdateUserProfileAsync(profileUserAPIVM, user.UserId);
 
-                bool isSuccess = false;
+                // Remove the cached item to force a refresh next time
+                _httpContextAccessor.HttpContext.Session.Remove(SessionKeys.CurrentUserProfileKey);
+                _httpContextAccessor.HttpContext.Session.Remove(SessionKeys.CurrentUserPagesKey);
+                _httpContextAccessor.HttpContext.Session.Remove(SessionKeys.CurrentUserCategoriesKey);
 
-                if (user.RoleAssignmentEnabled == true && targetUserRole.FirstOrDefault().ToLower() == BaseUserRoleName.ToLower() && profileUserAPIVM.ProfileSiteData.ProfileName.ToLower() != targetUserRole.FirstOrDefault().ToLower())
+                if (!string.IsNullOrEmpty(profileUserAPIVM.ProfilePicName) && !string.IsNullOrEmpty(PreviousProfilePhotoPath))
                 {
-                    var allPagesData = await _navigationRepository.GetAllPagesAsync();
-                    List<PageSiteVM> pageSiteVMs = new List<PageSiteVM>();
-                    // Get all constant values from the BaseUserScreenAccess static class
-                    var baseUserScreenAccessType = typeof(BaseUserScreenAccess);
-                    var constants = baseUserScreenAccessType.GetFields(BindingFlags.Public | BindingFlags.Static | BindingFlags.FlattenHierarchy)
-                        .Where(f => f.IsLiteral && !f.IsInitOnly)
-                        .Select(f => f.GetValue(null) as string)
-                        .ToList();
-                    foreach (var page in allPagesData)
-                    {
-                        PageSiteVM pageSiteVM = new PageSiteVM
-                        {
-                            PageId = page.PageId,
-                            isSelected = page.isSelected,
-                            PageDesc = page.PageDesc,
-                            PageUrl = page.PageUrl
-                        };
-
-                        // Check if the PageDescription is in any of the constant values
-                        if (constants.Contains(pageSiteVM.PageUrl))
-                        {
-                            pageSiteVMs.Add(pageSiteVM);
-                        }
-                    }
-
-                    ProfilePagesAccessDTO profilePagesAccessDTO = new ProfilePagesAccessDTO
-                    {
-                        PagesList = pageSiteVMs,
-                        ProfileData = profileUserAPIVM.ProfileSiteData
-                    };
-
-                    isSuccess = await _navigationRepository.CreateUserAccessAsync(profilePagesAccessDTO, user.UserId);
+                    string oldFilePath = Path.Combine(_webHostEnvironment.WebRootPath, _configuration["UserProfileImgPath"], PreviousProfilePhotoPath);
+                    bool isSucess = await DeleteFileAsync(oldFilePath);
+                    return Ok(isSucess);
                 }
-                if (isSuccess)
-                {
-                    string PreviousProfilePhotoPath = await _navigationRepository.UpdateUserProfileAsync(profileUserAPIVM, user.UserId);
-
-                    // Remove the cached item to force a refresh next time
-                    _httpContextAccessor.HttpContext.Session.Remove(SessionKeys.CurrentUserProfileKey);
-                    _httpContextAccessor.HttpContext.Session.Remove(SessionKeys.CurrentUserPagesKey);
-                    _httpContextAccessor.HttpContext.Session.Remove(SessionKeys.CurrentUserCategoriesKey);
-
-                    if (!string.IsNullOrEmpty(profileUserAPIVM.ProfilePicName) && !string.IsNullOrEmpty(PreviousProfilePhotoPath))
-                    {
-                        string oldFilePath = Path.Combine(_webHostEnvironment.WebRootPath, _configuration["UserProfileImgPath"], PreviousProfilePhotoPath);
-                        bool isSucess = await DeleteFileAsync(oldFilePath);
-                        return Ok(isSucess);
-                    }
-                    return Ok();
-                }
-                else
-                {
-                    return BadRequest();
-                }
+                return Ok();
             }
             catch (Exception ex)
             {
@@ -612,7 +582,36 @@ namespace Spider_QAMS.Controllers
             }
         }
 
-
+        [HttpDelete("DeleteEntity")]
+        [ProducesResponseType(typeof(bool), StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        public async Task<IActionResult> DeleteEntity(int deleteId, string deleteType)
+        {
+            try
+            {
+                var jwtToken = Request.Headers["Authorization"].ToString().Replace("Bearer ", "");
+                if (string.IsNullOrEmpty(jwtToken))
+                {
+                    return Unauthorized("JWT Token is missing");
+                }
+                var userId = await _applicationUserBusinessLogic.GetCurrentUserIdAsync(jwtToken);
+                if (userId == null)
+                {
+                    return Unauthorized("User is not authenticated.");
+                }
+                if (deleteId <= 0 || string.IsNullOrEmpty(deleteType))
+                {
+                    return BadRequest($"{deleteType} {deleteId} is invalid.");
+                }
+                bool isSuccess = await _navigationRepository.DeleteEntityAsync(deleteId, deleteType);
+                return Ok(isSuccess);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"Internal Server Error: {ex.Message}");
+            }
+        }
         #endregion
 
     }

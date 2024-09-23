@@ -150,29 +150,30 @@ namespace Spider_QAMS.Controllers
             var user = await GetUserByEmailAsync(email);
             return user != null;
         }
-        public string GenerateJSONWebToken(IEnumerable<Claim> claims)
+        public string GenerateJSONWebToken(IEnumerable<Claim> claims, bool rememberMe)
         {
+            var tokenHandler = new JwtSecurityTokenHandler();
+
             var tokenDescriptor = new SecurityTokenDescriptor
             {
                 Subject = new ClaimsIdentity(claims),
-                Expires = DateTime.UtcNow.AddHours(3),
+                Expires = rememberMe ? DateTime.UtcNow.AddDays(7) : DateTime.UtcNow.AddHours(1), // 14 days for remember me, 1 hour otherwise
                 SigningCredentials = new SigningCredentials(
                     new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["JwtSettings_SecretKey"])),
                     SecurityAlgorithms.HmacSha256)
             };
 
-            var tokenHandler = new JwtSecurityTokenHandler();
             var token = tokenHandler.CreateToken(tokenDescriptor);
             return tokenHandler.WriteToken(token);
         }
-        public void SetJWTCookie(string token, string name)
+        public void SetJWTCookie(string token, string name, bool rememberMe)
         {
             var cookieOptions = new CookieOptions
             {
                 HttpOnly = true,
                 Secure = true,
-                SameSite = SameSiteMode.Strict,
-                Expires = DateTime.UtcNow.AddHours(3)
+                Expires = rememberMe ? DateTime.UtcNow.AddDays(7) : DateTime.UtcNow.AddHours(1), // 14 days for remember me, 1 hour otherwise
+                SameSite = SameSiteMode.Strict
             };
             _httpContextAccessor.HttpContext.Response.Cookies.Append(name, token, cookieOptions);
         }

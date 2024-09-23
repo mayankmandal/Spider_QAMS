@@ -19,6 +19,7 @@ namespace Spider_QAMS.Utilities
         public const string SP_DeleteUserPermission = "dbo.uspDeleteUserPermission";
         public const string SP_AddNewUser = "dbo.uspAddNewUser";
         public const string SP_UpdateUser = "dbo.uspUpdateUser";
+        public const string SP_UpdateUserSettings = "dbo.uspUpdateUserSettings";
 
         public const string SP_CheckUniqueness = "dbo.uspCheckUniqueness";
 
@@ -106,7 +107,7 @@ namespace Spider_QAMS.Utilities
             public const string Logout = "/Account/Logout";
             public const string Register = "/Account/Register";
             public const string Dashboard = "/Dashboard";
-            public const string ReadUserProfile = "/ReadUserProfile";
+            public const string ViewUserProfile = "/ViewUserProfile";
             public const string EditSettings = "/EditSettings";
             public const string Error = "/Error";
         };

@@ -2,7 +2,6 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Spider_QAMS.Controllers;
-using Spider_QAMS.Utilities;
 
 namespace Spider_QAMS.Pages.Account
 {

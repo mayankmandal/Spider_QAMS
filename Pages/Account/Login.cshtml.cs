@@ -41,19 +41,20 @@ namespace Spider_QAMS.Pages.Account
 
             await _applicationUserBusinessLogic.SignOutAsync();
 
-            await ManageUserClaimsAndPermissions(user);
+            await ManageUserClaimsAndPermissions(user, CredentialData.RememberMe);
 
             return RedirectToPage("/Dashboard");
         }
-        private async Task ManageUserClaimsAndPermissions(ApplicationUser user)
+        private async Task ManageUserClaimsAndPermissions(ApplicationUser user, bool rememberMe)
         {
             // Role and claim management
             var claims = await _applicationUserBusinessLogic.GetCurrentUserClaimsAsync(user);
-            var accessToken = _applicationUserBusinessLogic.GenerateJSONWebToken(claims);
-            _applicationUserBusinessLogic.SetJWTCookie(accessToken, Constants.JwtCookieName);
 
-            // Fetch and cache user permissions from API
-            // await _currentUserService.FetchAndCacheUserPermissions(accessToken);
+            // Set the expiration time for the JWT token based on the RememberMe option
+            var accessToken = _applicationUserBusinessLogic.GenerateJSONWebToken(claims, rememberMe);
+
+            // Set the JWT cookie with the appropriate expiration time
+            _applicationUserBusinessLogic.SetJWTCookie(accessToken, Constants.JwtCookieName, rememberMe);
         }
     }
 }

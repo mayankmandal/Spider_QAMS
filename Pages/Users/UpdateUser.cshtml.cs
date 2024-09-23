@@ -1,12 +1,14 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
+using Microsoft.VisualBasic;
 using Spider_QAMS.Models;
 using Spider_QAMS.Models.ViewModels;
 using System.Net.Http.Headers;
 using System.Text;
 using System.Text.Json;
 using static Spider_QAMS.Utilities.Constants;
+using static System.Net.Mime.MediaTypeNames;
 
 namespace Spider_QAMS.Pages.Users
 {
@@ -233,6 +235,12 @@ namespace Spider_QAMS.Pages.Users
                 }
                 else
                 {
+                    // Delete the uploaded image if the update fails
+                    if (ProfileUsersData.PhotoFile != null && !string.IsNullOrEmpty(filePath) && System.IO.File.Exists(filePath))
+                    {
+                        System.IO.File.Delete(filePath);
+                    }
+
                     await LoadAllProfilesData();
                     TempData["error"] = $"{ProfileUsersData.FullName} - Error occurred in response with status: {response.StatusCode} - {response.ReasonPhrase}";
                     UserProfilePathUrl = Path.Combine(_configuration["UserProfileImgPath"], _profileUserData.ProfilePicName);

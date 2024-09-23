@@ -1,5 +1,4 @@
-﻿using Microsoft.AspNetCore.Components.Web;
-using Spider_QAMS.Models;
+﻿using Spider_QAMS.Models;
 using Spider_QAMS.Models.ViewModels;
 
 namespace Spider_QAMS.Repositories.Skeleton
@@ -16,8 +15,10 @@ namespace Spider_QAMS.Repositories.Skeleton
         Task<List<PageCategory>> GetAllCategoriesAsync();
         Task<ProfileUserAPIVM> GetUserRecordAsync(string userId);
         Task<bool> CreateUserProfileAsync(ProfileUser profileUsersData, int CurrentUserId);
-        Task<string> UpdateUserProfileAsync(ProfileUserAPIVM profileUsersData, int CurrentUserId);
+        Task<string> UpdateUserProfileAsync(ProfileUser profileUsersData, int CurrentUserId);
         Task<bool> CheckUniquenessAsync(string field, string value);
         Task<bool> DeleteEntityAsync(int deleteId, string deleteType);
+        Task<ProfileUserAPIVM> GetSettingsDataAsync(int CurrentUserId);
+        Task<string> UpdateSettingsDataAsync(ProfileUser userSettings, int CurrentUserId);
     }
 }

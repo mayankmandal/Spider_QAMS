@@ -1,0 +1,287 @@
+﻿@page
+@model Spider_QAMS.Pages.ViewUserProfileModel
+@{
+    ViewData["Title"] = "View User Profile";
+    TempData["NavigationalPageName"] = "View User Profile";
+    int @categoryCount = 0;
+}
+
+<div style="display:flex; flex-direction:column; justify-content:center; align-items:center; min-height:20vh;">
+    <form>
+        <div class="container form-control border-2 mb-2" style="display:flex; justify-content:space-around; height:auto; flex-direction:column; font-size:1.5rem; width:45rem;">
+            <div class="row pb-1 pt-2">
+                <div style="color:#17a2b8; text-align:center; font-size:1.7rem; font-weight:500">USER PROFILE</div>
+                <div>
+                    <hr />
+                </div>
+            </div>
+            <div class="card">
+                <div class="card-header" style="background:#f8f8f8;">
+                    <div class="card-title fw-bold" style="font-size:1.2rem">User Details</div>
+                    <div class="card-tools">
+                        <button type="button" class="btn btn-tool" data-card-widget="collapse">
+                            <i class="fas fa-minus"></i>
+                        </button>
+                        <button type="button" class="btn btn-tool" data-card-widget="remove">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
+                </div>
+                <div class="card-body" style="font-size:1rem;">
+                    <!-- Validation Summary -->
+                    <div asp-validation-summary="All" class="text-danger fw-bold"></div>
+
+                    <!-- Profile Picture Field -->
+                    <div class="text-center">
+                        <div class="position-relative d-inline-block mx-auto mb-4">
+                            <img src="@Model.CurrentUserDetailsData.ProfilePicName" class="rounded-circle img-thumbnail" style="width: 150px; height: 150px;" id="loadedProfilePicture">
+                            <div class="position-absolute bottom-0 end-0 rounded-circle bg-light p-1" style="transform: translate(20%, 20%);">
+                                <label for="profile-img-file-input" class="rounded-circle bg-gradient-gray p-2" style="cursor: pointer; width: 40px; height: 40px;">
+                                    <i class="fas fa-camera" style="font-size: 1.5rem;"></i>
+                                </label>
+                            </div>
+                        </div>
+                        <h5 class="fs-16 mb-1">@Model.CurrentUserDetailsData.FullName</h5>
+                        <p class="text-muted mb-0">@Model.CurrentUserDetailsData.UserName (@Model.CurrentUserDetailsData.EmailID)</p>
+                        <span asp-validation-for="@Model.CurrentUserDetailsData.ProfilePicName" class="text-danger fw-bold"></span>
+                    </div>
+
+                    <!-- User ID and ID Number on one line -->
+                    <div class="mb-3" style="display: flex; justify-content: space-between;">
+                        <div style="flex: 1; margin-right: 10px;">
+                            <label asp-for="CurrentUserDetailsData.UserId" class="form-label"></label>
+                            <div class="input-group mb-3">
+                                <div class="input-group-prepend">
+                                    <span class="input-group-text"><i class="fas fa-id-badge"></i></span>
+                                </div>
+                                <input asp-for="CurrentUserDetailsData.UserId" placeholder="User ID" class="form-control" disabled />
+                            </div>
+                        </div>
+                        <div style="flex: 1;">
+                            <label asp-for="CurrentUserDetailsData.Designation" class="form-label"></label>
+                            <div class="input-group mb-3">
+                                <div class="input-group-prepend">
+                                    <span class="input-group-text"><i class="fas fa-id-badge"></i></span>
+                                </div>
+                                <input type="text" asp-for="CurrentUserDetailsData.Designation" placeholder="National/Iqama Number" class="form-control" disabled />
+                            </div>
+                            <span asp-validation-for="CurrentUserDetailsData.Designation" class="text-danger fw-bold"></span>
+                        </div>
+                    </div>
+                    <!-- Full Name Field -->
+                    <div class="mb-3">
+                        <label asp-for="CurrentUserDetailsData.FullName" class="form-label"></label>
+                        <div class="input-group mb-3">
+                            <div class="input-group-prepend">
+                                <span class="input-group-text"><i class="fas fa-id-card"></i></span>
+                            </div>
+                            <input type="text" asp-for="CurrentUserDetailsData.FullName" placeholder="Full Name" class="form-control" disabled />
+                        </div>
+                        <span asp-validation-for="CurrentUserDetailsData.FullName" class="text-danger fw-bold"></span>
+                    </div>
+
+                    <!-- Email and Mobile Number on one line -->
+                    <div class="mb-3" style="display: flex; justify-content: space-between;">
+                        <div style="flex: 1; margin-right: 10px;">
+                            <label asp-for="CurrentUserDetailsData.EmailID" class="form-label"></label>
+                            <div class="input-group mb-3">
+                                <div class="input-group-prepend">
+                                    <span class="input-group-text"><i class="fas fa-envelope"></i></span>
+                                </div>
+                                <input type="email" asp-for="CurrentUserDetailsData.EmailID" placeholder="Email Address" class="form-control" disabled />
+                            </div>
+                            <span asp-validation-for="CurrentUserDetailsData.EmailID" class="text-danger fw-bold"></span>
+                        </div>
+                        <div style="flex: 1;">
+                            <label asp-for="CurrentUserDetailsData.PhoneNumber" class="form-label"></label>
+                            <div class="input-group mb-3">
+                                <div class="input-group-prepend">
+                                    <span class="input-group-text"><i class="fas fa-phone"></i></span>
+                                </div>
+                                <input type="tel" asp-for="CurrentUserDetailsData.PhoneNumber" placeholder="Mobile Number" class="form-control" disabled />
+                            </div>
+                            <span asp-validation-for="CurrentUserDetailsData.PhoneNumber" class="text-danger fw-bold"></span>
+                        </div>
+                    </div>
+
+                    <!-- Username -->
+                    <div class="mb-3">
+                        <label asp-for="CurrentUserDetailsData.UserName" class="form-label"></label>
+                        <div class="input-group mb-3">
+                            <div class="input-group-prepend">
+                                <span class="input-group-text"><i class="fas fa-user-cog"></i></span>
+                            </div>
+                            <input type="text" asp-for="CurrentUserDetailsData.UserName" placeholder="Username" class="form-control" disabled />
+                        </div>
+                        <span asp-validation-for="CurrentUserDetailsData.UserName" class="text-danger fw-bold"></span>
+                    </div>
+
+                    <!-- Dropdown to Select Profile Name -->
+                    <div class="mb-3">
+                        <label asp-for="CurrentUserDetailsData.ProfileSiteData.ProfileName" class="form-label"></label>
+                        <div class="input-group mb-3">
+                            <div class="input-group-prepend">
+                                <span class="input-group-text"><i class="fas fa-user"></i></span>
+                            </div>
+                            <input asp-for="CurrentUserDetailsData.ProfileSiteData.ProfileName" class="form-select striped-select" disabled />
+                        </div>
+                        <span asp-validation-for="CurrentUserDetailsData.ProfileSiteData.ProfileName" class="text-danger fw-bold"></span>
+                    </div>
+
+                    <!-- Is Active -->
+                    <div class="mb-3">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" asp-for="CurrentUserDetailsData.IsActive" id="isActiveCheckbox" disabled />
+                            <label class="form-check-label" for="isActiveCheckbox">
+                                Active User
+                            </label>
+                        </div>
+                    </div>
+
+                    <!-- Is Active Directory User -->
+                    <div class="mb-3">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" asp-for="CurrentUserDetailsData.IsADUser" id="isActiveDirectoryUserCheckbox" disabled />
+                            <label class="form-check-label" for="isActiveDirectoryUserCheckbox">
+                                Active Directory User
+                            </label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <hr />
+
+            <div class="card">
+                <div class="card-header" style="background:#f8f8f8;">
+                    <div class="card-title fw-bold" style="font-size:1.2rem">Categories View</div>
+                    <div class="card-tools">
+                        <span title="New Messages" class="badge badge-warning">@Model.StructureData.Count</span>
+                        <button type="button" class="btn btn-tool" data-card-widget="collapse">
+                            <i class="fas fa-minus"></i>
+                        </button>
+                        <button type="button" class="btn btn-tool" data-card-widget="remove">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="card-body" style="font-size:1rem;">
+                    <nav class="mt-2">
+                        <ul class="nav nav-pills nav-sidebar flex-column" data-widget="treeview" role="menu" data-accordion="false" id="categoriesAccordion">
+                            <li class="nav-item menu-open">
+                                <ul class="nav nav-treeview">
+                                    <!-- Populate categories here -->
+                                    @foreach (var catagoryData in Model.StructureData)
+                                    {
+                                        <li class="nav-item" id="category-@categoryCount">
+                                            <a href="#" class="nav-link" target="_self">
+                                                <i class="nav-icon fas fa-atom"></i>
+                                                <p>
+                                                    @catagoryData.CategoryName
+                                                    <i class="fas fa-angle-left right"></i>
+                                                </p>
+                                            </a>
+                                            <ul class="nav nav-treeview ms-2" style="border-left: 1px ridge #DDDFBF;">
+                                                @foreach (var pageSite in catagoryData.Pages)
+                                                {
+                                                    <li class="nav-item">
+                                                        <a href="@pageSite.PageUrl" class="nav-link" target="_self">
+                                                            <i class="nav-icon fas fa-external-link-alt"></i>
+                                                            <p>@pageSite.PageDesc</p>
+                                                        </a>
+                                                    </li>
+                                                }
+                                            </ul>
+                                        </li>
+                                        categoryCount++;
+                                    }
+                                </ul>
+                            </li>
+                        </ul>
+                    </nav>
+                </div>
+            </div>
+
+            <hr />
+
+            <div class="card">
+                <div class="card-header" style="background:#f8f8f8;">
+                    <div class="card-title fw-bold" style="font-size:1.2rem">Pages View</div>
+                    <div class="card-tools">
+                        <span class="badge badge-warning">@Model.CurrentPageSites.Count</span>
+                        <button type="button" class="btn btn-tool" data-card-widget="collapse">
+                            <i class="fas fa-minus"></i>
+                        </button>
+                        <button type="button" class="btn btn-tool" data-card-widget="remove">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="card-body" style="font-size:1rem;">
+                    <ul class="nav nav-pills nav-sidebar" data-widget="treeview" role="menu" data-accordion="false" id="dynamicPagesList" style="display: flex; flex-wrap: wrap; padding: 0;">
+                        <!-- Populate pages here -->
+                        @foreach (var pageSite in Model.CurrentPageSites)
+                        {
+                            <li class="nav-item pageViewDiv" style="flex: 1 0 30%; box-sizing: border-box; padding: 2px; list-style: none; height: auto;">
+                                <a href="@pageSite.PageUrl" class="nav-link" style="display: flex; flex-direction: row; justify-content: start; align-items: start; height: 100%; padding: 5px; border: 1px solid #ddd; border-radius: 5px; text-decoration: none; text-align: start;">
+                                    <i class="nav-icon fas fa-paper-plane" style="margin-left:2px; margin-right:2px;"></i>
+                                    <p>&nbsp; @pageSite.PageDesc</p>
+                                </a>
+                            </li>
+                        }
+                        @if (Model.CurrentPageSites.Count() % 3 == 2)
+                        {
+                            <li class="nav-item" style="flex: 1 0 30%; box-sizing: border-box; padding: 10px; list-style: none;"></li>
+                        }
+                        @if (Model.CurrentPageSites.Count() % 3 == 1)
+                        {
+                            <li class="nav-item" style="flex: 1 0 30%; box-sizing: border-box; padding: 10px; list-style: none;"></li>
+                            <li class="nav-item" style="flex: 1 0 30%; box-sizing: border-box; padding: 10px; list-style: none;"></li>
+                        }
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </form>
+</div>
+
+@section scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script>
+        $(document).ready(function () {
+            // Add click event listener to all nav items with the id starting with 'category-'
+            $('[id^="category-"] > a').on('click', function (event) {
+                event.preventDefault(); // Prevent default behavior of the link
+                event.stopPropagation(); // Stop the event from bubbling up
+
+                // Get the parent .nav-item of the clicked link
+                var navItem = $(this).parent('.nav-item');
+
+                // Toggle class
+                if (navItem.hasClass('menu-is-opening') && navItem.hasClass('menu-open')) {
+                    navItem.removeClass('menu-is-opening menu-open');
+                } else {
+                    navItem.addClass('menu-is-opening menu-open');
+                }
+
+                // Toggle the style of the corresponding ul element
+                var ulElement = navItem.find('ul.nav-treeview').first();
+                if (ulElement.is(':visible')) {
+                    ulElement.hide();
+                } else {
+                    ulElement.css({
+                        'border-left': '1px ridge #DDDFBF',
+                        'display': 'block',
+                        'height': '259.2px',
+                        'padding-top': '0px',
+                        'margin-top': '0px',
+                        'padding-bottom': '0px',
+                        'margin-bottom': '0px'
+                    });
+                }
+            });
+        });
+    </script>
+}

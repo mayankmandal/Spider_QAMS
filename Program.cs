@@ -7,7 +7,6 @@ using Spider_QAMS.Middlewares;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
-using static System.Net.Mime.MediaTypeNames;
 using Microsoft.AspNetCore.Authorization;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -97,9 +96,6 @@ void ConfigureServices(IServiceCollection services, IConfiguration configuration
 
     services.AddSingleton<SqlDBHelper>();
 
-    // Register the email service
-    services.AddScoped<IEmailService, EmailService>();
-
     services.AddScoped<IUniquenessCheckService, UniquenessCheckService>();
 
     // Register the UserRepository
@@ -110,8 +106,6 @@ void ConfigureServices(IServiceCollection services, IConfiguration configuration
 
     // Register the ApplicationUserBusinessLogic
     services.AddScoped<ApplicationUserBusinessLogic>();
-
-    services.AddScoped<IAppointmentService, AppointmentService>();
 }
 
 void Configure(WebApplication app)

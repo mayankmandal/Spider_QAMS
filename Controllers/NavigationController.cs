@@ -5,7 +5,6 @@ using Spider_QAMS.Models.ViewModels;
 using Spider_QAMS.Repositories.Domain;
 using Spider_QAMS.Repositories.Skeleton;
 using Spider_QAMS.Utilities;
-using System.Reflection;
 using System.Text;
 using System.Text.Json;
 using System.Text.RegularExpressions;
@@ -492,8 +491,14 @@ namespace Spider_QAMS.Controllers
                     return BadRequest("Password must be between 8 and 16 characters, and must contain at least one uppercase letter, one lowercase letter, one digit, and one special character.");
                 }
 
-                string salt = PasswordHelper.GenerateSalt();
-                string hashedPassword = PasswordHelper.HashPassword(profileUsersData.Password, salt);
+                string salt = string.Empty;
+                string hashedPassword = string.Empty;
+
+                if (!string.IsNullOrEmpty(profileUsersData.Password))
+                {
+                    salt = PasswordHelper.GenerateSalt();
+                    hashedPassword = PasswordHelper.HashPassword(profileUsersData.Password, salt);
+                }
 
                 ProfileUser profileUser = new ProfileUser
                 {
@@ -539,7 +544,7 @@ namespace Spider_QAMS.Controllers
                     return Unauthorized("JWT Token is missing");
                 }
                 var user = await _applicationUserBusinessLogic.GetCurrentUserAsync(jwtToken);
-                if (user == null)
+                if (user == null || user.UserId <= 0)
                 {
                     return Unauthorized("User is not authenticated.");
                 }
@@ -561,7 +566,36 @@ namespace Spider_QAMS.Controllers
                 {
                     return NotFound("Target user does not have an associated role.");
                 }
-                string PreviousProfilePhotoPath = await _navigationRepository.UpdateUserProfileAsync(profileUserAPIVM, user.UserId);
+
+                string salt = string.Empty;
+                string hashedPassword = string.Empty;
+
+                if (!string.IsNullOrEmpty(profileUserAPIVM.Password))
+                {
+                    salt = PasswordHelper.GenerateSalt();
+                    hashedPassword = PasswordHelper.HashPassword(profileUserAPIVM.Password, salt);
+                }
+
+                ProfileUser profileUser = new ProfileUser
+                {
+                    Designation = profileUserAPIVM.Designation.ToString(),
+                    FullName = profileUserAPIVM.FullName,
+                    EmailID = profileUserAPIVM.EmailID,
+                    UserName = profileUserAPIVM.UserName,
+                    ProfilePicName = profileUserAPIVM.ProfilePicName,
+                    PhoneNumber = profileUserAPIVM.PhoneNumber.ToString(),
+                    UserId = profileUserAPIVM.UserId,
+                    PasswordHash = hashedPassword,
+                    PasswordSalt = salt,
+                    ProfileSiteData = new ProfileSite
+                    {
+                        ProfileId = profileUserAPIVM.ProfileSiteData.ProfileId,
+                    },
+                    IsActive = profileUserAPIVM.IsActive,
+                    IsADUser = profileUserAPIVM.IsADUser,
+                };
+
+                string PreviousProfilePhotoPath = await _navigationRepository.UpdateUserProfileAsync(profileUser, user.UserId);
 
                 // Remove the cached item to force a refresh next time
                 _httpContextAccessor.HttpContext.Session.Remove(SessionKeys.CurrentUserProfileKey);
@@ -606,6 +640,96 @@ namespace Spider_QAMS.Controllers
                 }
                 bool isSuccess = await _navigationRepository.DeleteEntityAsync(deleteId, deleteType);
                 return Ok(isSuccess);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"Internal Server Error: {ex.Message}");
+            }
+        }
+
+        [HttpGet("GetSettingsData")]
+        [ProducesResponseType(typeof(ProfileUserAPIVM), StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        public async Task<IActionResult> GetSettingsData()
+        {
+            try
+            {
+                var jwtToken = Request.Headers["Authorization"].ToString().Replace("Bearer ", "");
+                if (string.IsNullOrEmpty(jwtToken))
+                {
+                    return Unauthorized("JWT Token is missing");
+                }
+                var userId = await _applicationUserBusinessLogic.GetCurrentUserIdAsync(jwtToken);
+                if (userId == null)
+                {
+                    return Unauthorized("User is not authenticated.");
+                }
+                ProfileUserAPIVM profileUserAPIVM = await _navigationRepository.GetSettingsDataAsync(userId);
+                return Ok(profileUserAPIVM);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"Internal Server Error: {ex.Message}");
+            }
+        }
+
+        [HttpPost("UpdateSettingsData")]
+        [ProducesResponseType(typeof(SettingsAPIVM), StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        public async Task<IActionResult> UpdateSettingsData(SettingsAPIVM userSettings)
+        {
+            try
+            {
+                var jwtToken = Request.Headers["Authorization"].ToString().Replace("Bearer ", "");
+                if (string.IsNullOrEmpty(jwtToken))
+                {
+                    return Unauthorized("JWT Token is missing");
+                }
+                var currentUserId = await _applicationUserBusinessLogic.GetCurrentUserIdAsync(jwtToken);
+                if (currentUserId == null || currentUserId <= 0)
+                {
+                    return Unauthorized("User is not authenticated.");
+                }
+                // Validate the password
+                if (!string.IsNullOrEmpty(userSettings.SettingsPassword) && (!Regex.IsMatch(userSettings.SettingsPassword, passwordPattern) || userSettings.SettingsPassword != userSettings.SettingsReTypePassword))
+                {
+                    return BadRequest("Password must be between 8 and 16 characters, and must contain at least one uppercase letter, one lowercase letter, one digit, and one special character. Also, both passwords must match.");
+                }
+
+                string salt = string.Empty;
+                string hashedPassword = string.Empty;
+
+                if (!string.IsNullOrEmpty(userSettings.SettingsPassword) || !string.IsNullOrEmpty(userSettings.SettingsReTypePassword))
+                {
+                    salt = PasswordHelper.GenerateSalt();
+                    hashedPassword = PasswordHelper.HashPassword(userSettings.SettingsPassword, salt);
+                }
+
+                ProfileUser profileUser = new ProfileUser
+                {
+                    FullName = userSettings.SettingsFullName,
+                    EmailID = userSettings.SettingsEmailID,
+                    UserName = userSettings.SettingsUserName,
+                    ProfilePicName = userSettings.SettingsProfilePicName,
+                    UserId = userSettings.SettingsUserId,
+                    PasswordHash = hashedPassword != null ? hashedPassword : string.Empty,
+                    PasswordSalt = salt != null ? salt : string.Empty,
+                };
+
+                string PreviousProfilePhotoPath = await _navigationRepository.UpdateSettingsDataAsync(profileUser, currentUserId);
+
+                // Remove the cached item to force a refresh next time
+                _httpContextAccessor.HttpContext.Session.Remove(SessionKeys.CurrentUserProfileKey);
+
+                if (!string.IsNullOrEmpty(userSettings.SettingsProfilePicName) && !string.IsNullOrEmpty(PreviousProfilePhotoPath))
+                {
+                    string oldFilePath = Path.Combine(_webHostEnvironment.WebRootPath, _configuration["UserProfileImgPath"], PreviousProfilePhotoPath);
+                    bool isSucess = await DeleteFileAsync(oldFilePath);
+                    return Ok(isSucess);
+                }
+                return Ok();
             }
             catch (Exception ex)
             {

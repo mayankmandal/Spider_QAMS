@@ -7,88 +7,86 @@
 
 <div style="display:flex; flex-direction:column; justify-content:center; align-items:center; min-height:100vh;">
     <form method="post">
-        <div class="container form-control pt-4 pb-2 mb-3" style="height:auto; background-color: #f4f0ec; width:40rem;">
-            <div class="form-control border-2 mb-2" style="display:flex; justify-content:center;height:auto; flex-direction:column;">
-                <div class="row pb-1 pt-2">
-                    <div style="color:#17a2b8; text-align:center; font-size:1.7rem;">User Login</div>
-                    <div>
-                        <hr />
+        <div class="form-control border-2 mb-2" style="display:flex; justify-content:center;height:auto; flex-direction:column;width:40rem;">
+            <div class="row pb-1 pt-2">
+                <div style="color:#17a2b8; text-align:center; font-size:1.7rem;">User Login</div>
+                <div>
+                    <hr />
+                </div>
+            </div>
+            <div class="card">
+                <div class="card-header" style="background:#f8f8f8;">
+                    <div class="card-title fw-bold">User Login</div>
+                    <div class="card-tools">
+                        <button type="button" class="btn btn-tool" data-card-widget="collapse">
+                            <i class="fas fa-minus"></i>
+                        </button>
+                        <button type="button" class="btn btn-tool" data-card-widget="remove">
+                            <i class="fas fa-times"></i>
+                        </button>
                     </div>
                 </div>
-                <div class="card">
-                    <div class="card-header">
-                        <div class="card-title fw-bold">User Login</div>
-                        <div class="card-tools">
-                            <button type="button" class="btn btn-tool" data-card-widget="collapse">
-                                <i class="fas fa-minus"></i>
-                            </button>
-                            <button type="button" class="btn btn-tool" data-card-widget="remove">
-                                <i class="fas fa-times"></i>
+                <div class="card-body">
+                    <!-- Validation Summary -->
+                    <div asp-validation-summary="All" class="text-danger fw-bold"></div>
+
+                    <!-- Error Message Div -->
+                    <div class="text-danger fw-bold">
+                        @if (ViewData.ModelState["Login"] != null)
+                        {
+                            <p>@ViewData.ModelState["Login"].Errors.FirstOrDefault()?.ErrorMessage</p>
+                        }
+                    </div>
+
+                    <div class="mb-3">
+                        <label asp-for="CredentialData.Email" class="form-label" style=""></label>
+                        <div class="input-group mb-3">
+                            <div class="input-group-prepend">
+                                <span class="input-group-text"><i class="fas fa-atom"></i></span>
+                            </div>
+                            <input type="text" asp-for="CredentialData.Email" placeholder="Email Address" class="form-control" />
+                        </div>
+                        <span asp-validation-for="CredentialData.Email" class="text-danger fw-bold"></span>
+                    </div>
+
+                    <div class="mb-3">
+                        <label asp-for="CredentialData.Password" class="form-label" style=""></label>
+                        <div class="input-group mb-3">
+                            <div class="input-group-prepend">
+                                <span class="input-group-text"><i class="fa fa-lock"></i></span>
+                            </div>
+                            <input type="password" asp-for="CredentialData.Password" placeholder="Password" class="form-control password-toggle-input" />
+                            <div class="input-group-append">
+                                <span class="input-group-text">
+                                    <i class="fas fa-eye-slash password-toggle-icon" data-toggle="password"></i>
+                                </span>
+                            </div>
+                        </div>
+                        <span asp-validation-for="CredentialData.Password" class="text-danger fw-bold"></span>
+                    </div>
+
+                    <div class="mb-3">
+                        <div class="input-group mb-3 ms-4">
+                            <input type="checkbox" asp-for="CredentialData.RememberMe" class="form-check-input" /> &nbsp;
+                            <label asp-for="CredentialData.RememberMe" class="form-check-label" style=""></label>
+                        </div>
+                        <span asp-validation-for="CredentialData.RememberMe" class="text-danger fw-bold"></span>
+                    </div>
+
+                    <!-- Buttons for form submission -->
+                    <div class="d-flex justify-content-center" style="height:auto;">
+                        <div class="d-flex align-items-center justify-content-between" style="gap: 20px;">
+                            <button type="submit" onclick="prepareFormSubmission()" class="btn create-btn btn-primary d-flex align-items-center justify-content-center" style="width:8rem;">
+                                Login
                             </button>
                         </div>
                     </div>
-                    <div class="card-body">
-                        <!-- Validation Summary -->
-                        <div asp-validation-summary="All" class="text-danger fw-bold"></div>
 
-                        <!-- Error Message Div -->
-                        <div class="text-danger fw-bold">
-                            @if (ViewData.ModelState["Login"] != null)
-                            {
-                                <p>@ViewData.ModelState["Login"].Errors.FirstOrDefault()?.ErrorMessage</p>
-                            }
-                        </div>
-
-                        <div class="mb-3">
-                            <label asp-for="CredentialData.Email" class="form-label" style=""></label>
-                            <div class="input-group mb-3">
-                                <div class="input-group-prepend">
-                                    <span class="input-group-text"><i class="fas fa-atom"></i></span>
-                                </div>
-                                <input type="text" asp-for="CredentialData.Email" placeholder="Email Address" class="form-control" />
-                            </div>
-                            <span asp-validation-for="CredentialData.Email" class="text-danger fw-bold"></span>
-                        </div>
-
-                        <div class="mb-3">
-                            <label asp-for="CredentialData.Password" class="form-label" style=""></label>
-                            <div class="input-group mb-3">
-                                <div class="input-group-prepend">
-                                    <span class="input-group-text"><i class="fa fa-lock"></i></span>
-                                </div>
-                                <input type="password" asp-for="CredentialData.Password" placeholder="Password" class="form-control password-toggle-input" />
-                                <div class="input-group-append">
-                                    <span class="input-group-text">
-                                        <i class="fas fa-eye-slash password-toggle-icon" data-toggle="password"></i>
-                                    </span>
-                                </div>
-                            </div>
-                            <span asp-validation-for="CredentialData.Password" class="text-danger fw-bold"></span>
-                        </div>
-
-                        <div class="mb-3">
-                            <div class="input-group mb-3 ms-4">
-                                <input type="checkbox" asp-for="CredentialData.RememberMe" class="form-check-input" /> &nbsp;
-                                <label asp-for="CredentialData.RememberMe" class="form-check-label" style=""></label>
-                            </div>
-                            <span asp-validation-for="CredentialData.RememberMe" class="text-danger fw-bold"></span>
-                        </div>
-
-                        <!-- Buttons for form submission -->
-                        <div class="d-flex justify-content-center" style="height:auto;">
-                            <div class="d-flex align-items-center justify-content-between" style="gap: 20px;">
-                                <button type="submit" onclick="prepareFormSubmission()" class="btn create-btn btn-primary d-flex align-items-center justify-content-center" style="width:8rem;">
-                                    Login
-                                </button>
-                            </div>
-                        </div>
-
-                        <div class="mb-3">
-                            <p>
-                                <a id="forgot-password" asp-page="./ForgotPassword">Forgot Your Password</a>
-                                <br />
-                            </p>
-                        </div>
+                    <div class="mb-3">
+                        <p>
+                            <a id="forgot-password" asp-page="./ForgotPassword">Forgot Your Password</a>
+                            <br />
+                        </p>
                     </div>
                 </div>
             </div>

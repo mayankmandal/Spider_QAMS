@@ -120,6 +120,12 @@ namespace Spider_QAMS.Pages.Users
                 }
                 else
                 {
+                    // Delete the uploaded image if the update fails
+                    if (ProfileUsersData.PhotoFile != null && !string.IsNullOrEmpty(filePath) && System.IO.File.Exists(filePath))
+                    {
+                        System.IO.File.Delete(filePath);
+                    }
+
                     await LoadAllProfilesData();
                     TempData["error"] = $"{ProfileUsersData.FullName} - Error occurred in response with status: {response.StatusCode} - {response.ReasonPhrase}";
                     return Page();

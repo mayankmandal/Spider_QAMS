@@ -21,7 +21,7 @@ function populateSidebarforProfiles(profile) {
     listItem.className = 'nav-item';
 
     const link = document.createElement('a');
-    link.href = '/ReadUserProfile';
+    link.href = '/ViewUserProfile';
     link.className = 'nav-link';
     link.target = '_self';
 

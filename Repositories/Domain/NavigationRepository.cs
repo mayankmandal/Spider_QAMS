@@ -4,7 +4,6 @@ using Spider_QAMS.Models;
 using Spider_QAMS.Repositories.Skeleton;
 using System.Data.SqlClient;
 using System.Data;
-using Spider_QAMS.Utilities;
 using static Spider_QAMS.Utilities.Constants;
 
 namespace Spider_QAMS.Repositories.Domain
@@ -271,25 +270,28 @@ namespace Spider_QAMS.Repositories.Domain
             }
             return true;
         }
-        public async Task<string> UpdateUserProfileAsync(ProfileUserAPIVM userProfileData, int CurrentUserId)
+        public async Task<string> UpdateUserProfileAsync(ProfileUser userProfileData, int CurrentUserId)
         {
             try
             {
-                int NumberOfRowsAffected = 0;
+                int NumberOfRowsAffected = -1;
 
-                ProfileUserAPIVM profileUserExisting = null;
-                string commandText = $"SELECT u.Designation, u.FullName, u.EmailID, u.PhoneNumber, u.UserName, u.ProfilePicName, u.IsActive, u.IsADUser, u.ProfileId from Users u WHERE U.UserId = {CurrentUserId}";
+                ProfileUser profileUserExisting = null;
+                string commandText = $"SELECT u.Designation, u.FullName, u.EmailID, u.PhoneNumber, u.UserName, u.ProfilePicName, u.IsActive, u.IsADUser, u.ProfileId, u.PasswordSalt, u.PasswordHash from Users u WHERE U.UserId = {userProfileData.UserId}";
                 DataTable dataTable = SqlDBHelper.ExecuteSelectCommand(commandText, CommandType.Text);
 
                 if (dataTable.Rows.Count > 0)
                 {
                     DataRow dataRow = dataTable.Rows[0];
-                    profileUserExisting = new ProfileUserAPIVM
+                    profileUserExisting = new ProfileUser
                     {
+                        UserId = userProfileData.UserId,
                         Designation = dataRow["Designation"] != DBNull.Value ? dataRow["Designation"].ToString() : string.Empty,
                         FullName = dataRow["FullName"] != DBNull.Value ? dataRow["FullName"].ToString() : string.Empty,
                         EmailID = dataRow["EmailID"] != DBNull.Value ? dataRow["EmailID"].ToString() : string.Empty,
                         PhoneNumber = dataRow["PhoneNumber"] != DBNull.Value ? dataRow["PhoneNumber"].ToString() : string.Empty,
+                        PasswordHash = dataRow["PasswordHash"] != DBNull.Value ? dataRow["PasswordHash"].ToString() : string.Empty,
+                        PasswordSalt = dataRow["PasswordSalt"] != DBNull.Value ? dataRow["PasswordSalt"].ToString() : string.Empty,
                         ProfileSiteData = new ProfileSite
                         {
                             ProfileId = dataRow["ProfileId"] != DBNull.Value ? Convert.ToInt32(dataRow["ProfileId"]) : 0,
@@ -310,11 +312,13 @@ namespace Spider_QAMS.Repositories.Domain
                     new SqlParameter("@NewFullName", SqlDbType.VarChar, 200) { Value = userProfileData.FullName == profileUserExisting.FullName ? DBNull.Value : userProfileData.FullName },
                     new SqlParameter("@NewEmailID", SqlDbType.VarChar, 100) { Value = userProfileData.EmailID == profileUserExisting.EmailID ? DBNull.Value : userProfileData.EmailID },
                     new SqlParameter("@NewPhoneNumber", SqlDbType.VarChar, 15) { Value = userProfileData.PhoneNumber == profileUserExisting.PhoneNumber ? DBNull.Value : userProfileData.PhoneNumber },
-                    new SqlParameter("@NewProfileId", SqlDbType.Int) { Value = userProfileData.ProfileSiteData.ProfileId == profileUserExisting.ProfileSiteData.ProfileId ? DBNull.Value : userProfileData.ProfileSiteData.ProfileId },
+                    new SqlParameter("@NewProfileId", SqlDbType.Int) { Value = userProfileData.ProfileSiteData.ProfileId == profileUserExisting.ProfileSiteData.ProfileId ? 0 : userProfileData.ProfileSiteData.ProfileId },
                     new SqlParameter("@NewUserName", SqlDbType.VarChar, 100) { Value = userProfileData.UserName == profileUserExisting.UserName ? DBNull.Value : userProfileData.UserName },
                     new SqlParameter("@NewProfilePicName", SqlDbType.VarChar, 255) { Value = userProfileData.ProfilePicName == profileUserExisting.ProfilePicName ? DBNull.Value : userProfileData.ProfilePicName },
-                    new SqlParameter("@NewIsActive", SqlDbType.Bit) { Value = userProfileData.IsActive == profileUserExisting.IsActive ? DBNull.Value : userProfileData.IsActive },
-                    new SqlParameter("@NewIsADUser", SqlDbType.Bit) { Value = userProfileData.IsADUser == profileUserExisting.IsADUser ? DBNull.Value : userProfileData.IsADUser },
+                    new SqlParameter("@NewPasswordSalt", SqlDbType.VarChar, 255) { Value = userProfileData.PasswordSalt == profileUserExisting.PasswordSalt ? DBNull.Value : userProfileData.PasswordSalt },
+                    new SqlParameter("@NewPasswordHash", SqlDbType.VarChar, 255) { Value = userProfileData.PasswordHash == profileUserExisting.PasswordHash ? DBNull.Value : userProfileData.PasswordHash },
+                    new SqlParameter("@NewIsActive", SqlDbType.Bit) { Value = userProfileData.IsActive == profileUserExisting.IsActive ? profileUserExisting.IsActive : userProfileData.IsActive },
+                    new SqlParameter("@NewIsADUser", SqlDbType.Bit) { Value = userProfileData.IsADUser == profileUserExisting.IsADUser ? profileUserExisting.IsADUser : userProfileData.IsADUser },
                     new SqlParameter("@NewUpdateUserId", SqlDbType.Int) { Value = CurrentUserId }
                 };
 
@@ -580,6 +584,109 @@ namespace Spider_QAMS.Repositories.Domain
             catch (Exception ex)
             {
                 throw new Exception($"Error deleting record for {deleteType}.", ex);
+            }
+        }
+        public async Task<ProfileUserAPIVM> GetSettingsDataAsync(int CurrentUserId)
+        {
+            try
+            {
+                ProfileUserAPIVM userSettings = new ProfileUserAPIVM();
+                string commandText = $"SELECT UserId, u.UserName, u.ProfilePicName, u.FullName, u.EmailID, u.Designation, u.PhoneNumber from Users u where u.UserId = {CurrentUserId}";
+
+                DataTable dataTable = SqlDBHelper.ExecuteSelectCommand(commandText, CommandType.Text);
+
+                if (dataTable.Rows.Count > 0)
+                {
+                    DataRow dataRow = dataTable.Rows[0];
+                    userSettings = new ProfileUserAPIVM
+                    {
+                        UserId = dataRow["UserId"] != DBNull.Value ? (int)dataRow["UserId"] : 0,
+                        FullName = dataRow["FullName"] != DBNull.Value ? dataRow["FullName"].ToString() : string.Empty,
+                        EmailID = dataRow["EmailID"] != DBNull.Value ? dataRow["EmailID"].ToString() : string.Empty,
+                        UserName = dataRow["UserName"] != DBNull.Value ? dataRow["UserName"].ToString() : string.Empty,
+                        ProfilePicName = dataRow["ProfilePicName"] != DBNull.Value ? dataRow["ProfilePicName"].ToString() : string.Empty,
+                        Designation = dataRow["Designation"] != DBNull.Value ? dataRow["Designation"].ToString() : string.Empty,
+                        PhoneNumber = dataRow["PhoneNumber"] != DBNull.Value ? dataRow["PhoneNumber"].ToString() : string.Empty,
+                    };
+                }
+                return userSettings;
+            }
+            catch (SqlException sqlEx)
+            {
+                // Log or handle SQL exceptions
+                throw new Exception("Error executing SQL command.", sqlEx);
+            }
+            catch (Exception ex)
+            {
+                // Log or handle other exceptions
+                throw new Exception("Error in Getting Settings.", ex);
+            }
+        }
+        public async Task<string> UpdateSettingsDataAsync(ProfileUser userSettings, int CurrentUserId)
+        {
+            try
+            {
+                int NumberOfRowsAffected = -1;
+                ProfileUser profileUserExisting = new ProfileUser();
+                string commandText = $"SELECT u.Username, u.FullName, u.EmailID, u.ProfilePicName, u.PasswordHash, u.PasswordSalt, u.UpdateUserId from Users u WHERE U.UserId = {userSettings.UserId}";
+                DataTable dataTable = SqlDBHelper.ExecuteSelectCommand(commandText, CommandType.Text);
+                if (dataTable.Rows.Count > 0)
+                {
+                    DataRow dataRow = dataTable.Rows[0];
+                    profileUserExisting = new ProfileUser
+                    {
+                        UserId = userSettings.UserId,
+                        FullName = dataRow["FullName"] != DBNull.Value ? dataRow["FullName"].ToString() : string.Empty,
+                        EmailID = dataRow["EmailID"] != DBNull.Value ? dataRow["EmailID"].ToString() : string.Empty,
+                        UserName = dataRow["UserName"] != DBNull.Value ? dataRow["UserName"].ToString() : string.Empty,
+                        ProfilePicName = dataRow["ProfilePicName"] != DBNull.Value ? dataRow["ProfilePicName"].ToString() : string.Empty,
+                        PasswordHash = dataRow["PasswordHash"] != DBNull.Value ? dataRow["PasswordHash"].ToString() : string.Empty,
+                        PasswordSalt = dataRow["PasswordSalt"] != DBNull.Value ? dataRow["PasswordSalt"].ToString() : string.Empty,
+                        UpdateUserId = Convert.ToInt32(dataRow["UpdateUserId"]),
+                    };
+                }
+
+                // User Profile Updation
+                SqlParameter[] sqlParameters = new SqlParameter[]
+                {
+                    new SqlParameter("@UserId", SqlDbType.Int) { Value = userSettings.UserId },
+                    new SqlParameter("@NewUserName", SqlDbType.VarChar, 100) { Value = userSettings.UserName == profileUserExisting.UserName? DBNull.Value : userSettings.UserName },
+                    new SqlParameter("@NewFullName", SqlDbType.VarChar, 200) { Value = userSettings.FullName == profileUserExisting.FullName ? DBNull.Value : userSettings.FullName },
+                    new SqlParameter("@NewEmailID", SqlDbType.VarChar, 100) { Value = userSettings.EmailID == profileUserExisting.EmailID ? DBNull.Value : userSettings.EmailID },
+                    new SqlParameter("@NewProfilePicName", SqlDbType.VarChar, 255) { Value = userSettings.ProfilePicName == profileUserExisting.ProfilePicName ? DBNull.Value : userSettings.ProfilePicName },
+                    new SqlParameter("@NewPasswordSalt", SqlDbType.VarChar, 255) { Value = userSettings.PasswordSalt == profileUserExisting.PasswordSalt ? DBNull.Value : userSettings.PasswordSalt },
+                    new SqlParameter("@NewPasswordHash", SqlDbType.VarChar, 255) { Value = userSettings.PasswordHash == profileUserExisting.PasswordHash ? DBNull.Value : userSettings.PasswordHash },
+                    new SqlParameter("@NewUpdateUserId", SqlDbType.Int) { Value = CurrentUserId }
+                };
+
+                // Execute the command
+                List<DataTable> tables = SqlDBHelper.ExecuteParameterizedNonQuery(SP_UpdateUserSettings, CommandType.StoredProcedure, sqlParameters);
+                if (tables.Count > 0)
+                {
+                    dataTable = tables[0];
+                    if (dataTable.Rows.Count > 0)
+                    {
+                        DataRow dataRow = dataTable.Rows[0];
+                        NumberOfRowsAffected = (int)dataRow["RowsAffected"];
+                        if (NumberOfRowsAffected < 0)
+                        {
+                            return string.Empty;
+                        }
+                    }
+                    else
+                    {
+                        return string.Empty;
+                    }
+                }
+                return profileUserExisting.ProfilePicName;
+            }
+            catch (SqlException sqlEx)
+            {
+                throw new Exception("Error while updating Settings - SQL Exception.", sqlEx);
+            }
+            catch (Exception ex)
+            {
+                throw new Exception("Error while updating Settings.", ex);
             }
         }
     }

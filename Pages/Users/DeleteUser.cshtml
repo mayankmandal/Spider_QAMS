@@ -2,169 +2,167 @@
 @model Spider_QAMS.Pages.Users.DeleteUserModel
 @{
     ViewData["Title"] = "Delete User";
+    TempData["NavigationalPageName"] = "Delete User";
 }
 
 <div style="display:flex; flex-direction:column; justify-content:center; align-items:center; min-height:20vh;">
     <form id="deleteProfileForm" method="post" enctype="multipart/form-data">
-        <div id="deleteProfileSection" class="container form-control pt-4 pb-2 mt-3" style="height:auto; background-color: #f4f0ec; width:50rem;">
-
-            <div class="container form-control border-2 mb-2" style="display:flex; justify-content:space-around; height:auto; flex-direction:column; ">
-                <div class="row pb-1 pt-2">
-                    <div style="color:#17a2b8; text-align:center; font-size:1.7rem; font-weight:500">UPDATE USER</div>
-                    <div>
-                        <hr />
+        <div class="container form-control border-2 mb-2" style="display:flex; justify-content:space-around; height:auto; flex-direction:column; width: 45rem;">
+            <div class="row pb-1 pt-2">
+                <div style="color:#17a2b8; text-align:center; font-size:1.7rem; font-weight:500">UPDATE USER</div>
+                <div>
+                    <hr />
+                </div>
+            </div>
+            <div class="card">
+                <div class="card-header" style="background:#f8f8f8;">
+                    <div class="card-title fw-bold" style="font-size:1.2rem">User Details</div>
+                    <div class="card-tools">
+                        <button type="button" class="btn btn-tool" data-card-widget="collapse">
+                            <i class="fas fa-minus"></i>
+                        </button>
+                        <button type="button" class="btn btn-tool" data-card-widget="remove">
+                            <i class="fas fa-times"></i>
+                        </button>
                     </div>
                 </div>
-                <div class="card">
-                    <div class="card-header">
-                        <div class="card-title fw-bold" style="font-size:1.2rem">User Details</div>
-                        <div class="card-tools">
-                            <button type="button" class="btn btn-tool" data-card-widget="collapse">
-                                <i class="fas fa-minus"></i>
-                            </button>
-                            <button type="button" class="btn btn-tool" data-card-widget="remove">
-                                <i class="fas fa-times"></i>
-                            </button>
+                <div class="card-body">
+                    <!-- Validation Summary -->
+                    <div asp-validation-summary="All" class="text-danger fw-bold"></div>
+
+                    <!-- Profile Picture Field -->
+                    <div class="text-center">
+                        <div class="position-relative d-inline-block mx-auto mb-4">
+                            @if (Model.UserProfilePathUrl != null)
+                            {
+                                <img src="@Model.UserProfilePathUrl" class="rounded-circle img-thumbnail" style="width: 150px; height: 150px;" id="loadedProfilePicture">
+                                <div class="position-absolute bottom-0 end-0 rounded-circle bg-light p-1" style="transform: translate(20%, 20%);">
+                                    <input class="d-none" asp-for="ProfileUsersData.PhotoFile" type="file" id="profile-img-file-input" disabled />
+                                    <label for="profile-img-file-input" class="rounded-circle bg-gradient-blue p-2" style="cursor: pointer; width: 40px; height: 40px;">
+                                        <i class="fas fa-camera" style="font-size: 1.5rem;"></i>
+                                    </label>
+                                </div>
+                            }
+                        </div>
+                        <br />
+                        <span asp-validation-for="ProfileUsersData.PhotoFile" class="text-danger fw-bold"></span>
+                    </div>
+
+                    <!-- User ID and ID Number on one line -->
+                    <div class="mb-3" style="display: flex; justify-content: space-between;">
+                        <div style="flex: 1; margin-right: 10px;">
+                            <label asp-for="ProfileUsersData.UserId" class="form-label"></label>
+                            <div class="input-group mb-3">
+                                <div class="input-group-prepend">
+                                    <span class="input-group-text"><i class="fas fa-id-badge"></i></span>
+                                </div>
+                                <input asp-for="ProfileUsersData.UserId" placeholder="User ID" class="form-control" readonly />
+                            </div>
+                        </div>
+                        <div style="flex: 1;">
+                            <label asp-for="ProfileUsersData.Designation" class="form-label"></label>
+                            <div class="input-group mb-3">
+                                <div class="input-group-prepend">
+                                    <span class="input-group-text"><i class="fas fa-briefcase"></i></span>
+                                </div>
+                                <input type="text" asp-for="ProfileUsersData.Designation" placeholder="Designation" class="form-control" disabled />
+                            </div>
+                            <span asp-validation-for="ProfileUsersData.Designation" class="text-danger fw-bold"></span>
                         </div>
                     </div>
-                    <div class="card-body">
-                        <!-- Validation Summary -->
-                        <div asp-validation-summary="All" class="text-danger fw-bold"></div>
 
-                        <!-- Profile Picture Field -->
-                        <div class="text-center">
-                            <div class="position-relative d-inline-block mx-auto mb-4">
-                                @if (Model.UserProfilePathUrl != null)
-                                {
-                                    <img src="@Model.UserProfilePathUrl" class="rounded-circle img-thumbnail" style="width: 150px; height: 150px;" id="loadedProfilePicture">
-                                    <div class="position-absolute bottom-0 end-0 rounded-circle bg-light p-1" style="transform: translate(20%, 20%);">
-                                        <input class="d-none" asp-for="ProfileUsersData.PhotoFile" type="file" id="profile-img-file-input" disabled/>
-                                        <label for="profile-img-file-input" class="rounded-circle bg-gradient-blue p-2" style="cursor: pointer; width: 40px; height: 40px;">
-                                            <i class="fas fa-camera" style="font-size: 1.5rem;"></i>
-                                        </label>
-                                    </div>
-                                }
+                    <!-- Full Name Field -->
+                    <div class="mb-3">
+                        <label asp-for="ProfileUsersData.FullName" class="form-label"></label>
+                        <div class="input-group mb-3">
+                            <div class="input-group-prepend">
+                                <span class="input-group-text"><i class="fas fa-id-card"></i></span>
                             </div>
-                            <br />
-                            <span asp-validation-for="ProfileUsersData.PhotoFile" class="text-danger fw-bold"></span>
+                            <input type="text" asp-for="ProfileUsersData.FullName" placeholder="Full Name" class="form-control" disabled />
                         </div>
+                        <span asp-validation-for="ProfileUsersData.FullName" class="text-danger fw-bold"></span>
+                    </div>
 
-                        <!-- User ID and ID Number on one line -->
-                        <div class="mb-3" style="display: flex; justify-content: space-between;">
-                            <div style="flex: 1; margin-right: 10px;">
-                                <label asp-for="ProfileUsersData.UserId" class="form-label"></label>
-                                <div class="input-group mb-3">
-                                    <div class="input-group-prepend">
-                                        <span class="input-group-text"><i class="fas fa-id-badge"></i></span>
-                                    </div>
-                                    <input asp-for="ProfileUsersData.UserId" placeholder="User ID" class="form-control" readonly />
-                                </div>
-                            </div>
-                            <div style="flex: 1;">
-                                <label asp-for="ProfileUsersData.Designation" class="form-label"></label>
-                                <div class="input-group mb-3">
-                                    <div class="input-group-prepend">
-                                        <span class="input-group-text"><i class="fas fa-briefcase"></i></span>
-                                    </div>
-                                    <input type="text" asp-for="ProfileUsersData.Designation" placeholder="Designation" class="form-control" disabled />
-                                </div>
-                                <span asp-validation-for="ProfileUsersData.Designation" class="text-danger fw-bold"></span>
-                            </div>
-                        </div>
-
-                        <!-- Full Name Field -->
-                        <div class="mb-3">
-                            <label asp-for="ProfileUsersData.FullName" class="form-label"></label>
+                    <!-- Email and Mobile Number on one line -->
+                    <div class="mb-3" style="display: flex; justify-content: space-between;">
+                        <div style="flex: 1; margin-right: 10px;">
+                            <label asp-for="ProfileUsersData.EmailID" class="form-label"></label>
                             <div class="input-group mb-3">
                                 <div class="input-group-prepend">
-                                    <span class="input-group-text"><i class="fas fa-id-card"></i></span>
+                                    <span class="input-group-text"><i class="fas fa-envelope"></i></span>
                                 </div>
-                                <input type="text" asp-for="ProfileUsersData.FullName" placeholder="Full Name" class="form-control" disabled />
+                                <input type="email" asp-for="ProfileUsersData.EmailID" placeholder="Email Address" class="form-control" disabled />
                             </div>
-                            <span asp-validation-for="ProfileUsersData.FullName" class="text-danger fw-bold"></span>
+                            <span asp-validation-for="ProfileUsersData.EmailID" class="text-danger fw-bold"></span>
                         </div>
-
-                        <!-- Email and Mobile Number on one line -->
-                        <div class="mb-3" style="display: flex; justify-content: space-between;">
-                            <div style="flex: 1; margin-right: 10px;">
-                                <label asp-for="ProfileUsersData.EmailID" class="form-label"></label>
-                                <div class="input-group mb-3">
-                                    <div class="input-group-prepend">
-                                        <span class="input-group-text"><i class="fas fa-envelope"></i></span>
-                                    </div>
-                                    <input type="email" asp-for="ProfileUsersData.EmailID" placeholder="Email Address" class="form-control" disabled />
-                                </div>
-                                <span asp-validation-for="ProfileUsersData.EmailID" class="text-danger fw-bold"></span>
-                            </div>
-                            <div style="flex: 1;">
-                                <label asp-for="ProfileUsersData.PhoneNumber" class="form-label"></label>
-                                <div class="input-group mb-3">
-                                    <div class="input-group-prepend">
-                                        <span class="input-group-text"><i class="fas fa-phone"></i></span>
-                                    </div>
-                                    <input type="tel" asp-for="ProfileUsersData.PhoneNumber" placeholder="Mobile Number" class="form-control" disabled />
-                                </div>
-                                <span asp-validation-for="ProfileUsersData.PhoneNumber" class="text-danger fw-bold"></span>
-                            </div>
-                        </div>
-
-                        <!-- Username -->
-                        <div class="mb-3">
-                            <label asp-for="ProfileUsersData.UserName" class="form-label"></label>
+                        <div style="flex: 1;">
+                            <label asp-for="ProfileUsersData.PhoneNumber" class="form-label"></label>
                             <div class="input-group mb-3">
                                 <div class="input-group-prepend">
-                                    <span class="input-group-text"><i class="fas fa-user-cog"></i></span>
+                                    <span class="input-group-text"><i class="fas fa-phone"></i></span>
                                 </div>
-                                <input type="text" asp-for="ProfileUsersData.UserName" placeholder="Username" class="form-control" disabled />
+                                <input type="tel" asp-for="ProfileUsersData.PhoneNumber" placeholder="Mobile Number" class="form-control" disabled />
                             </div>
-                            <span asp-validation-for="ProfileUsersData.UserName" class="text-danger fw-bold"></span>
+                            <span asp-validation-for="ProfileUsersData.PhoneNumber" class="text-danger fw-bold"></span>
                         </div>
+                    </div>
 
-                        <!-- Dropdown to Select Profile Name -->
-                        <div class="mb-3">
-                            <label asp-for="ProfileUsersData.ProfileSiteData.ProfileName" class="form-label"></label>
-                            <div class="input-group mb-3">
-                                <div class="input-group-prepend">
-                                    <span class="input-group-text"><i class="fas fa-user"></i></span>
-                                </div>
-                                <select asp-for="ProfileUsersData.ProfileSiteData.ProfileName" class="form-select striped-select" id="profileSelect">
-                                    <option value="@Model.ProfileUsersData.ProfileSiteData.ProfileName" data-profileid="@Model.ProfileUsersData.ProfileSiteData.ProfileId" selected disabled>@Model.ProfileUsersData.ProfileSiteData.ProfileName</option>
-                                </select>
+                    <!-- Username -->
+                    <div class="mb-3">
+                        <label asp-for="ProfileUsersData.UserName" class="form-label"></label>
+                        <div class="input-group mb-3">
+                            <div class="input-group-prepend">
+                                <span class="input-group-text"><i class="fas fa-user-cog"></i></span>
                             </div>
-                            <span asp-validation-for="ProfileUsersData.ProfileSiteData.ProfileName" class="text-danger fw-bold"></span>
+                            <input type="text" asp-for="ProfileUsersData.UserName" placeholder="Username" class="form-control" disabled />
                         </div>
+                        <span asp-validation-for="ProfileUsersData.UserName" class="text-danger fw-bold"></span>
+                    </div>
 
-                        <!-- Is Active -->
-                        <div class="mb-3">
-                            <div class="form-check">
-                                <input class="form-check-input" type="checkbox" asp-for="ProfileUsersData.IsActive" id="isActiveCheckbox" disabled />
-                                <label class="form-check-label" for="isActiveCheckbox">
-                                    Active User
-                                </label>
+                    <!-- Dropdown to Select Profile Name -->
+                    <div class="mb-3">
+                        <label asp-for="ProfileUsersData.ProfileSiteData.ProfileName" class="form-label"></label>
+                        <div class="input-group mb-3">
+                            <div class="input-group-prepend">
+                                <span class="input-group-text"><i class="fas fa-user"></i></span>
                             </div>
+                            <select asp-for="ProfileUsersData.ProfileSiteData.ProfileName" class="form-select striped-select" id="profileSelect">
+                                <option value="@Model.ProfileUsersData.ProfileSiteData.ProfileName" data-profileid="@Model.ProfileUsersData.ProfileSiteData.ProfileId" selected disabled>@Model.ProfileUsersData.ProfileSiteData.ProfileName</option>
+                            </select>
                         </div>
+                        <span asp-validation-for="ProfileUsersData.ProfileSiteData.ProfileName" class="text-danger fw-bold"></span>
+                    </div>
 
-                        <!-- Is Active Directory User -->
-                        <div class="mb-3">
-                            <div class="form-check">
-                                <input class="form-check-input" type="checkbox" asp-for="ProfileUsersData.IsADUser" id="isActiveDirectoryUserCheckbox" disabled/>
-                                <label class="form-check-label" for="isActiveDirectoryUserCheckbox">
-                                    Active Directory User
-                                </label>
-                            </div>
+                    <!-- Is Active -->
+                    <div class="mb-3">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" asp-for="ProfileUsersData.IsActive" id="isActiveCheckbox" disabled />
+                            <label class="form-check-label" for="isActiveCheckbox">
+                                Active User
+                            </label>
                         </div>
+                    </div>
 
-                        <div style="display: flex; justify-content:space-around;height:auto;">
-                            <div class="row">
-                                <div class="col-2"></div>
-                                <div class="col-3 me-4">
-                                    <button type="button" id="deleteButton" class="btn btn-danger" style="width:140px;">Delete</button>
-                                </div>
-                                <div class="col-4 ms-3">
-                                    <a asp-page="/Users/ManageUser" class="btn btn-secondary" style="width:180px;"> Back to All Users</a>
-                                </div>
-                                <div class="col-3"></div>
+                    <!-- Is Active Directory User -->
+                    <div class="mb-3">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" asp-for="ProfileUsersData.IsADUser" id="isActiveDirectoryUserCheckbox" disabled />
+                            <label class="form-check-label" for="isActiveDirectoryUserCheckbox">
+                                Active Directory User
+                            </label>
+                        </div>
+                    </div>
+
+                    <div style="display: flex; justify-content:space-around;height:auto;">
+                        <div class="row">
+                            <div class="col-2"></div>
+                            <div class="col-3 me-4">
+                                <button type="button" id="deleteButton" class="btn btn-danger" style="width:140px;">Delete</button>
                             </div>
+                            <div class="col-4 ms-3">
+                                <a asp-page="/Users/ManageUser" class="btn btn-secondary" style="width:180px;"> Back to All Users</a>
+                            </div>
+                            <div class="col-3"></div>
                         </div>
                     </div>
                 </div>

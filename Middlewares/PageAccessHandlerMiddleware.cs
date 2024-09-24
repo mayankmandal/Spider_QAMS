@@ -36,7 +36,7 @@ namespace Spider_QAMS.Middlewares
 
                 var user = await _applicationUserBusinessLogic.GetCurrentUserAsync();
 
-                if (user.IsActive == null || user.IsActive == false)
+                if (user.IsActive == null || user.IsActive == false || user.IsDeleted == true)
                 {
                     context.Fail();
                     HandleAccessDenied(context);

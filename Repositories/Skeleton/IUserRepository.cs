@@ -7,6 +7,5 @@ namespace Spider_QAMS.Repositories.Skeleton
         Task<ApplicationUser> GetUserByEmailAsyncRepo(string email);
         Task<ApplicationUser> GetUserByIdAsyncRepo(int userId);
         Task<IList<string>> GetUserRolesAsyncRepo(int userId);
-        Task<ApplicationUser> RegisterUserAsyncRepo(ApplicationUser user);
     }
 }

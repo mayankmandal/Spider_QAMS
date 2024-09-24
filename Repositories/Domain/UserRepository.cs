@@ -15,26 +15,35 @@ namespace Spider_QAMS.Repositories.Domain
             ApplicationUser ActualUser = new ApplicationUser();
             try
             {
-                string commandText = "SELECT * FROM Users u WHERE u.EmailID = @Email";
                 SqlParameter[] sqlParameters = new SqlParameter[]
                 {
-                new SqlParameter("@Email", SqlDbType.VarChar, 100) { Value = email }
+                    new SqlParameter("@TextCriteria", SqlDbType.Int) { Value = UserDataRetrievalCriteria.GetUserByEmail },
+                    new SqlParameter("@InputInt", SqlDbType.Int) { Value = DBNull.Value },
+                    new SqlParameter("@InputString", SqlDbType.NVarChar, 200) { Value = email ?? (object)DBNull.Value },
+                    new SqlParameter("@InputFlag", SqlDbType.Bit) { Value = DBNull.Value },
+                    new SqlParameter("@NewUpdateUserId", SqlDbType.Int) { Value = 0 }, // You can modify this based on your logic
+                    new SqlParameter("@RowsAffected", SqlDbType.Int) { Direction = ParameterDirection.Output }
                 };
 
-                DataTable dataTable = SqlDBHelper.ExecuteParameterizedSelectCommand(commandText, CommandType.Text, sqlParameters);
-                if (dataTable.Rows.Count > 0)
+                List<DataTable> dataTables = SqlDBHelper.ExecuteParameterizedNonQuery(SP_GetUserData, CommandType.StoredProcedure, sqlParameters);
+                if (dataTables.Count > 0)
                 {
-                    // Map the DataTable to the ApplicationUser object
-                    List<ApplicationUser> users = DataTableHelper.MapDataTableToList<ApplicationUser>(dataTable);
-                    ActualUser = users.FirstOrDefault();
-                    if (ActualUser != null && ActualUser.UserId <= 0)
+                    DataTable dataTable = dataTables[0];
+                    if (dataTable.Rows.Count > 0)
+                    {
+                        DataRow dataRow = dataTable.Rows[0];
+                        // Map the DataTable to the ApplicationUser object
+                        List<ApplicationUser> users = DataTableHelper.MapDataTableToList<ApplicationUser>(dataTable);
+                        ActualUser = users.FirstOrDefault();
+                        if (ActualUser != null && ActualUser.UserId <= 0)
+                        {
+                            return null;
+                        }
+                    }
+                    else
                     {
                         return null;
                     }
-                }
-                else
-                {
-                    return null;
                 }
             }
             catch (SqlException sqlEx)
@@ -47,31 +56,40 @@ namespace Spider_QAMS.Repositories.Domain
             }
             return ActualUser;
         }
-
         public async Task<ApplicationUser> GetUserByIdAsyncRepo(int userId)
         {
+            ApplicationUser ActualUser = new ApplicationUser();
             try
             {
-                string commandText = "SELECT * FROM AspNetUsers WHERE UserId = @UserId";
                 SqlParameter[] sqlParameters = new SqlParameter[]
                 {
-                new SqlParameter("@UserId", SqlDbType.Int) { Value = userId }
+                    new SqlParameter("@TextCriteria", SqlDbType.Int) { Value = UserDataRetrievalCriteria.GetUserById },
+                    new SqlParameter("@InputInt", SqlDbType.Int) { Value =  userId },
+                    new SqlParameter("@InputString", SqlDbType.NVarChar, 200) { Value = (object)DBNull.Value },
+                    new SqlParameter("@InputFlag", SqlDbType.Bit) { Value = DBNull.Value },
+                    new SqlParameter("@NewUpdateUserId", SqlDbType.Int) { Value = 0 }, // You can modify this based on your logic
+                    new SqlParameter("@RowsAffected", SqlDbType.Int) { Direction = ParameterDirection.Output }
                 };
 
-                DataTable dataTable = SqlDBHelper.ExecuteParameterizedSelectCommand(commandText, CommandType.Text, sqlParameters);
-                if (dataTable.Rows.Count > 0)
+                List<DataTable> dataTables = SqlDBHelper.ExecuteParameterizedNonQuery(SP_GetUserData, CommandType.StoredProcedure, sqlParameters);
+                if (dataTables.Count > 0)
                 {
-                    DataRow dataRow = dataTable.Rows[0];
-                    return new ApplicationUser
+                    DataTable dataTable = dataTables[0];
+                    if (dataTable.Rows.Count > 0)
                     {
-                        UserId = Convert.ToInt32(dataRow["UserId"]),
-                        FullName = dataRow["FullName"].ToString(),
-                        EmailID = dataRow["Email"].ToString(),
-                        UserName = dataRow["Username"].ToString()
-                        // Populate other fields as necessary
-                    };
+                        DataRow dataRow = dataTable.Rows[0];
+                        List<ApplicationUser> users = DataTableHelper.MapDataTableToList<ApplicationUser>(dataTable);
+                        ActualUser = users.FirstOrDefault();
+                        if (ActualUser != null && ActualUser.UserId <= 0)
+                        {
+                            return null;
+                        }
+                    }
                 }
-                return null;
+                else
+                {
+                    return null;
+                }
             }
             catch (SqlException sqlEx)
             {
@@ -81,63 +99,35 @@ namespace Spider_QAMS.Repositories.Domain
             {
                 throw new Exception("Error in Getting User by ID.", ex);
             }
+            return ActualUser;
         }
-
         public async Task<IList<string>> GetUserRolesAsyncRepo(int userId)
         {
+            List<string> roles = new List<string>();
             try
             {
-                string commandText = "SELECT DISTINCT p.ProfileName FROM Profiles p INNER JOIN UserProfile up ON p.ProfileID = up.ProfileID INNER JOIN Users u ON up.UserID = @UserId";
                 SqlParameter[] sqlParameters = new SqlParameter[]
                 {
-                    new SqlParameter("@UserId", SqlDbType.Int) { Value = userId }
+                    new SqlParameter("@TextCriteria", SqlDbType.Int) { Value = UserDataRetrievalCriteria.GetUserRoles },
+                    new SqlParameter("@InputInt", SqlDbType.Int) { Value =  userId },
+                    new SqlParameter("@InputString", SqlDbType.NVarChar, 200) { Value = (object)DBNull.Value },
+                    new SqlParameter("@InputFlag", SqlDbType.Bit) { Value = DBNull.Value },
+                    new SqlParameter("@NewUpdateUserId", SqlDbType.Int) { Value = 0 }, // You can modify this based on your logic
+                    new SqlParameter("@RowsAffected", SqlDbType.Int) { Direction = ParameterDirection.Output }
                 };
 
-                DataTable dataTable = SqlDBHelper.ExecuteParameterizedSelectCommand(commandText, CommandType.Text, sqlParameters);
-                List<string> roles = new List<string>();
-
-                foreach (DataRow dataRow in dataTable.Rows)
+                List<DataTable> dataTables = SqlDBHelper.ExecuteParameterizedNonQuery(SP_GetUserData, CommandType.StoredProcedure, sqlParameters);
+                if (dataTables.Count > 0)
                 {
-                    roles.Add(dataRow["ProfileName"].ToString());
-                }
-                return roles;
-            }
-            catch (SqlException sqlEx)
-            {
-                throw new Exception("Error executing SQL command.", sqlEx);
-            }
-            catch (Exception ex)
-            {
-                throw new Exception("Error in Getting User Roles.", ex);
-            }
-        }
-
-        public async Task<ApplicationUser> RegisterUserAsyncRepo(ApplicationUser user)
-        {
-            ApplicationUser ActualUser = new ApplicationUser();
-            try
-            {
-                // User Profile Creation
-                SqlParameter[] sqlParameters = new SqlParameter[]
-                {
-                    new SqlParameter("@NewFullName", SqlDbType.VarChar, 200) { Value = user.FullName },
-                    new SqlParameter("@NewEmail", SqlDbType.VarChar, 100) { Value = user.EmailID },
-                    new SqlParameter("@NewPasswordSalt", SqlDbType.VarChar, 255) { Value = user.PasswordSalt },
-                    new SqlParameter("@NewPasswordHash", SqlDbType.VarChar, 255) { Value = user.PasswordHash },
-                };
-
-                // Execute the command
-                List<DataTable> tables = SqlDBHelper.ExecuteParameterizedNonQuery(Constants.SP_RegisterNewUser, CommandType.StoredProcedure, sqlParameters);
-                if (tables.Count > 0)
-                {
-                    DataTable dataTable = tables[0];
+                    DataTable dataTable = dataTables[0];
                     if (dataTable.Rows.Count > 0)
                     {
-                        // Map the DataTable to the ApplicationUser object
-                        List<ApplicationUser> users = DataTableHelper.MapDataTableToList<ApplicationUser>(dataTable);
-                        ActualUser = users.FirstOrDefault();
+                        foreach (DataRow dataRow in dataTable.Rows)
+                        {
+                            roles.Add(dataRow["ProfileName"].ToString());
+                        }
                     }
-                    if (ActualUser != null && ActualUser.UserId <= 0)
+                    else
                     {
                         return null;
                     }
@@ -149,46 +139,13 @@ namespace Spider_QAMS.Repositories.Domain
             }
             catch (SqlException sqlEx)
             {
-                throw new Exception("Error executing SQL command - SQL Exception.", sqlEx);
+                throw new Exception("Error executing SQL command.", sqlEx);
             }
             catch (Exception ex)
             {
-                throw new Exception("Error in User Registration.", ex);
+                throw new Exception("Error in Getting User Roles.", ex);
             }
-            return ActualUser;
-        }
-        public async Task<bool> ConfirmEmailAsyncRepo(int userId)
-        {
-            try
-            {
-                int isUnique = 0;
-
-                // User Profile Creation
-                SqlParameter[] sqlParameters = new SqlParameter[]
-                {
-                    new SqlParameter("@TextCriteria", SqlDbType.Int) { Value = (int)UserFlagsProperty.EmailConfirmed },
-                    new SqlParameter("@InputFlag", SqlDbType.Bit) { Value = true },
-                    new SqlParameter("@UserId", SqlDbType.Int) { Value = userId },
-                    new SqlParameter("@NewUpdateUserId", SqlDbType.Int) { Value = userId },
-                };
-
-                // Execute the command
-                List<DataTable> tables = SqlDBHelper.ExecuteParameterizedNonQuery(SP_UpdateUserFlags, CommandType.StoredProcedure, sqlParameters);
-                if (tables.Count > 0)
-                {
-                    DataTable dataTable = tables[0];
-                    if (dataTable.Rows.Count > 0)
-                    {
-                        DataRow dataRow = dataTable.Rows[0];
-                        isUnique = (int)dataRow["RowsAffected"];
-                    }
-                }
-                return isUnique > 0;
-            }
-            catch (Exception ex)
-            {
-                throw new Exception("Error in confirming email.", ex);
-            }
+            return roles;
         }
     }
 }

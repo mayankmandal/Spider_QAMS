@@ -22,6 +22,9 @@ namespace Spider_QAMS.Utilities
         public const string SP_UpdateUserSettings = "dbo.uspUpdateUserSettings";
 
         public const string SP_CheckUniqueness = "dbo.uspCheckUniqueness";
+        public const string SP_GetUserData = "dbo.uspGetUserData";
+        public const string SP_GetTableAllData = "dbo.uspGetTableAllData";
+        public const string SP_GetCurrentUserProfilePagesCategories = "dbo.uspGetCurrentUserProfilePagesCategories";
 
         public const string SP_DeleteEntityRecord = "dbo.uspDeleteEntityRecord";
 
@@ -52,6 +55,33 @@ namespace Spider_QAMS.Utilities
             EmailConfirmed = 5,
             PhoneNumberConfirmed = 6
         };
+
+        public enum UserDataRetrievalCriteria
+        {
+            None = 0,
+            GetUserByEmail = 1,     // Fetch user by email
+            GetUserById = 2,        // Fetch user by ID
+            GetUserRoles = 3,       // Fetch user roles by ID
+        }
+
+        public enum GetUserCurrentProfileDetails
+        {
+            None = 0,
+            GetCurrentUserDetails = 1,      // Fetch user data
+            GetCurrentUserProfile = 2,      // Fetch user's profile
+            GetCurrentUserPages = 3,        // Fetch user pages list
+            GetCurrentUserCategories = 4,   // Fetch user categories list
+            GetSettingsData = 5,            // Fetch user data
+        }
+
+        public enum GetTableData
+        {
+            None = 0,
+            GetAllUsersData = 1,   // Fetch all users
+            GetAllProfiles = 2,    // Fetch al profiles
+            GetAllPages = 3,       // Fetch all pages
+            GetAllCategories = 4,  // Fetch all categories
+        }
 
         public enum TableNameCheckUniqueness
         {

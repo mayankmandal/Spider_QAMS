@@ -33,7 +33,7 @@ namespace Spider_QAMS.Pages.Account
                 return Page();
             }
             var user = await _applicationUserBusinessLogic.AuthenticateUserAsync(CredentialData.Email, CredentialData.Password);
-            if(user == null)
+            if(user == null || user.IsDeleted == true)
             {
                 TempData["error"] = "Invalid login attempt. Please check your input and try again.";
                 return Page();

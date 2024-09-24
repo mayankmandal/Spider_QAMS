@@ -15,6 +15,7 @@
         public string Location { get; set; }
         public bool IsActive { get; set; }
         public bool IsADUser { get; set; }
+        public bool IsDeleted { get; set; }
         public DateTime CreateDate { get; set; }
         public int CreateUserId { get; set; }
         public DateTime UpdateDate { get; set; }

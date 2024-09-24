@@ -12,38 +12,52 @@ namespace Spider_QAMS.Repositories.Domain
     {
         public async Task<List<ProfileUserAPIVM>> GetAllUsersDataAsync()
         {
+            List<ProfileUserAPIVM> users = new List<ProfileUserAPIVM>();
             try
             {
-                string commandText = "select p.ProfileID, p.ProfileName, u.UserId, u.Designation, u.FullName, u.EmailID, u.PhoneNumber, u.Username, u.ProfilePicName, u.IsActive, U.IsADUser from Users u INNER JOIN UserProfile up on up.UserId = u.UserId INNER JOIN Profiles p on p.ProfileID = up.ProfileID";
-
-                DataTable dataTable = SqlDBHelper.ExecuteSelectCommand(commandText, CommandType.Text);
-
-                List<ProfileUserAPIVM> users = new List<ProfileUserAPIVM>();
-                if (dataTable.Rows.Count > 0)
+                SqlParameter[] sqlParameters = new SqlParameter[]
                 {
-                    foreach (DataRow dataRow in dataTable.Rows)
+                    new SqlParameter("@TextCriteria", SqlDbType.Int) { Value = GetTableData.GetAllUsersData },
+                    new SqlParameter("@RowsAffected", SqlDbType.Int) { Direction = ParameterDirection.Output }
+                };
+                List<DataTable> dataTables = SqlDBHelper.ExecuteParameterizedNonQuery(SP_GetTableAllData, CommandType.StoredProcedure, sqlParameters);
+                if (dataTables.Count > 0)
+                {
+                    DataTable dataTable = dataTables[0];
+                    if (dataTable.Rows.Count > 0)
                     {
-                        ProfileUserAPIVM profileUser = new ProfileUserAPIVM
+                        foreach (DataRow dataRow in dataTable.Rows)
                         {
-                            UserId = Convert.ToInt32(dataRow["UserId"]),
-                            Designation = dataRow["Designation"].ToString(),
-                            FullName = dataRow["FullName"].ToString(),
-                            EmailID = dataRow["EmailID"].ToString(),
-                            PhoneNumber = dataRow["PhoneNumber"].ToString(),
-                            ProfileSiteData = new ProfileSite
+                            ProfileUserAPIVM profileUser = new ProfileUserAPIVM
                             {
-                                ProfileId = Convert.ToInt32(dataRow["ProfileId"]),
-                                ProfileName = dataRow["ProfileName"].ToString()
-                            },
-                            UserName = dataRow["UserName"].ToString(),
-                            ProfilePicName = dataRow["ProfilePicName"].ToString(),
-                            IsActive = Convert.ToBoolean(dataRow["IsActive"]),
-                            IsADUser = Convert.ToBoolean(dataRow["IsADUser"]),
-                        };
-                        users.Add(profileUser);
+                                UserId = Convert.ToInt32(dataRow["UserId"]),
+                                Designation = dataRow["Designation"].ToString(),
+                                FullName = dataRow["FullName"].ToString(),
+                                EmailID = dataRow["EmailID"].ToString(),
+                                PhoneNumber = dataRow["PhoneNumber"].ToString(),
+                                ProfileSiteData = new ProfileSite
+                                {
+                                    ProfileId = Convert.ToInt32(dataRow["ProfileId"]),
+                                    ProfileName = dataRow["ProfileName"].ToString()
+                                },
+                                UserName = dataRow["UserName"].ToString(),
+                                ProfilePicName = dataRow["ProfilePicName"].ToString(),
+                                IsActive = Convert.ToBoolean(dataRow["IsActive"]),
+                                IsADUser = Convert.ToBoolean(dataRow["IsADUser"]),
+                                IsDeleted = Convert.ToBoolean(dataRow["IsDeleted"]),
+                            };
+                            users.Add(profileUser);
+                        }
+                    }
+                    else
+                    {
+                        return null;
                     }
                 }
-                return users;
+                else
+                {
+                    return null;
+                }
             }
             catch (SqlException sqlEx)
             {
@@ -55,33 +69,47 @@ namespace Spider_QAMS.Repositories.Domain
                 // Log or handle other exceptions
                 throw new Exception("Error in Getting All Users Details.", ex);
             }
+            return users;
         }
         public async Task<List<ProfileSite>> GetAllProfilesAsync()
         {
+            List<ProfileSite> profiles = new List<ProfileSite>();
             try
             {
-                string commandText = "SELECT ProfileId, ProfileName, CreateDate, CreateUserId, UpdateDate, UpdateUserId FROM Profiles p";
-
-                DataTable dataTable = SqlDBHelper.ExecuteSelectCommand(commandText, CommandType.Text);
-
-                List<ProfileSite> profiles = new List<ProfileSite>();
-                if (dataTable.Rows.Count > 0)
+                SqlParameter[] sqlParameters = new SqlParameter[]
                 {
-                    foreach (DataRow row in dataTable.Rows)
+                    new SqlParameter("@TextCriteria", SqlDbType.Int) { Value = GetTableData.GetAllProfiles },
+                    new SqlParameter("@RowsAffected", SqlDbType.Int) { Direction = ParameterDirection.Output }
+                };
+                List<DataTable> dataTables = SqlDBHelper.ExecuteParameterizedNonQuery(SP_GetTableAllData, CommandType.StoredProcedure, sqlParameters);
+                if (dataTables.Count > 0)
+                {
+                    DataTable dataTable = dataTables[0];
+                    if (dataTable.Rows.Count > 0)
                     {
-                        ProfileSite profile = new ProfileSite
+                        foreach (DataRow dataRow in dataTable.Rows)
                         {
-                            ProfileId = (int)row["ProfileId"],
-                            ProfileName = row["ProfileName"].ToString(),
-                            CreateDate = (DateTime)row["CreateDate"],
-                            CreateUserId = (int)row["CreateUserId"],
-                            UpdateDate = (DateTime)row["UpdateDate"],
-                            UpdateUserId = (int)row["UpdateUserId"],
-                        };
-                        profiles.Add(profile);
+                            ProfileSite profile = new ProfileSite
+                            {
+                                ProfileId = (int)dataRow["ProfileId"],
+                                ProfileName = dataRow["ProfileName"].ToString(),
+                                CreateDate = (DateTime)dataRow["CreateDate"],
+                                CreateUserId = (int)dataRow["CreateUserId"],
+                                UpdateDate = (DateTime)dataRow["UpdateDate"],
+                                UpdateUserId = (int)dataRow["UpdateUserId"],
+                            };
+                            profiles.Add(profile);
+                        }
+                    }
+                    else
+                    {
+                        return null;
                     }
                 }
-                return profiles;
+                else
+                {
+                    return null;
+                }
             }
             catch (SqlException sqlEx)
             {
@@ -93,34 +121,48 @@ namespace Spider_QAMS.Repositories.Domain
                 // Log or handle other exceptions
                 throw new Exception("Error in Getting All Profiles.", ex);
             }
+            return profiles;
         }
         public async Task<List<PageSite>> GetAllPagesAsync()
         {
+            List<PageSite> pages = new List<PageSite>();
             try
             {
-                string commandText = "SELECT PageId, PageUrl, PageDesc, PageSeq, PageCat, PageImgUrl, PageName FROM tblPage";
-
-                DataTable dataTable = SqlDBHelper.ExecuteSelectCommand(commandText, CommandType.Text);
-
-                List<PageSite> pages = new List<PageSite>();
-                if (dataTable.Rows.Count > 0)
+                SqlParameter[] sqlParameters = new SqlParameter[]
                 {
-                    foreach (DataRow row in dataTable.Rows)
+                    new SqlParameter("@TextCriteria", SqlDbType.Int) { Value = GetTableData.GetAllProfiles },
+                    new SqlParameter("@RowsAffected", SqlDbType.Int) { Direction = ParameterDirection.Output }
+                };
+                List<DataTable> dataTables = SqlDBHelper.ExecuteParameterizedNonQuery(SP_GetTableAllData, CommandType.StoredProcedure, sqlParameters);
+                if (dataTables.Count > 0)
+                {
+                    DataTable dataTable = dataTables[0];
+                    if (dataTable.Rows.Count > 0)
                     {
-                        PageSite page = new PageSite
+                        foreach (DataRow row in dataTable.Rows)
                         {
-                            PageId = (int)row["PageId"],
-                            PageUrl = row["PageUrl"].ToString(),
-                            PageDesc = row["PageDesc"].ToString(),
-                            PageSeq = (int)row["PageSeq"],
-                            PageCat = (int)row["PageCat"],
-                            PageImgUrl = row["PageImgUrl"].ToString(),
-                            PageName = row["PageName"].ToString(),
-                        };
-                        pages.Add(page);
+                            PageSite page = new PageSite
+                            {
+                                PageId = (int)row["PageId"],
+                                PageUrl = row["PageUrl"].ToString(),
+                                PageDesc = row["PageDesc"].ToString(),
+                                PageSeq = (int)row["PageSeq"],
+                                PageCat = (int)row["PageCat"],
+                                PageImgUrl = row["PageImgUrl"].ToString(),
+                                PageName = row["PageName"].ToString(),
+                            };
+                            pages.Add(page);
+                        }
+                    }
+                    else
+                    {
+                        return null;
                     }
                 }
-                return pages;
+                else
+                {
+                    return null;
+                }
             }
             catch (SqlException sqlEx)
             {
@@ -132,34 +174,44 @@ namespace Spider_QAMS.Repositories.Domain
                 // Log or handle other exceptions
                 throw new Exception("Error in Getting All the Pages.", ex);
             }
+            return pages;
         }
         public async Task<List<PageCategory>> GetAllCategoriesAsync()
         {
+            List<PageCategory> pageCategories = new List<PageCategory>();
             try
             {
-                string commandText = "SELECT PageCatId,CategoryName, CreateDate, CreateUserId, UpdateDate, UpdateUserId FROM tblPageCatagory";
-
-                DataTable dataTable = SqlDBHelper.ExecuteSelectCommand(commandText, CommandType.Text);
-
-                List<PageCategory> pageCategories = new List<PageCategory>();
-                if (dataTable.Rows.Count > 0)
+                SqlParameter[] sqlParameters = new SqlParameter[]
                 {
-                    foreach (DataRow row in dataTable.Rows)
+                    new SqlParameter("@TextCriteria", SqlDbType.Int) { Value = GetTableData.GetAllProfiles },
+                    new SqlParameter("@RowsAffected", SqlDbType.Int) { Direction = ParameterDirection.Output }
+                };
+                List<DataTable> dataTables = SqlDBHelper.ExecuteParameterizedNonQuery(SP_GetTableAllData, CommandType.StoredProcedure, sqlParameters);
+                if (dataTables.Count > 0)
+                {
+                    DataTable dataTable = dataTables[0];
+                    if (dataTable.Rows.Count > 0)
                     {
-                        PageCategory pageCategory = new PageCategory
+                        foreach (DataRow row in dataTable.Rows)
                         {
-                            PageCatId = (int)row["PageCatId"],
-                            CategoryName = row["CategoryName"].ToString(),
-                            PageId = 0,
-                            CreateDate = (DateTime)row["CreateDate"],
-                            CreateUserId = (int)row["CreateUserId"],
-                            UpdateDate = (DateTime)row["UpdateDate"],
-                            UpdateUserId = (int)row["UpdateUserId"],
-                        };
-                        pageCategories.Add(pageCategory);
+                            PageCategory pageCategory = new PageCategory
+                            {
+                                PageCatId = (int)row["PageCatId"],
+                                CategoryName = row["CategoryName"].ToString(),
+                                PageId = 0,
+                            };
+                            pageCategories.Add(pageCategory);
+                        }
+                    }
+                    else
+                    {
+                        return null;
                     }
                 }
-                return pageCategories;
+                else
+                {
+                    return null;
+                }
             }
             catch (SqlException sqlEx)
             {
@@ -171,40 +223,56 @@ namespace Spider_QAMS.Repositories.Domain
                 // Log or handle other exceptions
                 throw new Exception("Error in Get All the Page Categories.", ex);
             }
+            return pageCategories;
         }
         public async Task<ProfileUserAPIVM> GetUserRecordAsync(string newUserId)
         {
+            ProfileUserAPIVM userSettings = new ProfileUserAPIVM();
             try
             {
-                ProfileUserAPIVM userSettings = new ProfileUserAPIVM();
-                string commandText = $"SELECT U.UserId, U.UserName, u.ProfilePicName, U.FullName, u.EmailID, U.Designation, U.PhoneNumber, U.ProfileId, p.ProfileName, u.IsActive, u.IsADUser from Users u LEFT JOIN UserProfile up on u.UserId = up.UserID LEFT JOIN Profiles p on up.ProfileID = u.ProfileId where U.UserId = {newUserId}";
-
-                DataTable dataTable = SqlDBHelper.ExecuteSelectCommand(commandText, CommandType.Text);
-
-                if (dataTable.Rows.Count > 0)
+                SqlParameter[] sqlParameters = new SqlParameter[]
                 {
-                    DataRow dataRow = dataTable.Rows[0];
-                    ProfileSite ProfileData = new ProfileSite
+                    new SqlParameter("@TextCriteria", SqlDbType.Int) { Value = GetUserCurrentProfileDetails.GetCurrentUserDetails },
+                    new SqlParameter("@InputInt", SqlDbType.Int) { Value = newUserId },
+                    new SqlParameter("@RowsAffected", SqlDbType.Int) { Direction = ParameterDirection.Output }
+                };
+                List<DataTable> dataTables = SqlDBHelper.ExecuteParameterizedNonQuery(SP_GetCurrentUserProfilePagesCategories, CommandType.StoredProcedure, sqlParameters);
+                if (dataTables.Count > 0)
+                {
+                    DataTable dataTable = dataTables[0];
+                    if (dataTable.Rows.Count > 0)
                     {
-                        ProfileId = dataRow["ProfileId"] != DBNull.Value ? (int)dataRow["ProfileId"] : 0,
-                        ProfileName = dataRow["ProfileName"] != DBNull.Value ? dataRow["ProfileName"].ToString() : string.Empty
-                    };
-                    userSettings = new ProfileUserAPIVM
+                        DataRow dataRow = dataTable.Rows[0];
+                        ProfileSite ProfileData = new ProfileSite
+                        {
+                            ProfileId = dataRow["ProfileId"] != DBNull.Value ? (int)dataRow["ProfileId"] : 0,
+                            ProfileName = dataRow["ProfileName"] != DBNull.Value ? dataRow["ProfileName"].ToString() : string.Empty
+                        };
+                        userSettings = new ProfileUserAPIVM
+                        {
+                            UserId = dataRow["UserId"] != DBNull.Value ? (int)dataRow["UserId"] : 0,
+                            FullName = dataRow["FullName"] != DBNull.Value ? dataRow["FullName"].ToString() : string.Empty,
+                            EmailID = dataRow["EmailID"] != DBNull.Value ? dataRow["EmailID"].ToString() : string.Empty,
+                            UserName = dataRow["UserName"] != DBNull.Value ? dataRow["UserName"].ToString() : string.Empty,
+                            ProfilePicName = dataRow["ProfilePicName"] != DBNull.Value ? dataRow["ProfilePicName"].ToString() : string.Empty,
+                            Designation = dataRow["Designation"] != DBNull.Value ? dataRow["Designation"].ToString() : string.Empty,
+                            PhoneNumber = dataRow["PhoneNumber"] != DBNull.Value ? dataRow["PhoneNumber"].ToString() : string.Empty,
+                            IsActive = dataRow["IsActive"] != DBNull.Value ? Convert.ToBoolean(dataRow["IsActive"]) : false,
+                            IsADUser = dataRow["IsADUser"] != DBNull.Value ? Convert.ToBoolean(dataRow["IsADUser"]) : false,
+                            IsDeleted = dataRow["IsDeleted"] != DBNull.Value ? Convert.ToBoolean(dataRow["IsDeleted"]) : false,
+                            ProfileSiteData = ProfileData,
+                            Password = string.Empty
+                        };
+                    }
+                    else
                     {
-                        UserId = dataRow["UserId"] != DBNull.Value ? (int)dataRow["UserId"] : 0,
-                        FullName = dataRow["FullName"] != DBNull.Value ? dataRow["FullName"].ToString() : string.Empty,
-                        EmailID = dataRow["EmailID"] != DBNull.Value ? dataRow["EmailID"].ToString() : string.Empty,
-                        UserName = dataRow["UserName"] != DBNull.Value ? dataRow["UserName"].ToString() : string.Empty,
-                        ProfilePicName = dataRow["ProfilePicName"] != DBNull.Value ? dataRow["ProfilePicName"].ToString() : string.Empty,
-                        Designation = dataRow["Designation"] != DBNull.Value ? dataRow["Designation"].ToString() : string.Empty,
-                        PhoneNumber = dataRow["PhoneNumber"] != DBNull.Value ? dataRow["PhoneNumber"].ToString() : string.Empty,
-                        IsActive = dataRow["IsActive"] != DBNull.Value ? Convert.ToBoolean(dataRow["IsActive"]) : false,
-                        IsADUser = dataRow["IsADUser"] != DBNull.Value ? Convert.ToBoolean(dataRow["IsADUser"]) : false,
-                        ProfileSiteData = ProfileData,
-                        Password = string.Empty
-                    };
+                        return null;
+                    }
                 }
-                return userSettings;
+                else
+                {
+                    return null;
+                }
             }
             catch (SqlException sqlEx)
             {
@@ -216,6 +284,7 @@ namespace Spider_QAMS.Repositories.Domain
                 // Log or handle other exceptions
                 throw new Exception("Error in Getting Settings.", ex);
             }
+            return userSettings;
         }
         public async Task<bool> CreateUserProfileAsync(ProfileUser userProfileData, int CurrentUserId)
         {
@@ -236,6 +305,7 @@ namespace Spider_QAMS.Repositories.Domain
                     new SqlParameter("@NewPasswordSalt", SqlDbType.VarChar, 255) { Value = userProfileData.PasswordSalt },
                     new SqlParameter("@NewIsActive", SqlDbType.Bit) { Value = userProfileData.IsActive ? 1 : 0 },
                     new SqlParameter("@NewIsADUser", SqlDbType.Bit) { Value = userProfileData.IsADUser ? 1 : 0  },
+                    new SqlParameter("@NewIsDeleted", SqlDbType.Bit) { Value = userProfileData.IsDeleted ? 1 : 0  },
                     new SqlParameter("@NewCreateUserId", SqlDbType.Int) { Value = CurrentUserId },
                     new SqlParameter("@NewUpdateUserId", SqlDbType.Int) { Value = CurrentUserId }
                 };
@@ -272,40 +342,57 @@ namespace Spider_QAMS.Repositories.Domain
         }
         public async Task<string> UpdateUserProfileAsync(ProfileUser userProfileData, int CurrentUserId)
         {
+            ProfileUser profileUserExisting = null;
             try
             {
                 int NumberOfRowsAffected = -1;
 
-                ProfileUser profileUserExisting = null;
-                string commandText = $"SELECT u.Designation, u.FullName, u.EmailID, u.PhoneNumber, u.UserName, u.ProfilePicName, u.IsActive, u.IsADUser, u.ProfileId, u.PasswordSalt, u.PasswordHash from Users u WHERE U.UserId = {userProfileData.UserId}";
-                DataTable dataTable = SqlDBHelper.ExecuteSelectCommand(commandText, CommandType.Text);
-
-                if (dataTable.Rows.Count > 0)
+                SqlParameter[] sqlParameters = new SqlParameter[]
                 {
-                    DataRow dataRow = dataTable.Rows[0];
-                    profileUserExisting = new ProfileUser
+                    new SqlParameter("@TextCriteria", SqlDbType.Int) { Value = GetUserCurrentProfileDetails.GetSettingsData },
+                    new SqlParameter("@InputInt", SqlDbType.Int) { Value = CurrentUserId },
+                    new SqlParameter("@RowsAffected", SqlDbType.Int) { Direction = ParameterDirection.Output }
+                };
+                List<DataTable> dataTables = SqlDBHelper.ExecuteParameterizedNonQuery(SP_GetCurrentUserProfilePagesCategories, CommandType.StoredProcedure, sqlParameters);
+                if (dataTables.Count > 0)
+                {
+                    DataTable dataTab = dataTables[0];
+                    if (dataTab.Rows.Count > 0)
                     {
-                        UserId = userProfileData.UserId,
-                        Designation = dataRow["Designation"] != DBNull.Value ? dataRow["Designation"].ToString() : string.Empty,
-                        FullName = dataRow["FullName"] != DBNull.Value ? dataRow["FullName"].ToString() : string.Empty,
-                        EmailID = dataRow["EmailID"] != DBNull.Value ? dataRow["EmailID"].ToString() : string.Empty,
-                        PhoneNumber = dataRow["PhoneNumber"] != DBNull.Value ? dataRow["PhoneNumber"].ToString() : string.Empty,
-                        PasswordHash = dataRow["PasswordHash"] != DBNull.Value ? dataRow["PasswordHash"].ToString() : string.Empty,
-                        PasswordSalt = dataRow["PasswordSalt"] != DBNull.Value ? dataRow["PasswordSalt"].ToString() : string.Empty,
-                        ProfileSiteData = new ProfileSite
+                        DataRow dataRow = dataTab.Rows[0];
+                        profileUserExisting = new ProfileUser
                         {
-                            ProfileId = dataRow["ProfileId"] != DBNull.Value ? Convert.ToInt32(dataRow["ProfileId"]) : 0,
-                            ProfileName = string.Empty
-                        },
-                        UserName = dataRow["UserName"] != DBNull.Value ? dataRow["UserName"].ToString() : string.Empty,
-                        ProfilePicName = dataRow["ProfilePicName"] != DBNull.Value ? dataRow["ProfilePicName"].ToString() : string.Empty,
-                        IsActive = dataRow["IsActive"] != DBNull.Value ? Convert.ToBoolean(dataRow["IsActive"]) : false,
-                        IsADUser = dataRow["IsADUser"] != DBNull.Value ? Convert.ToBoolean(dataRow["IsADUser"]) : false,
-                    };
+                            UserId = userProfileData.UserId,
+                            Designation = dataRow["Designation"] != DBNull.Value ? dataRow["Designation"].ToString() : string.Empty,
+                            FullName = dataRow["FullName"] != DBNull.Value ? dataRow["FullName"].ToString() : string.Empty,
+                            EmailID = dataRow["EmailID"] != DBNull.Value ? dataRow["EmailID"].ToString() : string.Empty,
+                            PhoneNumber = dataRow["PhoneNumber"] != DBNull.Value ? dataRow["PhoneNumber"].ToString() : string.Empty,
+                            PasswordHash = dataRow["PasswordHash"] != DBNull.Value ? dataRow["PasswordHash"].ToString() : string.Empty,
+                            PasswordSalt = dataRow["PasswordSalt"] != DBNull.Value ? dataRow["PasswordSalt"].ToString() : string.Empty,
+                            ProfileSiteData = new ProfileSite
+                            {
+                                ProfileId = dataRow["ProfileId"] != DBNull.Value ? Convert.ToInt32(dataRow["ProfileId"]) : 0,
+                                ProfileName = string.Empty
+                            },
+                            UserName = dataRow["UserName"] != DBNull.Value ? dataRow["UserName"].ToString() : string.Empty,
+                            ProfilePicName = dataRow["ProfilePicName"] != DBNull.Value ? dataRow["ProfilePicName"].ToString() : string.Empty,
+                            IsActive = dataRow["IsActive"] != DBNull.Value ? Convert.ToBoolean(dataRow["IsActive"]) : false,
+                            IsADUser = dataRow["IsADUser"] != DBNull.Value ? Convert.ToBoolean(dataRow["IsADUser"]) : false,
+                            IsDeleted = dataRow["IsDeleted"] != DBNull.Value ? Convert.ToBoolean(dataRow["IsDeleted"]) : false,
+                        };
+                    }
+                    else
+                    {
+                        return string.Empty;
+                    }
+                }
+                else
+                {
+                    return string.Empty;
                 }
 
                 // User Profile Updation
-                SqlParameter[] sqlParameters = new SqlParameter[]
+                sqlParameters = new SqlParameter[]
                 {
                     new SqlParameter("@UserId", SqlDbType.Int) { Value = userProfileData.UserId },
                     new SqlParameter("@NewDesignation", SqlDbType.VarChar, 10) { Value = userProfileData.Designation == profileUserExisting.Designation ? DBNull.Value : userProfileData.Designation },
@@ -326,7 +413,7 @@ namespace Spider_QAMS.Repositories.Domain
                 List<DataTable> tables = SqlDBHelper.ExecuteParameterizedNonQuery(SP_UpdateUser, CommandType.StoredProcedure, sqlParameters);
                 if (tables.Count > 0)
                 {
-                    dataTable = tables[0];
+                    DataTable dataTable = tables[0];
                     if (dataTable.Rows.Count > 0)
                     {
                         DataRow dataRow = dataTable.Rows[0];
@@ -341,7 +428,10 @@ namespace Spider_QAMS.Repositories.Domain
                         return string.Empty;
                     }
                 }
-                return profileUserExisting.ProfilePicName;
+                else
+                {
+                    return string.Empty;
+                }
             }
             catch (SqlException sqlEx)
             {
@@ -351,12 +441,13 @@ namespace Spider_QAMS.Repositories.Domain
             {
                 throw new Exception("Error while adding User Profile.", ex);
             }
+            return profileUserExisting.ProfilePicName;
         }
         public async Task<bool> CheckUniquenessAsync(string field, string value)
         {
+            int isUnique = 0;
             try
             {
-                int isUnique = 0;
                 TableNameCheckUniqueness? tableEnum = null;
                 if (TableNameClassForUniqueness.User.Contains(field.ToLower()))
                 {
@@ -392,9 +483,16 @@ namespace Spider_QAMS.Repositories.Domain
                         DataRow dataRow = dataTable.Rows[0];
                         isUnique = (int)dataRow["IsUnique"];
                     }
+                    else
+                    {
+                        return false;
+                    }
 
                 }
-                return isUnique > 0;
+                else
+                {
+                    return false;
+                }
             }
             catch (SqlException sqlEx)
             {
@@ -404,40 +502,58 @@ namespace Spider_QAMS.Repositories.Domain
             {
                 throw new Exception($"Error while checking existing {field}.", ex);
             }
+            return isUnique > 0;
         }
         public async Task<ProfileUserAPIVM> GetCurrentUserDetailsAsync(int CurrentUserId)
         {
+            ProfileUserAPIVM profileUser = new ProfileUserAPIVM();
             try
             {
-                string commandText = $"select u.*, u.ProfileId,tp.ProfileName from Users u LEFT JOIN UserProfile tup on tup.UserId = u.UserId LEFT JOIN Profiles tp on tp.ProfileID = tup.ProfileID WHERE U.UserId = {CurrentUserId}";
-
-                DataTable dataTable = SqlDBHelper.ExecuteSelectCommand(commandText, CommandType.Text);
-
-                ProfileUserAPIVM profileUser = new ProfileUserAPIVM();
-                if (dataTable.Rows.Count > 0)
+                SqlParameter[] sqlParameters = new SqlParameter[]
                 {
-                    DataRow dataRow = dataTable.Rows[0];
-                    profileUser = new ProfileUserAPIVM
+                    new SqlParameter("@TextCriteria", SqlDbType.Int) { Value = GetUserCurrentProfileDetails.GetCurrentUserDetails },
+                    new SqlParameter("@InputInt", SqlDbType.Int) { Value = CurrentUserId },
+                    new SqlParameter("@RowsAffected", SqlDbType.Int) { Direction = ParameterDirection.Output }
+                };
+                List<DataTable> dataTables = SqlDBHelper.ExecuteParameterizedNonQuery(SP_GetCurrentUserProfilePagesCategories, CommandType.StoredProcedure, sqlParameters);
+                if (dataTables.Count > 0)
+                {
+                    DataTable dataTable = dataTables[0];
+                    if (dataTable.Rows.Count > 0)
                     {
-                        UserId = dataRow["UserId"] != DBNull.Value ? Convert.ToInt32(dataRow["UserId"]) : 0,
-                        Designation = dataRow["Designation"] != DBNull.Value ? dataRow["Designation"].ToString() : string.Empty,
-                        FullName = dataRow["FullName"] != DBNull.Value ? dataRow["FullName"].ToString() : string.Empty,
-                        EmailID = dataRow["EmailID"] != DBNull.Value ? dataRow["EmailID"].ToString() : string.Empty,
-                        PhoneNumber = dataRow["PhoneNumber"] != DBNull.Value ? dataRow["PhoneNumber"].ToString() : string.Empty,
-                        ProfileSiteData = new ProfileSite
+                        foreach (DataRow dataRow in dataTable.Rows)
                         {
-                            ProfileId = dataRow["ProfileId"] != DBNull.Value ? Convert.ToInt32(dataRow["ProfileId"]) : 0,
-                            ProfileName = dataRow["ProfileName"] != DBNull.Value ? dataRow["ProfileName"].ToString() : string.Empty
-                        },
-                        UserName = dataRow["UserName"] != DBNull.Value ? dataRow["UserName"].ToString() : string.Empty,
-                        ProfilePicName = dataRow["ProfilePicName"] != DBNull.Value ? dataRow["ProfilePicName"].ToString() : string.Empty,
-                        IsActive = dataRow["IsActive"] != DBNull.Value ? Convert.ToBoolean(dataRow["IsActive"]) : false,
-                        IsADUser = dataRow["IsADUser"] != DBNull.Value ? Convert.ToBoolean(dataRow["IsADUser"]) : false,
-                        CreateUserId = dataRow["CreateUserId"] != DBNull.Value ? Convert.ToInt32(dataRow["CreateUserId"]) : 0,
-                        UpdateUserId = dataRow["UpdateUserId"] != DBNull.Value ? Convert.ToInt32(dataRow["UpdateUserId"]) : 0
-                    };
+                            profileUser = new ProfileUserAPIVM
+                            {
+                                UserId = dataRow["UserId"] != DBNull.Value ? Convert.ToInt32(dataRow["UserId"]) : 0,
+                                Designation = dataRow["Designation"] != DBNull.Value ? dataRow["Designation"].ToString() : string.Empty,
+                                FullName = dataRow["FullName"] != DBNull.Value ? dataRow["FullName"].ToString() : string.Empty,
+                                EmailID = dataRow["EmailID"] != DBNull.Value ? dataRow["EmailID"].ToString() : string.Empty,
+                                PhoneNumber = dataRow["PhoneNumber"] != DBNull.Value ? dataRow["PhoneNumber"].ToString() : string.Empty,
+                                ProfileSiteData = new ProfileSite
+                                {
+                                    ProfileId = dataRow["ProfileId"] != DBNull.Value ? Convert.ToInt32(dataRow["ProfileId"]) : 0,
+                                    ProfileName = dataRow["ProfileName"] != DBNull.Value ? dataRow["ProfileName"].ToString() : string.Empty
+                                },
+                                UserName = dataRow["UserName"] != DBNull.Value ? dataRow["UserName"].ToString() : string.Empty,
+                                ProfilePicName = dataRow["ProfilePicName"] != DBNull.Value ? dataRow["ProfilePicName"].ToString() : string.Empty,
+                                IsActive = dataRow["IsActive"] != DBNull.Value ? Convert.ToBoolean(dataRow["IsActive"]) : false,
+                                IsADUser = dataRow["IsADUser"] != DBNull.Value ? Convert.ToBoolean(dataRow["IsADUser"]) : false,
+                                IsDeleted = dataRow["IsDeleted"] != DBNull.Value ? Convert.ToBoolean(dataRow["IsDeleted"]) : false,
+                                CreateUserId = dataRow["CreateUserId"] != DBNull.Value ? Convert.ToInt32(dataRow["CreateUserId"]) : 0,
+                                UpdateUserId = dataRow["UpdateUserId"] != DBNull.Value ? Convert.ToInt32(dataRow["UpdateUserId"]) : 0
+                            };
+                        }
+                    }
+                    else
+                    {
+                        return null;
+                    }
                 }
-                return profileUser;
+                else
+                {
+                    return null;
+                }
             }
             catch (SqlException sqlEx)
             {
@@ -449,32 +565,47 @@ namespace Spider_QAMS.Repositories.Domain
                 // Log or handle other exceptions
                 throw new Exception("Error in Getting All Users Data.", ex);
             }
+            return profileUser;
         }
         public async Task<ProfileSite> GetCurrentUserProfileAsync(int CurrentUserId)
         {
+            ProfileSite profileSite = new ProfileSite();
             try
             {
-                string commandText = $"SELECT tp.ProfileID, tp.ProfileName, tp.CreateDate, tp.UpdateDate, tp.CreateUserId, tp.UpdateUserId FROM Profiles tp INNER JOIN UserProfile tbup on tp.ProfileID = tbup.ProfileID WHERE tbup.UserId = {CurrentUserId}";
-
-                DataTable dataTable = SqlDBHelper.ExecuteSelectCommand(commandText, CommandType.Text);
-
-                ProfileSite profileSite = new ProfileSite();
-                if (dataTable.Rows.Count > 0)
+                SqlParameter[] sqlParameters = new SqlParameter[]
                 {
-                    foreach (DataRow row in dataTable.Rows)
+                    new SqlParameter("@TextCriteria", SqlDbType.Int) { Value = GetUserCurrentProfileDetails.GetCurrentUserProfile },
+                    new SqlParameter("@InputInt", SqlDbType.Int) { Value = CurrentUserId },
+                    new SqlParameter("@RowsAffected", SqlDbType.Int) { Direction = ParameterDirection.Output }
+                };
+                List<DataTable> dataTables = SqlDBHelper.ExecuteParameterizedNonQuery(SP_GetCurrentUserProfilePagesCategories, CommandType.StoredProcedure, sqlParameters);
+                if (dataTables.Count > 0)
+                {
+                    DataTable dataTable = dataTables[0];
+                    if (dataTable.Rows.Count > 0)
                     {
-                        profileSite = new ProfileSite
+                        foreach (DataRow row in dataTable.Rows)
                         {
-                            ProfileId = (int)row["ProfileId"],
-                            ProfileName = row["ProfileName"].ToString(),
-                            CreateDate = (DateTime)row["CreateDate"],
-                            CreateUserId = (int)row["CreateUserId"],
-                            UpdateDate = (DateTime)row["UpdateDate"],
-                            UpdateUserId = (int)row["UpdateUserId"],
-                        };
+                            profileSite = new ProfileSite
+                            {
+                                ProfileId = (int)row["ProfileId"],
+                                ProfileName = row["ProfileName"].ToString(),
+                                CreateDate = (DateTime)row["CreateDate"],
+                                CreateUserId = (int)row["CreateUserId"],
+                                UpdateDate = (DateTime)row["UpdateDate"],
+                                UpdateUserId = (int)row["UpdateUserId"],
+                            };
+                        }
+                    }
+                    else
+                    {
+                        return null;
                     }
                 }
-                return profileSite;
+                else
+                {
+                    return null;
+                }
             }
             catch (SqlException sqlEx)
             {
@@ -486,31 +617,46 @@ namespace Spider_QAMS.Repositories.Domain
                 // Log or handle other exceptions
                 throw new Exception("Error in Getting Current User Profile.", ex);
             }
+            return profileSite;
         }
         public async Task<List<PageSiteVM>> GetCurrentUserPagesAsync(int CurrentUserId)
         {
+            List<PageSiteVM> pages = new List<PageSiteVM>();
             try
             {
-                string commandText = $"SELECT * FROM vwUserPageAccess where UserId = {CurrentUserId}";
-
-                DataTable dataTable = SqlDBHelper.ExecuteSelectCommand(commandText, CommandType.Text);
-
-                List<PageSiteVM> pages = new List<PageSiteVM>();
-                if (dataTable.Rows.Count > 0)
+                SqlParameter[] sqlParameters = new SqlParameter[]
                 {
-                    foreach (DataRow row in dataTable.Rows)
+                    new SqlParameter("@TextCriteria", SqlDbType.Int) { Value = GetUserCurrentProfileDetails.GetCurrentUserPages },
+                    new SqlParameter("@InputInt", SqlDbType.Int) { Value = CurrentUserId },
+                    new SqlParameter("@RowsAffected", SqlDbType.Int) { Direction = ParameterDirection.Output }
+                };
+                List<DataTable> dataTables = SqlDBHelper.ExecuteParameterizedNonQuery(SP_GetCurrentUserProfilePagesCategories, CommandType.StoredProcedure, sqlParameters);
+                if (dataTables.Count > 0)
+                {
+                    DataTable dataTable = dataTables[0];
+                    if (dataTable.Rows.Count > 0)
                     {
-                        PageSiteVM page = new PageSiteVM
+                        foreach (DataRow row in dataTable.Rows)
                         {
-                            PageId = (int)row["PageId"],
-                            PageDesc = row["PageDesc"].ToString(),
-                            PageUrl = row["PageUrl"].ToString(),
-                            isSelected = true
-                        };
-                        pages.Add(page);
+                            PageSiteVM page = new PageSiteVM
+                            {
+                                PageId = (int)row["PageId"],
+                                PageDesc = row["PageDesc"].ToString(),
+                                PageUrl = row["PageUrl"].ToString(),
+                                isSelected = true
+                            };
+                            pages.Add(page);
+                        }
+                    }
+                    else
+                    {
+                        return null;
                     }
                 }
-                return pages;
+                else
+                {
+                    return null;
+                }
             }
             catch (SqlException sqlEx)
             {
@@ -522,32 +668,47 @@ namespace Spider_QAMS.Repositories.Domain
                 // Log or handle other exceptions
                 throw new Exception("Error in Getting Current User Pages.", ex);
             }
+            return pages;
         }
         public async Task<List<CategoriesSetDTO>> GetCurrentUserCategoriesAsync(int CurrentUserId)
         {
+            List<CategoriesSetDTO> categoriesSet = new List<CategoriesSetDTO>();
             try
             {
-                string commandText = $"SELECT * FROM vwUserPagesData where UserId = {CurrentUserId}";
-
-                DataTable dataTable = SqlDBHelper.ExecuteSelectCommand(commandText, CommandType.Text);
-
-                List<CategoriesSetDTO> categoriesSet = new List<CategoriesSetDTO>();
-                if (dataTable.Rows.Count > 0)
+                SqlParameter[] sqlParameters = new SqlParameter[]
                 {
-                    foreach (DataRow row in dataTable.Rows)
+                    new SqlParameter("@TextCriteria", SqlDbType.Int) { Value = GetUserCurrentProfileDetails.GetCurrentUserCategories },
+                    new SqlParameter("@InputInt", SqlDbType.Int) { Value = CurrentUserId },
+                    new SqlParameter("@RowsAffected", SqlDbType.Int) { Direction = ParameterDirection.Output }
+                };
+                List<DataTable> dataTables = SqlDBHelper.ExecuteParameterizedNonQuery(SP_GetCurrentUserProfilePagesCategories, CommandType.StoredProcedure, sqlParameters);
+                if (dataTables.Count > 0)
+                {
+                    DataTable dataTable = dataTables[0];
+                    if (dataTable.Rows.Count > 0)
                     {
-                        CategoriesSetDTO category = new CategoriesSetDTO
+                        foreach (DataRow row in dataTable.Rows)
                         {
-                            PageCatId = row["PageCatId"] != DBNull.Value ? (int)row["PageCatId"] : 0,
-                            CategoryName = row["CategoryName"] != DBNull.Value ? row["CategoryName"].ToString() : string.Empty,
-                            PageId = row["PageId"] != DBNull.Value ? (int)row["PageId"] : 0,
-                            PageDesc = row["PageDesc"] != DBNull.Value ? row["PageDesc"].ToString() : string.Empty,
-                            PageUrl = row["PageUrl"] != DBNull.Value ? row["PageUrl"].ToString() : string.Empty,
-                        };
-                        categoriesSet.Add(category);
+                            CategoriesSetDTO category = new CategoriesSetDTO
+                            {
+                                PageCatId = row["PageCatId"] != DBNull.Value ? (int)row["PageCatId"] : 0,
+                                CategoryName = row["CategoryName"] != DBNull.Value ? row["CategoryName"].ToString() : string.Empty,
+                                PageId = row["PageId"] != DBNull.Value ? (int)row["PageId"] : 0,
+                                PageDesc = row["PageDesc"] != DBNull.Value ? row["PageDesc"].ToString() : string.Empty,
+                                PageUrl = row["PageUrl"] != DBNull.Value ? row["PageUrl"].ToString() : string.Empty,
+                            };
+                            categoriesSet.Add(category);
+                        }
+                    }
+                    else
+                    {
+                        return null;
                     }
                 }
-                return categoriesSet;
+                else
+                {
+                    return null;
+                }
             }
             catch (SqlException sqlEx)
             {
@@ -559,6 +720,7 @@ namespace Spider_QAMS.Repositories.Domain
                 // Log or handle other exceptions
                 throw new Exception("Error in Getting Current User Categories.", ex);
             }
+            return categoriesSet;
         }
         public async Task<bool> DeleteEntityAsync(int deleteId, string deleteType)
         {
@@ -588,28 +750,42 @@ namespace Spider_QAMS.Repositories.Domain
         }
         public async Task<ProfileUserAPIVM> GetSettingsDataAsync(int CurrentUserId)
         {
+            ProfileUserAPIVM userSettings = new ProfileUserAPIVM();
             try
             {
-                ProfileUserAPIVM userSettings = new ProfileUserAPIVM();
-                string commandText = $"SELECT UserId, u.UserName, u.ProfilePicName, u.FullName, u.EmailID, u.Designation, u.PhoneNumber from Users u where u.UserId = {CurrentUserId}";
-
-                DataTable dataTable = SqlDBHelper.ExecuteSelectCommand(commandText, CommandType.Text);
-
-                if (dataTable.Rows.Count > 0)
+                SqlParameter[] sqlParameters = new SqlParameter[]
                 {
-                    DataRow dataRow = dataTable.Rows[0];
-                    userSettings = new ProfileUserAPIVM
+                    new SqlParameter("@TextCriteria", SqlDbType.Int) { Value = GetUserCurrentProfileDetails.GetSettingsData },
+                    new SqlParameter("@InputInt", SqlDbType.Int) { Value = CurrentUserId },
+                    new SqlParameter("@RowsAffected", SqlDbType.Int) { Direction = ParameterDirection.Output }
+                };
+                List<DataTable> dataTables = SqlDBHelper.ExecuteParameterizedNonQuery(SP_GetCurrentUserProfilePagesCategories, CommandType.StoredProcedure, sqlParameters);
+                if (dataTables.Count > 0)
+                {
+                    DataTable dataTable = dataTables[0];
+                    if (dataTable.Rows.Count > 0)
                     {
-                        UserId = dataRow["UserId"] != DBNull.Value ? (int)dataRow["UserId"] : 0,
-                        FullName = dataRow["FullName"] != DBNull.Value ? dataRow["FullName"].ToString() : string.Empty,
-                        EmailID = dataRow["EmailID"] != DBNull.Value ? dataRow["EmailID"].ToString() : string.Empty,
-                        UserName = dataRow["UserName"] != DBNull.Value ? dataRow["UserName"].ToString() : string.Empty,
-                        ProfilePicName = dataRow["ProfilePicName"] != DBNull.Value ? dataRow["ProfilePicName"].ToString() : string.Empty,
-                        Designation = dataRow["Designation"] != DBNull.Value ? dataRow["Designation"].ToString() : string.Empty,
-                        PhoneNumber = dataRow["PhoneNumber"] != DBNull.Value ? dataRow["PhoneNumber"].ToString() : string.Empty,
-                    };
+                        DataRow dataRow = dataTable.Rows[0];
+                        userSettings = new ProfileUserAPIVM
+                        {
+                            UserId = dataRow["UserId"] != DBNull.Value ? (int)dataRow["UserId"] : 0,
+                            FullName = dataRow["FullName"] != DBNull.Value ? dataRow["FullName"].ToString() : string.Empty,
+                            EmailID = dataRow["EmailID"] != DBNull.Value ? dataRow["EmailID"].ToString() : string.Empty,
+                            UserName = dataRow["UserName"] != DBNull.Value ? dataRow["UserName"].ToString() : string.Empty,
+                            ProfilePicName = dataRow["ProfilePicName"] != DBNull.Value ? dataRow["ProfilePicName"].ToString() : string.Empty,
+                            Designation = dataRow["Designation"] != DBNull.Value ? dataRow["Designation"].ToString() : string.Empty,
+                            PhoneNumber = dataRow["PhoneNumber"] != DBNull.Value ? dataRow["PhoneNumber"].ToString() : string.Empty,
+                        };
+                    }
+                    else
+                    {
+                        return null;
+                    }
                 }
-                return userSettings;
+                else
+                {
+                    return null;
+                }
             }
             catch (SqlException sqlEx)
             {
@@ -621,33 +797,51 @@ namespace Spider_QAMS.Repositories.Domain
                 // Log or handle other exceptions
                 throw new Exception("Error in Getting Settings.", ex);
             }
+            return userSettings;
         }
         public async Task<string> UpdateSettingsDataAsync(ProfileUser userSettings, int CurrentUserId)
         {
+            ProfileUser profileUserExisting = new ProfileUser();
             try
             {
                 int NumberOfRowsAffected = -1;
-                ProfileUser profileUserExisting = new ProfileUser();
-                string commandText = $"SELECT u.Username, u.FullName, u.EmailID, u.ProfilePicName, u.PasswordHash, u.PasswordSalt, u.UpdateUserId from Users u WHERE U.UserId = {userSettings.UserId}";
-                DataTable dataTable = SqlDBHelper.ExecuteSelectCommand(commandText, CommandType.Text);
-                if (dataTable.Rows.Count > 0)
+                SqlParameter[] sqlParameters = new SqlParameter[]
                 {
-                    DataRow dataRow = dataTable.Rows[0];
-                    profileUserExisting = new ProfileUser
+                    new SqlParameter("@TextCriteria", SqlDbType.Int) { Value = GetUserCurrentProfileDetails.GetSettingsData },
+                    new SqlParameter("@InputInt", SqlDbType.Int) { Value = CurrentUserId },
+                    new SqlParameter("@RowsAffected", SqlDbType.Int) { Direction = ParameterDirection.Output }
+                };
+                List<DataTable> dataTables = SqlDBHelper.ExecuteParameterizedNonQuery(SP_GetCurrentUserProfilePagesCategories, CommandType.StoredProcedure, sqlParameters);
+                if (dataTables.Count > 0)
+                {
+                    DataTable dataTab = dataTables[0];
+                    if (dataTab.Rows.Count > 0)
                     {
-                        UserId = userSettings.UserId,
-                        FullName = dataRow["FullName"] != DBNull.Value ? dataRow["FullName"].ToString() : string.Empty,
-                        EmailID = dataRow["EmailID"] != DBNull.Value ? dataRow["EmailID"].ToString() : string.Empty,
-                        UserName = dataRow["UserName"] != DBNull.Value ? dataRow["UserName"].ToString() : string.Empty,
-                        ProfilePicName = dataRow["ProfilePicName"] != DBNull.Value ? dataRow["ProfilePicName"].ToString() : string.Empty,
-                        PasswordHash = dataRow["PasswordHash"] != DBNull.Value ? dataRow["PasswordHash"].ToString() : string.Empty,
-                        PasswordSalt = dataRow["PasswordSalt"] != DBNull.Value ? dataRow["PasswordSalt"].ToString() : string.Empty,
-                        UpdateUserId = Convert.ToInt32(dataRow["UpdateUserId"]),
-                    };
+                        DataRow dataRow = dataTab.Rows[0];
+                        profileUserExisting = new ProfileUser
+                        {
+                            UserId = userSettings.UserId,
+                            FullName = dataRow["FullName"] != DBNull.Value ? dataRow["FullName"].ToString() : string.Empty,
+                            EmailID = dataRow["EmailID"] != DBNull.Value ? dataRow["EmailID"].ToString() : string.Empty,
+                            UserName = dataRow["UserName"] != DBNull.Value ? dataRow["UserName"].ToString() : string.Empty,
+                            ProfilePicName = dataRow["ProfilePicName"] != DBNull.Value ? dataRow["ProfilePicName"].ToString() : string.Empty,
+                            PasswordHash = dataRow["PasswordHash"] != DBNull.Value ? dataRow["PasswordHash"].ToString() : string.Empty,
+                            PasswordSalt = dataRow["PasswordSalt"] != DBNull.Value ? dataRow["PasswordSalt"].ToString() : string.Empty,
+                            UpdateUserId = Convert.ToInt32(dataRow["UpdateUserId"]),
+                        };
+                    }
+                    else
+                    {
+                        return string.Empty;
+                    }
+                }
+                else
+                {
+                    return string.Empty;
                 }
 
                 // User Profile Updation
-                SqlParameter[] sqlParameters = new SqlParameter[]
+                sqlParameters = new SqlParameter[]
                 {
                     new SqlParameter("@UserId", SqlDbType.Int) { Value = userSettings.UserId },
                     new SqlParameter("@NewUserName", SqlDbType.VarChar, 100) { Value = userSettings.UserName == profileUserExisting.UserName? DBNull.Value : userSettings.UserName },
@@ -663,7 +857,7 @@ namespace Spider_QAMS.Repositories.Domain
                 List<DataTable> tables = SqlDBHelper.ExecuteParameterizedNonQuery(SP_UpdateUserSettings, CommandType.StoredProcedure, sqlParameters);
                 if (tables.Count > 0)
                 {
-                    dataTable = tables[0];
+                    DataTable dataTable = tables[0];
                     if (dataTable.Rows.Count > 0)
                     {
                         DataRow dataRow = dataTable.Rows[0];
@@ -678,7 +872,6 @@ namespace Spider_QAMS.Repositories.Domain
                         return string.Empty;
                     }
                 }
-                return profileUserExisting.ProfilePicName;
             }
             catch (SqlException sqlEx)
             {
@@ -688,6 +881,7 @@ namespace Spider_QAMS.Repositories.Domain
             {
                 throw new Exception("Error while updating Settings.", ex);
             }
+            return profileUserExisting.ProfilePicName;
         }
     }
 }

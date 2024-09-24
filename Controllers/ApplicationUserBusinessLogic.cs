@@ -51,50 +51,6 @@ namespace Spider_QAMS.Controllers
         {
             _httpContextAccessor.HttpContext.Session.Remove(SessionKeys.CurrentUserKey);
         }
-        public async Task<OperationResult> ConfirmEmailAsync(string userId,string token)
-        {
-            // Validate the token (this will depend on token generation logic)
-            if(string.IsNullOrEmpty(token))
-            {
-                return OperationResult.Failure("Invalid token or user");
-            }
-
-            try
-            {
-                var tokenParts = DecodeEmailConfirmationToken(token);
-                if (tokenParts == null || tokenParts.Length != 2)
-                {
-                    return OperationResult.Failure("Invalid confirmation token format");
-                }
-
-                var userIdFromToken = tokenParts[0];
-                var timestamp = DateTime.Parse(tokenParts[1]);
-
-                // Check if the token has expired
-                if (timestamp < DateTime.UtcNow)
-                {
-                    return OperationResult.Failure("Token has expired");
-                }
-
-                // Verify that the user ID from the token matches the actual user's ID
-                if(userIdFromToken != userId)
-                {
-                    return OperationResult.Failure("Invalid confirmation token");
-                }
-
-                // Proceed with confirming the email if the token is valid
-                bool isConfirmed = await ConfirmEmailAsyncRepo(Convert.ToInt32(userIdFromToken));
-                if(!isConfirmed)
-                {
-                    return OperationResult.Failure("Failed to confirm email.");
-                }
-                return OperationResult.Success();
-            }
-            catch(Exception ex)
-            {
-                return OperationResult.Failure("Failed to confirm email.", ex.Message);
-            }
-        }
         public async Task<ApplicationUser> GetCurrentUserAsync(string jwtToken)
         {
             if (!string.IsNullOrEmpty(jwtToken))
@@ -196,22 +152,6 @@ namespace Spider_QAMS.Controllers
             var categoriesResponse = await client.GetStringAsync($"{_configuration["ApiBaseUrl"]}/Navigation/GetCurrentUserCategories");
             var categories = JsonSerializer.Deserialize<List<CategoryDisplayViewModel>>(categoriesResponse, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
             _httpContextAccessor.HttpContext.Session.Set(SessionKeys.CurrentUserCategoriesKey, Encoding.UTF8.GetBytes(JsonSerializer.Serialize(categories)));
-        }
-        public async Task<ApplicationUser> RegisterUserAsync(ApplicationUser user, string password)
-        {
-            if (user != null || password != null)
-            {
-                string salt = PasswordHelper.GenerateSalt();
-                string hashedPassword = PasswordHelper.HashPassword(password, salt);
-                user.PasswordSalt = salt;
-                user.PasswordHash = hashedPassword;
-                var createdUser = await RegisterUserAsyncRepo(user);
-                if (createdUser != null)
-                {
-                    return createdUser;
-                }
-            }
-            return null;
         }
         public string GenerateEmailConfirmationToken(ApplicationUser user)
         {

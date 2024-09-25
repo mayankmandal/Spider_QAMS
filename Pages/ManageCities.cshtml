@@ -1,0 +1,265 @@
+﻿@page
+@model Spider_QAMS.Pages.ManageCitiesModel
+@{
+    ViewData["Title"] = "Manage Cities";
+    TempData["NavigationalPageName"] = "Manage Cities";
+}
+
+<div style="display:flex; flex-direction:column; align-items:center; min-height:20vh;">
+    <!-- Title and Action Buttons -->
+    <div class="row pt-1 mb-3" style="width:100%;">
+        <div class="col text-start">
+            <h4 class="rb-header">Manage Cities</h4>
+        </div>
+        <div class="col text-end">
+            <button class="btn create-btn" onclick="showCreateForm()" style="background: linear-gradient(to bottom, #ffffff, #e0e0e0); color: #71797E;">
+                <i class="fas fa-plus-circle"></i>
+                &nbsp;Create New City
+            </button>
+        </div>
+    </div>
+
+    <div style="overflow-x:auto; max-height:20rem; width:70rem;" class="mb-4">
+        <!-- Table: List of Existing Cities -->
+        <table class="table table-bordered table-striped text-center">
+            <thead class="table-header" style="background: linear-gradient(to bottom, #59636E, #6A7682); color: white;">
+                <tr>
+                    <th>City Id</th>
+                    <th>City Name</th>
+                    <th>Region Name</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var city in Model.Cities)
+                {
+                    <tr>
+                        <td>@city.CityId</td>
+                        <td>@city.CityName</td>
+                        <td>@city.RegionData.RegionName</td>
+                        <td style="white-space: nowrap;">
+                            <!-- Edit Button -->
+                            <button type="button" class="btn btn-primary btn-sm" onclick="showEditForm('@city.CityId', '@city.CityName', '@city.RegionData.RegionId')">
+                                <i class="fas fa-edit"></i> Edit
+                            </button>
+                            <!-- Delete Button -->
+                            <button type="button" class="btn btn-danger btn-sm" onclick="showDeleteForm('@city.CityId', '@city.CityName', '@city.RegionData.RegionId', '@city.RegionData.RegionName')">
+                                <i class="fas fa-trash-alt"></i> Delete
+                            </button>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Create New City Form (Hidden Initially) -->
+    <div id="createFormDiv" style="display:none; flex-direction: column; align-items: center; min-height: 20vh;">
+        <form method="post" asp-page-handler="Create" id="createCityForm">
+            <div class="container form-control border-2 mb-2" style="display:flex; justify-content:space-around; height:auto; flex-direction:column;width: 45rem;">
+                <div class="row pb-1 pt-2">
+                    <div style="color:#17a2b8; text-align:center; font-size:1.7rem; font-weight:500">CREATE NEW CITY</div>
+                    <div><hr /></div>
+                </div>
+                <div class="card">
+                    <div class="card-header" style="background:#f8f8f8;">
+                        <div class="card-title fw-bold" style="font-size:1.2rem">City Details</div>
+                    </div>
+                    <div class="card-body">
+                        <!-- Validation Summary -->
+                        <div asp-validation-summary="All" class="text-danger fw-bold"></div>
+
+                        <!-- City Name Field -->
+                        <div class="mb-3">
+                            <label asp-for="CityViewModel.CityName" class="form-label"></label>
+                            <div class="input-group mb-3">
+                                <div class="input-group-prepend">
+                                    <span class="input-group-text"><i class="fas fa-city"></i></span>
+                                </div>
+                                <input asp-for="CityViewModel.CityName" placeholder="City Name" class="form-control" />
+                            </div>
+                            <span asp-validation-for="CityViewModel.CityName" class="text-danger fw-bold"></span>
+                        </div>
+
+                        <!-- Region Dropdown Field -->
+                        <div class="mb-3">
+                            <label asp-for="CityViewModel.RegionData.RegionId" class="form-label"></label>
+                            <select id="regionSelect" asp-for="CityViewModel.RegionData.RegionId" class="form-select striped-select" required>
+                                <option value="" disabled selected>--Select Region--</option>
+                                @foreach (var region in Model.Regions)
+                                {
+                                    <option value="@region.RegionId">@region.RegionName</option>
+                                }
+                            </select>
+                            <span asp-validation-for="CityViewModel.RegionData.RegionId" class="text-danger fw-bold"></span>
+                        </div>
+
+                        <!-- Buttons for form submission -->
+                        <div style="display: flex; justify-content:space-around;height:auto;">
+                            <div class="row">
+                                <div class="col-2"></div>
+                                <div class="col-3 me-4">
+                                    <button type="submit" class="btn create-btn" style="width:140px;">Add City</button>
+                                </div>
+                                <div class="col-4 ms-3">
+                                    <button type="button" class="btn btn-secondary" style="width:180px;" onclick="hideAllForms()"> Cancel</button>
+                                </div>
+                                <div class="col-3"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>
+
+    <!-- Edit City Form (Hidden Initially) -->
+    <div id="editFormDiv" style="display:none; flex-direction: column; align-items: center; min-height: 20vh;">
+        <form method="post" asp-page-handler="Update">
+            <input type="hidden" asp-for="CityViewModel.CityId" id="editCityId" />
+            <div class="container form-control border-2 mb-2" style="display:flex; justify-content:space-around; height:auto; flex-direction:column;width: 45rem;">
+                <div class="row pb-1 pt-2">
+                    <div style="color:#17a2b8; text-align:center; font-size:1.7rem; font-weight:500">EDIT CITY</div>
+                    <div><hr /></div>
+                </div>
+                <div class="card">
+                    <div class="card-header" style="background:#f8f8f8;">
+                        <div class="card-title fw-bold" style="font-size:1.2rem">City Details</div>
+                    </div>
+                    <div class="card-body">
+                        <!-- Validation Summary -->
+                        <div asp-validation-summary="All" class="text-danger fw-bold"></div>
+
+                        <!-- City Name Field -->
+                        <div class="mb-3">
+                            <label asp-for="CityViewModel.CityName" class="form-label"></label>
+                            <div class="input-group mb-3">
+                                <div class="input-group-prepend">
+                                    <span class="input-group-text"><i class="fas fa-city"></i></span>
+                                </div>
+                                <input asp-for="CityViewModel.CityName" id="editCityName" placeholder="City Name" class="form-control" />
+                            </div>
+                            <span asp-validation-for="CityViewModel.CityName" class="text-danger fw-bold"></span>
+                        </div>
+
+                        <!-- Region Dropdown Field -->
+                        <div class="mb-3">
+                            <label asp-for="CityViewModel.RegionData.RegionId" class="form-label"></label>
+                            <select id="editRegionId" asp-for="CityViewModel.RegionData.RegionId" class="form-select striped-select" required>
+                                <option value="" disabled>--Select Region--</option>
+                                @foreach (var region in Model.Regions)
+                                {
+                                    <option value="@region.RegionId">@region.RegionName</option>
+                                }
+                            </select>
+                            <span asp-validation-for="CityViewModel.RegionData.RegionId" class="text-danger fw-bold"></span>
+                        </div>
+
+                        <!-- Buttons for form submission -->
+                        <div style="display: flex; justify-content:space-around;height:auto;">
+                            <div class="row">
+                                <div class="col-2"></div>
+                                <div class="col-3 me-4">
+                                    <button type="submit" class="btn create-btn" style="width:140px;">Update City</button>
+                                </div>
+                                <div class="col-4 ms-3">
+                                    <button type="button" class="btn btn-secondary" style="width:180px;" onclick="hideAllForms()"> Cancel</button>
+                                    <div class="col-3"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>
+
+    <!-- Delete City Confirmation (Hidden Initially) -->
+    <div id="deleteFormDiv" style="display:none; flex-direction: column; align-items: center; min-height: 20vh;">
+        <form method="post" asp-page-handler="Delete">
+            <input type="hidden" name="CityId" id="deleteCityId" />
+            <div class="container form-control border-2 mb-2" style="display:flex; justify-content:space-around; height:auto; flex-direction:column;width: 45rem;">
+                <div class="row pb-1 pt-2">
+                    <div style="color:#17a2b8; text-align:center; font-size:1.7rem; font-weight:500">DELETE CITY</div>
+                    <div><hr /></div>
+                </div>
+                <div class="card">
+                    <div class="card-body">
+                        <!-- Validation Summary -->
+                        <div asp-validation-summary="All" class="text-danger fw-bold"></div>
+
+                        <!-- City Name Field -->
+                        <div class="mb-3">
+                            <label asp-for="CityViewModel.CityName" class="form-label"></label>
+                            <div class="input-group mb-3">
+                                <div class="input-group-prepend">
+                                    <span class="input-group-text"><i class="fas fa-city"></i></span>
+                                </div>
+                                <input asp-for="CityViewModel.CityName" id="deleteCityName" placeholder="City Name" class="form-control" disabled />
+                            </div>
+                            <span asp-validation-for="CityViewModel.CityName" class="text-danger fw-bold"></span>
+                        </div>
+
+                        <!-- Region Dropdown Field -->
+                        <div class="mb-3">
+                            <label asp-for="CityViewModel.RegionData.RegionId" class="form-label"></label>
+                            <select id="deleteRegionId" asp-for="CityViewModel.RegionData.RegionId" class="form-select striped-select">
+                            </select>
+                            <span asp-validation-for="CityViewModel.RegionData.RegionId" class="text-danger fw-bold"></span>
+                        </div>
+
+                        <p class="text">Are you sure you want to delete city <strong id="deleteCityPName"></strong>?</p>
+                        <!-- Buttons for deletion confirmation -->
+                        <div style="display: flex; justify-content:space-around;height:auto;">
+                            <div class="row">
+                                <div class="col-2"></div>
+                                <div class="col-3 me-4">
+                                    <button type="submit" class="btn btn-danger" style="width:140px;">Confirm Delete</button>
+                                </div>
+                                <div class="col-4 ms-3">
+                                    <button type="button" class="btn btn-secondary" style="width:180px;" onclick="hideAllForms()"> Cancel</button>
+                                </div>
+                                <div class="col-3"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script>
+        // Function to show the Create form
+        function showCreateForm() {
+            hideAllForms();
+            $('#createFormDiv').show();
+        }
+
+        // Function to show the Edit Form
+        function showEditForm(cityId, cityName, regionId) {
+            hideAllForms();
+            $('#editCityId').val(cityId);
+            $('#editCityName').val(cityName);
+            $('#editRegionId').val(regionId); // Set selected region for edit
+            $('#editFormDiv').show();
+        }
+
+        // Function to show the Delete form
+        function showDeleteForm(cityId, cityName, regionId, regionName) {
+            hideAllForms();
+            $('#deleteCityId').val(cityId);
+            $('#deleteCityName').val(cityName);
+            $('#deleteCityPName').text(cityName);
+            $('#deleteRegionId').empty().append(new Option(regionName, regionId)).prop('disabled', true); // Set and disable the dropdown
+            $('#deleteFormDiv').show();
+        }
+
+        // Function to hide All Forms
+        function hideAllForms() {
+            $('#createFormDiv, #editFormDiv, #deleteFormDiv').hide();
+        }
+    </script>
+}

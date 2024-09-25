@@ -38,6 +38,16 @@ BEGIN
 			SET @query = N'SELECT CASE WHEN EXISTS (SELECT 1 FROM tblPageCategory WITH (NOLOCK) WHERE ' + @Field + ' = @Value) THEN 0 ELSE 1 END AS IsUnique';
 			EXEC sp_executesql @query, N'@Value VARCHAR(100)', @Value;
 		END
+		ELSE IF @TableId = 4
+		BEGIN
+			SET @query = N'SELECT CASE WHEN EXISTS (SELECT 1 FROM Region WITH (NOLOCK) WHERE ' + @Field + ' = @Value) THEN 0 ELSE 1 END AS IsUnique';
+			EXEC sp_executesql @query, N'@Value VARCHAR(100)', @Value;
+		END
+		ELSE IF @TableId = 5
+		BEGIN
+			SET @query = N'SELECT CASE WHEN EXISTS (SELECT 1 FROM City WITH (NOLOCK) WHERE ' + @Field + ' = @Value) THEN 0 ELSE 1 END AS IsUnique';
+			EXEC sp_executesql @query, N'@Value VARCHAR(100)', @Value;
+		END
 
     END TRY
 

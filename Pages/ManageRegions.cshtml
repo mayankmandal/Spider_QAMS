@@ -1,0 +1,264 @@
+﻿@page
+@model Spider_QAMS.Pages.ManageRegionsModel
+@{
+    ViewData["Title"] = "Manage Regions";
+    TempData["NavigationalPageName"] = "Manage Region";
+}
+
+<div style="display:flex; flex-direction:column; align-items:center; min-height:20vh;">
+    <!-- Title and Action Buttons -->
+    <div class="row pt-1 mb-3" style="width:100%;">
+        <div class="col text-start">
+            <h4 class="rb-header">Manage Regions</h4>
+        </div>
+        <div class="col text-end">
+            <button class="btn create-btn" onclick="showCreateForm()" style="background: linear-gradient(to bottom, #ffffff, #e0e0e0); color: #71797E;">
+                <i class="fas fa-plus-circle"></i>
+                &nbsp;Create New Region
+            </button>
+        </div>
+    </div>
+
+    <div style="overflow-x:auto; max-height:20rem; width:70rem;" class="mb-4">
+        <!-- Table: List of Existing Regions -->
+        <table class="table table-bordered table-striped text-center">
+            <thead class="table-header" style="background: linear-gradient(to bottom, #59636E, #6A7682); color: white;">
+                <tr>
+                    <th>Region Id</th>
+                    <th>Region Name</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var region in Model.Regions)
+                {
+                    <tr>
+                        <td>@region.RegionId</td>
+                        <td>@region.RegionName</td>
+                        <td style="white-space: nowrap;">
+                            <!-- Edit Button -->
+                            <button type="button" class="btn btn-primary btn-sm" onclick="showEditForm('@region.RegionId', '@region.RegionName')">
+                                <i class="fas fa-edit"></i> Edit
+                            </button>
+                            <!-- Delete Button -->
+                            <button type="button" class="btn btn-danger btn-sm" onclick="showDeleteForm('@region.RegionId', '@region.RegionName')">
+                                <i class="fas fa-trash-alt"></i> Delete
+                            </button>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Create New Region Form (Hidden Initially) -->
+    <div id="createFormDiv" style="display:none; flex-direction: column; align-items: center; min-height: 20vh;">
+        <form method="post" asp-page-handler="Create" id="createRegionForm">
+            <div class="container form-control border-2 mb-2" style="display:flex; justify-content:space-around; height:auto; flex-direction:column;width: 45rem;">
+                <div class="row pb-1 pt-2">
+                    <div style="color:#17a2b8; text-align:center; font-size:1.7rem; font-weight:500">CREATE NEW REGION</div>
+                    <div>
+                        <hr />
+                    </div>
+                </div>
+                <div class="card">
+                    <div class="card-header" style="background:#f8f8f8;">
+                        <div class="card-title fw-bold" style="font-size:1.2rem">Region Details</div>
+                        <div class="card-tools">
+                            <button type="button" class="btn btn-tool" data-card-widget="collapse">
+                                <i class="fas fa-minus"></i>
+                            </button>
+                            <button type="button" class="btn btn-tool" data-card-widget="remove">
+                                <i class="fas fa-times"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <!-- Validation Summary -->
+                        <div asp-validation-summary="All" class="text-danger fw-bold"></div>
+
+                        <!-- Region Name Field -->
+                        <div class="mb-3">
+                            <label asp-for="Region.RegionName" class="form-label"></label>
+                            <div class="input-group mb-3">
+                                <div class="input-group-prepend">
+                                    <span class="input-group-text"><i class="fas fa-map-marker-alt"></i></span>
+                                </div>
+                                <input asp-for="Region.RegionName" placeholder="Region Name" class="form-control" />
+                            </div>
+                            <span asp-validation-for="Region.RegionName" class="text-danger fw-bold"></span>
+                        </div>
+
+                        <!-- Buttons for form submission -->
+                        <div style="display: flex; justify-content:space-around;height:auto;">
+                            <div class="row">
+                                <div class="col-2"></div>
+                                <div class="col-3 me-4">
+                                    <button type="submit" class="btn create-btn" style="width:140px;">Add Region</button>
+                                </div>
+                                <div class="col-4 ms-3">
+                                    <button type="button" class="btn btn-secondary" style="width:180px;" onclick="hideAllForms()"> Cancel</button>
+                                </div>
+                                <div class="col-3"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>
+
+    <!-- Edit Region Form (Hidden Initially) -->
+    <div id="editFormDiv" style="display:none; flex-direction: column; align-items: center; min-height: 20vh;">
+        <form method="post" asp-page-handler="Update">
+            <input type="hidden" asp-for="Region.RegionId" id="editRegionId" />
+            <div class="container form-control border-2 mb-2" style="display:flex; justify-content:space-around; height:auto; flex-direction:column;width: 45rem;">
+                <div class="row pb-1 pt-2">
+                    <div style="color:#17a2b8; text-align:center; font-size:1.7rem; font-weight:500">EDIT REGION</div>
+                    <div>
+                        <hr />
+                    </div>
+                </div>
+                <div class="card">
+                    <div class="card-header" style="background:#f8f8f8;">
+                        <div class="card-title fw-bold" style="font-size:1.2rem">Region Details</div>
+                        <div class="card-tools">
+                            <button type="button" class="btn btn-tool" data-card-widget="collapse">
+                                <i class="fas fa-minus"></i>
+                            </button>
+                            <button type="button" class="btn btn-tool" data-card-widget="remove">
+                                <i class="fas fa-times"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="card-body">
+
+                        <!-- Validation Summary -->
+                        <div asp-validation-summary="All" class="text-danger fw-bold"></div>
+
+                        <!-- Region Name Field -->
+                        <div class="mb-3">
+                            <label asp-for="Region.RegionName" class="form-label"></label>
+                            <div class="input-group mb-3">
+                                <div class="input-group-prepend">
+                                    <span class="input-group-text"><i class="fas fa-map-marker-alt"></i></span>
+                                </div>
+                                <input asp-for="Region.RegionName" id="editRegionName" placeholder="Region Name" class="form-control" />
+                            </div>
+                            <span asp-validation-for="Region.RegionName" class="text-danger fw-bold"></span>
+                        </div>
+
+                        <!-- Buttons for form submission -->
+                        <div style="display: flex; justify-content:space-around;height:auto;">
+                            <div class="row">
+                                <div class="col-2"></div>
+                                <div class="col-3 me-4">
+                                    <button type="submit" class="btn create-btn" style="width:140px;">Update Region</button>
+                                </div>
+                                <div class="col-4 ms-3">
+                                    <button type="button" class="btn btn-secondary" style="width:180px;" onclick="hideAllForms()"> Cancel</button>
+                                </div>
+                                <div class="col-3"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>
+
+    <!-- Delete Region Confirmation (Hidden Initially) -->
+    <div id="deleteFormDiv" style="display:none; flex-direction: column; align-items: center; min-height: 20vh;">
+        <form method="post" asp-page-handler="Delete">
+            <input type="hidden" name="RegionId" id="deleteRegionId" />
+            <div class="container form-control border-2 mb-2" style="display:flex; justify-content:space-around; height:auto; flex-direction:column;width: 45rem;">
+                <div class="row pb-1 pt-2">
+                    <div style="color:#17a2b8; text-align:center; font-size:1.7rem; font-weight:500">DELETE REGION</div>
+                    <div>
+                        <hr />
+                    </div>
+                </div>
+                <div class="card">
+                    <div class="card-header" style="background:#f8f8f8;">
+                        <div class="card-title fw-bold" style="font-size:1.2rem">Region Details</div>
+                        <div class="card-tools">
+                            <button type="button" class="btn btn-tool" data-card-widget="collapse">
+                                <i class="fas fa-minus"></i>
+                            </button>
+                            <button type="button" class="btn btn-tool" data-card-widget="remove">
+                                <i class="fas fa-times"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="card-body">
+
+                        <!-- Validation Summary -->
+                        <div asp-validation-summary="All" class="text-danger fw-bold"></div>
+
+                        <!-- Region Name Field -->
+                        <div class="mb-3">
+                            <label asp-for="Region.RegionName" class="form-label"></label>
+                            <div class="input-group mb-3">
+                                <div class="input-group-prepend">
+                                    <span class="input-group-text"><i class="fas fa-map-marker-alt"></i></span>
+                                </div>
+                                <input asp-for="Region.RegionName" id="deleteRegionName" placeholder="Region Name" class="form-control" disabled />
+                            </div>
+                            <span asp-validation-for="Region.RegionName" class="text-danger fw-bold"></span>
+                        </div>
+
+                        <p class="text">Are you sure you want to delete region <strong id="deleteRegionPName"></strong>?</p>
+
+                        <!-- Buttons for deletion confirmation -->
+                        <div style="display: flex; justify-content:space-around;height:auto;">
+                            <div class="row">
+                                <div class="col-2"></div>
+                                <div class="col-3 me-4">
+                                    <button type="submit" class="btn btn-danger" style="width:140px;">Confirm Delete</button>
+                                </div>
+                                <div class="col-4 ms-3">
+                                    <button type="button" class="btn btn-secondary" style="width:180px;" onclick="hideAllForms()"> Cancel</button>
+                                </div>
+                                <div class="col-3"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>
+
+</div>
+
+@section scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script>
+        // Function to show the Create form
+        function showCreateForm() {
+            hideAllForms();
+            $('#createFormDiv').show();
+        }
+
+        // Function to show the Edit Form
+        function showEditForm(regionId, regionName) {
+            hideAllForms();
+            $('#editRegionId').val(regionId);
+            $('#editRegionName').val(regionName);
+            $('#editFormDiv').show();
+        }
+
+        // Function to show the Delete form
+        function showDeleteForm(regionId, regionName) {
+            hideAllForms();
+            $('#deleteRegionId').val(regionId);
+            $('#deleteRegionName').val(regionName);
+            $('#deleteRegionPName').text(regionName);
+            $('#deleteFormDiv').show();
+        }
+
+        // Function to hide All Forms
+        function hideAllForms() {
+            $('#createFormDiv, #editFormDiv, #deleteFormDiv').hide();
+        }
+    </script>
+}

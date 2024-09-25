@@ -31,3 +31,13 @@ html {
     background-color: #117a8b;
     color: white;
 }
+
+.striped-select option:nth-child(2n) {
+    background-color: #EAEFF2;
+    color: #474440;
+}
+
+.striped-select option:nth-child(2n+1) {
+    background-color: white;
+    color: #474440;
+}

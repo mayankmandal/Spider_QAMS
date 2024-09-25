@@ -461,6 +461,14 @@ namespace Spider_QAMS.Repositories.Domain
                 {
                     tableEnum = TableNameCheckUniqueness.PageCategory;
                 }
+                else if (TableNameClassForUniqueness.Region.Contains(field.ToLower()))
+                {
+                    tableEnum = TableNameCheckUniqueness.Region;
+                }
+                else if (TableNameClassForUniqueness.City.Contains(field.ToLower()))
+                {
+                    tableEnum = TableNameCheckUniqueness.City;
+                }
                 if (tableEnum == null)
                 {
                     throw new ArgumentException($"Field - {field} does not match any known column.");
@@ -882,6 +890,337 @@ namespace Spider_QAMS.Repositories.Domain
                 throw new Exception("Error while updating Settings.", ex);
             }
             return profileUserExisting.ProfilePicName;
+        }
+        public async Task<List<Region>> GetAllRegionsAsync()
+        {
+            List<Region> regions = new List<Region>();
+            try
+            {
+                SqlParameter[] sqlParameters = new SqlParameter[]
+                {
+                    new SqlParameter("@TextCriteria", SqlDbType.Int) { Value = GetTableData.GetAllRegions },
+                    new SqlParameter("@RowsAffected", SqlDbType.Int) { Direction = ParameterDirection.Output }
+                };
+                List<DataTable> dataTables = SqlDBHelper.ExecuteParameterizedNonQuery(SP_GetTableAllData, CommandType.StoredProcedure, sqlParameters);
+                if (dataTables.Count > 0)
+                {
+                    DataTable dataTable = dataTables[0];
+                    if (dataTable.Rows.Count > 0)
+                    {
+                        foreach (DataRow dataRow in dataTable.Rows)
+                        {
+                            Region region = new Region
+                            {
+                                RegionId = Convert.ToInt32(dataRow["RegionId"]),
+                                RegionName = dataRow["RegionName"].ToString(),
+                            };
+                            regions.Add(region);
+                        }
+                    }
+                    else
+                    {
+                        return null;
+                    }
+                }
+                else
+                {
+                    return null;
+                }
+            }
+            catch (SqlException sqlEx)
+            {
+                // Log or handle SQL exceptions
+                throw new Exception("Error executing SQL command.", sqlEx);
+            }
+            catch (Exception ex)
+            {
+                // Log or handle other exceptions
+                throw new Exception("Error in Getting Regions List.", ex);
+            }
+            return regions;
+        }
+        public async Task<bool> UpdateRegionAsync(Region region)
+        {
+            try
+            {
+                SqlParameter[] sqlParameters = new SqlParameter[]
+                {
+                    new SqlParameter("@Id", SqlDbType.Int){Value = region.RegionId},
+                    new SqlParameter("@NewInput", SqlDbType.VarChar, 200){Value = region.RegionName},
+                    new SqlParameter("@Type", SqlDbType.VarChar, 10){Value = DeleteEntityType.Region},
+                };
+
+                bool isFailure = SqlDBHelper.ExecuteNonQuery(SP_UpdateEntityRecord, CommandType.StoredProcedure, sqlParameters);
+                if (isFailure)
+                {
+                    return false;
+                }
+            }
+            catch (SqlException sqlEx)
+            {
+                throw new Exception($"Error updating record for {region.RegionName} - SQL Exception.", sqlEx);
+            }
+            catch (Exception ex)
+            {
+                throw new Exception($"Error updating record for {region.RegionName}.", ex);
+            }
+            return true;
+        }
+        public async Task<bool> CreateRegionAsync(Region region)
+        {
+            int newId = -1;
+            try
+            {
+                SqlParameter[] sqlParameters = new SqlParameter[]
+                {
+                    new SqlParameter("@NewInput", SqlDbType.VarChar, 200){Value = region.RegionName},
+                    new SqlParameter("@Type", SqlDbType.VarChar, 10){Value = DeleteEntityType.Region},
+                    new SqlParameter("@NewID", SqlDbType.Int) { Direction = ParameterDirection.Output }
+                };
+
+                bool isFailure = SqlDBHelper.ExecuteNonQuery(SP_CreateEntityRecord, CommandType.StoredProcedure, sqlParameters);
+
+                newId = (sqlParameters[2].Value != DBNull.Value) ? (int)sqlParameters[2].Value : -1;
+                // Validate if the newId is greater than 0
+                if (newId <= 0 && isFailure)
+                {
+                   return false;
+                }
+            }
+            catch (SqlException sqlEx)
+            {
+                throw new Exception($"Error creating record for {region.RegionName} - SQL Exception.", sqlEx);
+            }
+            catch (Exception ex)
+            {
+                throw new Exception($"Error creating record for {region.RegionName}.", ex);
+            }
+            return true;
+        }
+        public async Task<List<City>> GetAllCitiesAsync()
+        {
+            List<City> cities = new List<City>();
+            try
+            {
+                SqlParameter[] sqlParameters = new SqlParameter[]
+                {
+                    new SqlParameter("@TextCriteria", SqlDbType.Int) { Value = GetTableData.GetAllCities },
+                    new SqlParameter("@RowsAffected", SqlDbType.Int) { Direction = ParameterDirection.Output }
+                };
+                List<DataTable> dataTables = SqlDBHelper.ExecuteParameterizedNonQuery(SP_GetTableAllData, CommandType.StoredProcedure, sqlParameters);
+                if (dataTables.Count > 0)
+                {
+                    DataTable dataTable = dataTables[0];
+                    if (dataTable.Rows.Count > 0)
+                    {
+                        foreach (DataRow dataRow in dataTable.Rows)
+                        {
+                            City city = new City
+                            {
+                                CityId = Convert.ToInt32(dataRow["CityId"]),
+                                CityName = dataRow["CityName"].ToString(),
+                                RegionData = new Region
+                                {
+                                    RegionId = Convert.ToInt32(dataRow["RegionId"]),
+                                    RegionName = dataRow["RegionName"].ToString()
+                                }
+                            };
+                            cities.Add(city);
+                        }
+                    }
+                    else
+                    {
+                        return null;
+                    }
+                }
+                else
+                {
+                    return null;
+                }
+            }
+            catch (SqlException sqlEx)
+            {
+                // Log or handle SQL exceptions
+                throw new Exception("Error executing SQL command.", sqlEx);
+            }
+            catch (Exception ex)
+            {
+                // Log or handle other exceptions
+                throw new Exception("Error in Getting All Cities List.", ex);
+            }
+            return cities;
+        }
+        public async Task<bool> UpdateCityAsync(City city)
+        {
+            try
+            {
+                SqlParameter[] sqlParameters = new SqlParameter[]
+                {
+                    new SqlParameter("@Id", SqlDbType.Int){Value = city.CityId},
+                    new SqlParameter("@NewInput", SqlDbType.VarChar, 200){Value = city.CityName},
+                    new SqlParameter("@NewIntInput", SqlDbType.Int){Value = city.RegionData.RegionId},
+                    new SqlParameter("@Type", SqlDbType.VarChar, 10){Value = DeleteEntityType.City},
+                };
+
+                bool isFailure = SqlDBHelper.ExecuteNonQuery(SP_UpdateEntityRecord, CommandType.StoredProcedure, sqlParameters);
+                if (isFailure)
+                {
+                    return false;
+                }
+            }
+            catch (SqlException sqlEx)
+            {
+                throw new Exception($"Error updating record for {city.CityName} - SQL Exception.", sqlEx);
+            }
+            catch (Exception ex)
+            {
+                throw new Exception($"Error updating record for {city.CityName}.", ex);
+            }
+            return true;
+        }
+        public async Task<bool> CreateCityAsync(City city)
+        {
+            int newId = -1;
+            try
+            {
+                SqlParameter[] sqlParameters = new SqlParameter[]
+                {
+                    new SqlParameter("@NewInput", SqlDbType.VarChar, 200){Value = city.CityName},
+                    new SqlParameter("@NewIntInput", SqlDbType.Int){Value = city.RegionData.RegionId},
+                    new SqlParameter("@Type", SqlDbType.VarChar, 10){Value = DeleteEntityType.City},
+                    new SqlParameter("@NewID", SqlDbType.Int) { Direction = ParameterDirection.Output }
+                };
+
+                bool isFailure = SqlDBHelper.ExecuteNonQuery(SP_CreateEntityRecord, CommandType.StoredProcedure, sqlParameters);
+
+                newId = (sqlParameters[3].Value != DBNull.Value) ? (int)sqlParameters[3].Value : -1;
+                // Validate if the newId is greater than 0
+                if (newId <= 0 && isFailure)
+                {
+                    return false;
+                }
+            }
+            catch (SqlException sqlEx)
+            {
+                throw new Exception($"Error creating record for {city.CityName} - SQL Exception.", sqlEx);
+            }
+            catch (Exception ex)
+            {
+                throw new Exception($"Error creating record for {city.CityName}.", ex);
+            }
+            return true;
+        }
+        public async Task<List<SiteLocation>> GetAllLocationsAsync()
+        {
+            List<SiteLocation> sites = new List<SiteLocation>();
+            try
+            {
+                SqlParameter[] sqlParameters = new SqlParameter[]
+                {
+                    new SqlParameter("@TextCriteria", SqlDbType.Int) { Value = GetTableData.GetAllLocations },
+                    new SqlParameter("@RowsAffected", SqlDbType.Int) { Direction = ParameterDirection.Output }
+                };
+                List<DataTable> dataTables = SqlDBHelper.ExecuteParameterizedNonQuery(SP_GetTableAllData, CommandType.StoredProcedure, sqlParameters);
+                if (dataTables.Count > 0)
+                {
+                    DataTable dataTable = dataTables[0];
+                    if (dataTable.Rows.Count > 0)
+                    {
+                        foreach (DataRow dataRow in dataTable.Rows)
+                        {
+                            SiteLocation site = new SiteLocation
+                            {
+                                LocationId = Convert.ToInt32(dataRow["LocationId"]),
+                                Location = dataRow["Location"].ToString(),
+                                StreetName = dataRow["StreetName"].ToString(),
+                                BranchName = dataRow["BranchName"].ToString(),
+                                DistrictName = dataRow["DistrictName"].ToString(),
+                                SponsorId = Convert.ToInt32(dataRow["SponsorId"]),
+                                City = new City
+                                {
+                                    CityId = Convert.ToInt32(dataRow["CityId"]),
+                                    CityName = dataRow["CityName"].ToString(),
+                                    RegionData = new Region
+                                    {
+                                        RegionId = Convert.ToInt32(dataRow["RegionId"]),
+                                        RegionName = dataRow["RegionName"].ToString()
+                                    }
+                                }
+                            };
+                            sites.Add(site);
+                        }
+                    }
+                    else
+                    {
+                        return null;
+                    }
+                }
+                else
+                {
+                    return null;
+                }
+            }
+            catch (SqlException sqlEx)
+            {
+                // Log or handle SQL exceptions
+                throw new Exception("Error executing SQL command.", sqlEx);
+            }
+            catch (Exception ex)
+            {
+                // Log or handle other exceptions
+                throw new Exception("Error in Getting All Cities List.", ex);
+            }
+            return sites;
+        }
+        public async Task<List<CityRegionViewModel>> GetRegionListOfCitiesAsync()
+        {
+            List<CityRegionViewModel> cityRegionsList = new List<CityRegionViewModel>();
+            try
+            {
+                SqlParameter[] sqlParameters = new SqlParameter[]
+                {
+                    new SqlParameter("@TextCriteria", SqlDbType.Int) { Value = GetTableData.GetRegionListOfCities },
+                    new SqlParameter("@RowsAffected", SqlDbType.Int) { Direction = ParameterDirection.Output }
+                };
+                List<DataTable> dataTables = SqlDBHelper.ExecuteParameterizedNonQuery(SP_GetTableAllData, CommandType.StoredProcedure, sqlParameters);
+                if (dataTables.Count > 0)
+                {
+                    DataTable dataTable = dataTables[0];
+                    if (dataTable.Rows.Count > 0)
+                    {
+                        foreach (DataRow dataRow in dataTable.Rows)
+                        {
+                            CityRegionViewModel cityRegion = new CityRegionViewModel
+                            {
+                                CityId = Convert.ToInt32(dataRow["CityId"]),
+                                CityName = dataRow["CityName"].ToString(),
+                                RegionId = Convert.ToInt32(dataRow["RegionId"]),
+                                RegionName = dataRow["RegionName"].ToString(),
+                            };
+                            cityRegionsList.Add(cityRegion);
+                        }
+                    }
+                    else
+                    {
+                        return null;
+                    }
+                }
+                else
+                {
+                    return null;
+                }
+            }
+            catch (SqlException sqlEx)
+            {
+                // Log or handle SQL exceptions
+                throw new Exception("Error executing SQL command.", sqlEx);
+            }
+            catch (Exception ex)
+            {
+                // Log or handle other exceptions
+                throw new Exception("Error in Getting All Cities List.", ex);
+            }
+            return cityRegionsList;
         }
     }
 }

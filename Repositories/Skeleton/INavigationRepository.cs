@@ -22,5 +22,19 @@ namespace Spider_QAMS.Repositories.Skeleton
         Task<bool> DeleteEntityAsync(int deleteId, string deleteType);
         Task<ProfileUserAPIVM> GetSettingsDataAsync(int CurrentUserId);
         Task<string> UpdateSettingsDataAsync(ProfileUser userSettings, int CurrentUserId);
+
+        Task<List<Region>> GetAllRegionsAsync();
+        Task<bool> UpdateRegionAsync(Region region);
+        Task<bool> CreateRegionAsync(Region region);
+
+        Task<List<City>> GetAllCitiesAsync();
+        Task<bool> UpdateCityAsync(City city);
+        Task<bool> CreateCityAsync(City city);
+
+        Task<List<SiteLocation>> GetAllLocationsAsync();
+        // Task<bool> UpdateLocationAsync(City city);
+        // Task<bool> CreateLocationAsync(City city);
+
+        Task <List<CityRegionViewModel>> GetRegionListOfCitiesAsync();
     }
 }

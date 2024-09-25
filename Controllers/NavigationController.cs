@@ -5,6 +5,7 @@ using Spider_QAMS.Models.ViewModels;
 using Spider_QAMS.Repositories.Domain;
 using Spider_QAMS.Repositories.Skeleton;
 using Spider_QAMS.Utilities;
+using System.Security.Authentication;
 using System.Text;
 using System.Text.Json;
 using System.Text.RegularExpressions;
@@ -268,7 +269,6 @@ namespace Spider_QAMS.Controllers
         [HttpGet("GetAllUsers")]
         [ProducesResponseType(typeof(IList<ProfileUser>), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-        // [AllowAnonymous]
         public async Task<IActionResult> GetAllUsers()
         {
             try
@@ -730,6 +730,267 @@ namespace Spider_QAMS.Controllers
                     return Ok(isSucess);
                 }
                 return Ok();
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"Internal Server Error: {ex.Message}");
+            }
+        }
+        [HttpGet("GetAllRegion")]
+        [ProducesResponseType(typeof(List<Region>), StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        public async Task<IActionResult> GetAllRegionData()
+        {
+            try
+            {
+                var jwtToken = Request.Headers["Authorization"].ToString().Replace("Bearer ", "");
+                if (string.IsNullOrEmpty(jwtToken))
+                {
+                    return Unauthorized("JWT Token is missing");
+                }
+                var userId = await _applicationUserBusinessLogic.GetCurrentUserIdAsync(jwtToken);
+                if (userId == null)
+                {
+                    return Unauthorized("User is not authenticated.");
+                }
+                List<Region> regionsList = await _navigationRepository.GetAllRegionsAsync();
+                return Ok(regionsList);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"Internal Server Error: {ex.Message}");
+            }
+        }
+
+        [HttpPost("UpdateRegion")]
+        [ProducesResponseType(typeof(Region), StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        public async Task<IActionResult> UpdateRegionData(Region region)
+        {
+            try
+            {
+                var jwtToken = Request.Headers["Authorization"].ToString().Replace("Bearer ", "");
+                if (string.IsNullOrEmpty(jwtToken))
+                {
+                    return Unauthorized("JWT Token is missing");
+                }
+                var currentUserId = await _applicationUserBusinessLogic.GetCurrentUserIdAsync(jwtToken);
+                if (currentUserId == null || currentUserId <= 0)
+                {
+                    return Unauthorized("User is not authenticated.");
+                }
+
+                bool isSuccess = false;
+                isSuccess = await _navigationRepository.UpdateRegionAsync(region);
+
+                if (isSuccess)
+                {
+                    return Ok(isSuccess);
+                }
+                else
+                {
+                    return BadRequest();
+                }
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"Internal Server Error: {ex.Message}");
+            }
+        }
+        [HttpPost("CreateRegion")]
+        [ProducesResponseType(typeof(Region), StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        public async Task<IActionResult> CreateRegionData(Region region)
+        {
+            try
+            {
+                var jwtToken = Request.Headers["Authorization"].ToString().Replace("Bearer ", "");
+                if (string.IsNullOrEmpty(jwtToken))
+                {
+                    return Unauthorized("JWT Token is missing");
+                }
+                var currentUserId = await _applicationUserBusinessLogic.GetCurrentUserIdAsync(jwtToken);
+                if (currentUserId == null || currentUserId <= 0)
+                {
+                    return Unauthorized("User is not authenticated.");
+                }
+
+                bool isSuccess = false;
+                isSuccess = await _navigationRepository.CreateRegionAsync(region);
+
+                if (isSuccess)
+                {
+                    return Ok(isSuccess);
+                }
+                else
+                {
+                    return BadRequest();
+                }
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"Internal Server Error: {ex.Message}");
+            }
+        }
+        [HttpGet("GetAllCities")]
+        [ProducesResponseType(typeof(List<City>), StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        public async Task<IActionResult> GetAllCitiesData()
+        {
+            try
+            {
+                var jwtToken = Request.Headers["Authorization"].ToString().Replace("Bearer ", "");
+                if (string.IsNullOrEmpty(jwtToken))
+                {
+                    return Unauthorized("JWT Token is missing");
+                }
+                var userId = await _applicationUserBusinessLogic.GetCurrentUserIdAsync(jwtToken);
+                if (userId == null)
+                {
+                    return Unauthorized("User is not authenticated.");
+                }
+                List<City> regionsList = await _navigationRepository.GetAllCitiesAsync();
+                return Ok(regionsList);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"Internal Server Error: {ex.Message}");
+            }
+        }
+        [HttpPost("UpdateCity")]
+        [ProducesResponseType(typeof(City), StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        public async Task<IActionResult> UpdateCityData(City city)
+        {
+            try
+            {
+                var jwtToken = Request.Headers["Authorization"].ToString().Replace("Bearer ", "");
+                if (string.IsNullOrEmpty(jwtToken))
+                {
+                    return Unauthorized("JWT Token is missing");
+                }
+                var currentUserId = await _applicationUserBusinessLogic.GetCurrentUserIdAsync(jwtToken);
+                if (currentUserId == null || currentUserId <= 0)
+                {
+                    return Unauthorized("User is not authenticated.");
+                }
+
+                bool isSuccess = false;
+                isSuccess = await _navigationRepository.UpdateCityAsync(city);
+
+                if (isSuccess)
+                {
+                    return Ok(isSuccess);
+                }
+                else
+                {
+                    return BadRequest();
+                }
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"Internal Server Error: {ex.Message}");
+            }
+        }
+        [HttpPost("CreateCity")]
+        [ProducesResponseType(typeof(City), StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        public async Task<IActionResult> CreateCityData(City city)
+        {
+            try
+            {
+                var jwtToken = Request.Headers["Authorization"].ToString().Replace("Bearer ", "");
+                if (string.IsNullOrEmpty(jwtToken))
+                {
+                    return Unauthorized("JWT Token is missing");
+                }
+                var currentUserId = await _applicationUserBusinessLogic.GetCurrentUserIdAsync(jwtToken);
+                if (currentUserId == null || currentUserId <= 0)
+                {
+                    return Unauthorized("User is not authenticated.");
+                }
+
+                bool isSuccess = false;
+                isSuccess = await _navigationRepository.CreateCityAsync(city);
+
+                if (isSuccess)
+                {
+                    return Ok(isSuccess);
+                }
+                else
+                {
+                    return BadRequest();
+                }
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"Internal Server Error: {ex.Message}");
+            }
+        }
+        [HttpGet("GetAllLocations")]
+        [ProducesResponseType(typeof(List<SiteLocation>), StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        public async Task<IActionResult> GetAllLocationsData()
+        {
+            try
+            {
+                var jwtToken = Request.Headers["Authorization"].ToString().Replace("Bearer ", "");
+                if (string.IsNullOrEmpty(jwtToken))
+                {
+                    return Unauthorized("JWT Token is missing");
+                }
+                var userId = await _applicationUserBusinessLogic.GetCurrentUserIdAsync(jwtToken);
+                if (userId == null)
+                {
+                    return Unauthorized("User is not authenticated.");
+                }
+                List<SiteLocation> regionsList = await _navigationRepository.GetAllLocationsAsync();
+                return Ok(regionsList);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"Internal Server Error: {ex.Message}");
+            }
+        }
+        [HttpGet("GetRegionListOfCities")]
+        [ProducesResponseType(typeof(List<RegionAssociatedCities>), StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        public async Task<IActionResult> GetRegionListOfCitiesData()
+        {
+            try
+            {
+                var jwtToken = Request.Headers["Authorization"].ToString().Replace("Bearer ", "");
+                if (string.IsNullOrEmpty(jwtToken))
+                {
+                    return Unauthorized("JWT Token is missing");
+                }
+                var userId = await _applicationUserBusinessLogic.GetCurrentUserIdAsync(jwtToken);
+                if (userId == null)
+                {
+                    return Unauthorized("User is not authenticated.");
+                }
+                List<CityRegionViewModel> cityRegionList = await _navigationRepository.GetRegionListOfCitiesAsync();
+                var regions = cityRegionList
+                    .GroupBy(cr => new { cr.RegionId, cr.RegionName }) // Group by RegionId and RegionName
+                    .Select(g => new RegionAssociatedCities
+                    {
+                        RegionId = g.Key.RegionId,
+                        RegionName = g.Key.RegionName,
+                        Cities = g.Select(city => new CityViewModel
+                        {
+                            CityId = city.CityId,
+                            CityName = city.CityName
+                        }).ToList()
+                    }).ToList();
+                return Ok(regions);
             }
             catch (Exception ex)
             {

@@ -21,7 +21,7 @@ BEGIN
     BEGIN TRY
 
 		-- Validate the value of @TextCriteria currently 1 to 4 only
-        IF @TextCriteria NOT BETWEEN 1 AND 4
+        IF @TextCriteria NOT BETWEEN 1 AND 8
 		BEGIN
 				
 			SELECT -1 AS RowsAffected;
@@ -31,7 +31,9 @@ BEGIN
 		-- GetAllUsersData
 		IF @TextCriteria = 1
 		BEGIN
-			SELECT p.ProfileID, p.ProfileName, u.UserId, u.Designation, u.FullName, u.EmailID, u.PhoneNumber, u.Username, u.ProfilePicName, u.IsActive, U.IsADUser, U.IsDeleted FROM Users u WITH (NOLOCK) INNER JOIN UserProfile up WITH (NOLOCK) on up.UserId = u.UserId INNER JOIN Profiles p WITH (NOLOCK) on p.ProfileID = up.ProfileID AND u.IsDeleted != 1
+			SELECT p.ProfileID, p.ProfileName, u.UserId, u.Designation, u.FullName, u.EmailID, u.PhoneNumber, u.Username, u.ProfilePicName, u.IsActive, U.IsADUser, U.IsDeleted FROM Users u WITH (NOLOCK) 
+			INNER JOIN UserProfile up WITH (NOLOCK) on up.UserId = u.UserId 
+			INNER JOIN Profiles p WITH (NOLOCK) on p.ProfileID = up.ProfileID AND u.IsDeleted != 1
 		END
 
 		-- GetAllProfiles
@@ -50,6 +52,34 @@ BEGIN
 		ELSE IF @TextCriteria = 4
 		BEGIN
 			SELECT PageCatId,CategoryName FROM tblPageCategory WITH (NOLOCK)
+		END
+
+		-- GetAllRegions
+		ELSE IF @TextCriteria = 5
+		BEGIN
+			SELECT RegionID, RegionName FROM Region WITH (NOLOCK)
+		END
+
+		-- GetAllCities
+		ELSE IF @TextCriteria = 6
+		BEGIN
+			SELECT c.CityID, c.CityName, r.RegionID, r.RegionName FROM City c WITH (NOLOCK)
+			INNER JOIN Region r WITH (NOLOCK) ON c.RegionID = r.RegionID
+		END
+
+		-- GetAllLocations
+		ELSE IF @TextCriteria = 7
+		BEGIN
+			SELECT L.*, c.CityName, r.RegionName FROM [Location] l  WITH (NOLOCK)
+			INNER JOIN City c WITH (NOLOCK) ON c.CityID = l.CityID
+			INNER JOIN Region r WITH (NOLOCK) ON c.RegionID = r.RegionID
+		END
+
+		-- GetRegionListOfCities
+		ELSE IF @TextCriteria = 8
+		BEGIN
+			SELECT c.CityID, c.CityName, r.RegionID, r.RegionName FROM City c WITH (NOLOCK) 
+			INNER JOIN Region r WITH (NOLOCK) ON c.RegionID = r.RegionID
 		END
 
 		-- Capture number of rows affected

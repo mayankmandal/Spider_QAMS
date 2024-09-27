@@ -101,7 +101,39 @@ namespace Spider_QAMS.Pages
         }
         public async Task<IActionResult> OnPostUpdateAsync()
         {
-            ModelState.Remove("CityViewModel.RegionData.RegionName");
+            if (CityViewModel.CityId != null)
+            {
+                var client = _clientFactory.CreateClient();
+                client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", JWTCookieHelper.GetJWTCookie(HttpContext));
+                var apiUrl = $"{_configuration["ApiBaseUrl"]}/Navigation/FetchRecord";
+                var requestBody = new Record { RecordId = CityViewModel.CityId, RecordType = (int)FetchRecordByIdEnum.GetCityData };
+                var jsonContent = JsonSerializer.Serialize(requestBody);
+                var httpContent = new StringContent(jsonContent, Encoding.UTF8, "application/json");
+                var response = await client.PostAsync(apiUrl, httpContent);
+
+                if (response.IsSuccessStatusCode)
+                {
+                    var responseContent = await response.Content.ReadAsStringAsync();
+                    _city = JsonSerializer.Deserialize<City>(responseContent, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+                }
+                else
+                {
+                    await LoadAllRegionData();
+                    await LoadAllCitiesData();
+                    ModelState.AddModelError("ProfileUsersData.UserId", $"Error fetching user record for {CityViewModel.CityName}. Please ensure the UserId is correct.");
+                    TempData["error"] = $"Model State Validation Failed. Response status: {response.StatusCode} - {response.ReasonPhrase}";
+                    return Page();
+                }
+
+                if (_city.CityName == CityViewModel.CityName)
+                {
+                    ModelState.Remove("CityViewModel.CityName");
+                }
+                if (CityViewModel.RegionData.RegionName == null|| _city.RegionData.RegionName == CityViewModel.RegionData.RegionName)
+                {
+                    ModelState.Remove("CityViewModel.RegionData.RegionName");
+                }
+            }
             if (!ModelState.IsValid)
             {
                 await LoadAllRegionData(); // Reload ProfilesData if there's a validation error

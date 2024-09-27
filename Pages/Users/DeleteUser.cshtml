@@ -9,7 +9,7 @@
     <form id="deleteProfileForm" method="post" enctype="multipart/form-data">
         <div class="container form-control border-2 mb-2" style="display:flex; justify-content:space-around; height:auto; flex-direction:column; width: 45rem;">
             <div class="row pb-1 pt-2">
-                <div style="color:#17a2b8; text-align:center; font-size:1.7rem; font-weight:500">UPDATE USER</div>
+                <div style="color:#dc3545; text-align:center; font-size:1.7rem; font-weight:500">DELETE USER</div>
                 <div>
                     <hr />
                 </div>
@@ -153,16 +153,11 @@
                         </div>
                     </div>
 
-                    <div style="display: flex; justify-content:space-around;height:auto;">
-                        <div class="row">
-                            <div class="col-2"></div>
-                            <div class="col-3 me-4">
-                                <button type="button" id="deleteButton" class="btn btn-danger" style="width:140px;">Delete</button>
-                            </div>
-                            <div class="col-4 ms-3">
-                                <a asp-page="/Users/ManageUser" class="btn btn-secondary" style="width:180px;"> Back to All Users</a>
-                            </div>
-                            <div class="col-3"></div>
+                    <!-- Buttons for deletion confirmation -->
+                    <div style="display: flex; justify-content: center; align-items: center; margin-top: 20px;">
+                        <div class="row" style="width: 100%; max-width: 600px; display: flex; justify-content: space-around;">
+                            <button type="button" id="deleteButton" class="btn delete-btn">Confirm Delete</button>
+                            <a asp-page="/Users/ManageUser" type="button" class="btn btn-secondary">Back to All Users</a>
                         </div>
                     </div>
                 </div>

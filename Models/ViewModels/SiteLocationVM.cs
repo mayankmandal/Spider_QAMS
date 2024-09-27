@@ -22,9 +22,11 @@ namespace Spider_QAMS.Models.ViewModels
         [DisplayName("District Name")]
         public string? DistrictName { get; set; }
         [DisplayName("Branch name")]
-        [StringLength(50, ErrorMessage = "District Name must be 500 characters or fewer")]
+        [StringLength(50, ErrorMessage = "District Name must be 50 characters or fewer")]
         public string? BranchName { get; set; }
-        [DisplayName("Sponsor Id")]
-        public int? SponsorId { get; set; }
+        [DisplayName("Sponsor Name")]
+        [Required(ErrorMessage = "Sponsor is required")]
+        public int SponsorId { get; set; }
+        public string? SponsorName { get; set; }
     }
 }

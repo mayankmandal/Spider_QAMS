@@ -13,11 +13,22 @@ html {
   min-height: 100%;
 }
 
+/* Prevent text wrapping and keep content on a single line */
+button, a.btn {
+    white-space: nowrap;
+    text-align: center;
+}
+
+/* Create button styling */
 .create-btn {
-    background-color: #17a2b8;
+    background-color: #17a2b8; /* Flat cyan */
     color: white;
     border: none;
-    transition: background-color 0.3s ease;
+    transition: background-color 0.3s ease, box-shadow 0.3s ease;
+    padding: 10px 20px;
+    border-radius: 5px;
+    width: auto;
+    margin-right: 10px; /* Small gap between buttons */
 }
 
 .create-btn:hover {
@@ -32,6 +43,76 @@ html {
     color: white;
 }
 
+/* Update button styling */
+.update-btn {
+    background-color: #28a745; /* Flat green */
+    color: white;
+    border: none;
+    transition: background-color 0.3s ease, box-shadow 0.3s ease;
+    padding: 10px 20px;
+    border-radius: 5px;
+    width: auto;
+    margin-right: 10px;
+}
+
+.update-btn:hover {
+    background-color: #218838;
+    color: white;
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.2);
+    box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+.update-btn:active {
+    background-color: #1e7e34;
+    color: white;
+}
+
+/* Delete button styling */
+.delete-btn {
+    background-color: #D63636; /* Flat red */
+    color: white;
+    border: none;
+    transition: background-color 0.3s ease, box-shadow 0.3s ease;
+    padding: 10px 20px;
+    border-radius: 5px;
+    width: auto;
+    margin-right: 10px;
+}
+
+.delete-btn:hover {
+    background-color: #DB2D28;
+    color: white;
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.2);
+    box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+.delete-btn:active {
+    background-color: #CC1F16;
+    color: white;
+}
+
+/* Secondary button styling */
+.btn-secondary {
+    background-color: #6c757d; /* Flat gray */
+    color: white;
+    border: none;
+    transition: background-color 0.3s ease, box-shadow 0.3s ease;
+    padding: 10px 20px;
+    border-radius: 5px;
+    width: auto;
+}
+
+.btn-secondary:hover {
+    background-color: #5a6268;
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.2);
+    box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+.btn-secondary:active {
+    background-color: #545b62;
+}
+
+/* Striped select for dropdowns */
 .striped-select option:nth-child(2n) {
     background-color: #EAEFF2;
     color: #474440;
@@ -41,3 +122,63 @@ html {
     background-color: white;
     color: #474440;
 }
+
+/* Logout button styling */
+.logout-action-btn {
+    background-color: #dc3545; /* Flat red for logout */
+    color: white;
+    border: none;
+    transition: background-color 0.3s ease, box-shadow 0.3s ease;
+    width: 9rem;
+}
+
+.logout-action-btn:hover {
+    background-color: #c82333;
+    box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.logout-action-btn:active {
+    background-color: #bd2130;
+}
+
+/* Cancel button styling */
+.cancel-action-btn {
+    background-color: #6c757d; /* Flat muted gray */
+    color: white;
+    border: none;
+    width: 9rem;
+}
+
+.cancel-action-btn:hover {
+    background-color: #5a6268;
+    box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.cancel-action-btn:active {
+    background-color: #495057;
+}
+
+/* Login button styling */
+.login-btn {
+    background-color: #007bff; /* Flat blue for login */
+    color: white;
+    border: none;
+    transition: background-color 0.3s ease, box-shadow 0.3s ease;
+    width: 8rem;
+}
+
+.login-btn:hover {
+    background-color: #0069d9;
+    box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.login-btn:active {
+    background-color: #005cbf;
+}
+
+/* Adjust container for login button */
+.button-login-container {
+    margin-top: 10px;
+    height: auto;
+}
+

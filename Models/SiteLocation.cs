@@ -8,6 +8,6 @@
         public City City { get; set; }
         public string DistrictName { get; set; }
         public string BranchName { get; set; }
-        public int SponsorId { get; set; }
+        public Sponsor Sponsor { get; set; }
     }
 }

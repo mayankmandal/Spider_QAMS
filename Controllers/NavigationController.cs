@@ -95,7 +95,7 @@ namespace Spider_QAMS.Controllers
                 {
                     return Unauthorized("User is not authenticated.");
                 }
-                var currentUserDetails = await _navigationRepository.GetCurrentUserDetailsAsync(userId);
+                var currentUserDetails = await _navigationRepository.GetUserRecordAsync(userId);
                 currentUserDetails.ProfilePicName = Path.Combine(_configuration["UserProfileImgPath"], currentUserDetails.ProfilePicName);
                 return Ok(currentUserDetails);
             }
@@ -435,10 +435,10 @@ namespace Spider_QAMS.Controllers
             }
         }
 
-        [HttpPost("FetchUserRecord")]
-        [ProducesResponseType(typeof(ProfileUserAPIVM), StatusCodes.Status200OK)]
+        [HttpPost("FetchRecord")]
+        [ProducesResponseType(typeof(object), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-        public async Task<IActionResult> FetchUserRecord([FromBody] UserIdRequest request)
+        public async Task<IActionResult> FetchRecordData([FromBody] Record record)
         {
             try
             {
@@ -452,8 +452,19 @@ namespace Spider_QAMS.Controllers
                 {
                     return Unauthorized("User is not authenticated.");
                 }
-                ProfileUserAPIVM profileUserAPIVM = await _navigationRepository.GetUserRecordAsync(request.UserId);
-                return Ok(profileUserAPIVM);
+
+                // Fetch the appropriate type from the repository using the RecordType
+                object result = await _navigationRepository.FetchRecordByTypeAsync(record);
+
+                // Get the expected type for the response
+                Type expectedType = FetchRecordTypeMapper.GetTypeByEnum((FetchRecordByIdEnum)record.RecordType);
+
+                // If the result is not of the expected type, throw an exception
+                if(result != null && result.GetType() != expectedType)
+                {
+                    throw new InvalidOperationException("Returned data does not match expected type.");
+                }
+                return Ok(result);
             }
             catch (Exception ex)
             {
@@ -997,7 +1008,203 @@ namespace Spider_QAMS.Controllers
                 return StatusCode(500, $"Internal Server Error: {ex.Message}");
             }
         }
-        #endregion
+        [HttpGet("GetAllSponsors")]
+        [ProducesResponseType(typeof(List<Sponsor>), StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        public async Task<IActionResult> GetAllSponsorsData()
+        {
+            try
+            {
+                var jwtToken = Request.Headers["Authorization"].ToString().Replace("Bearer ", "");
+                if (string.IsNullOrEmpty(jwtToken))
+                {
+                    return Unauthorized("JWT Token is missing");
+                }
+                var userId = await _applicationUserBusinessLogic.GetCurrentUserIdAsync(jwtToken);
+                if (userId == null)
+                {
+                    return Unauthorized("User is not authenticated.");
+                }
+                List<Sponsor> sponsors = await _navigationRepository.GetAllSponsorsAsync();
+                return Ok(sponsors);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"Internal Server Error: {ex.Message}");
+            }
+        }
+        [HttpGet("GetAllContacts")]
+        [ProducesResponseType(typeof(List<Sponsor>), StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        public async Task<IActionResult> GetAllContactsData()
+        {
+            try
+            {
+                var jwtToken = Request.Headers["Authorization"].ToString().Replace("Bearer ", "");
+                if (string.IsNullOrEmpty(jwtToken))
+                {
+                    return Unauthorized("JWT Token is missing");
+                }
+                var userId = await _applicationUserBusinessLogic.GetCurrentUserIdAsync(jwtToken);
+                if (userId == null)
+                {
+                    return Unauthorized("User is not authenticated.");
+                }
+                List<ContactVM> sponsors = await _navigationRepository.GetAllContactsAsync();
+                return Ok(sponsors);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"Internal Server Error: {ex.Message}");
+            }
+        }
+        [HttpPost("UpdateLocation")]
+        [ProducesResponseType(typeof(SiteLocation), StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        public async Task<IActionResult> UpdateLocationData(SiteLocation siteLocation)
+        {
+            try
+            {
+                var jwtToken = Request.Headers["Authorization"].ToString().Replace("Bearer ", "");
+                if (string.IsNullOrEmpty(jwtToken))
+                {
+                    return Unauthorized("JWT Token is missing");
+                }
+                var currentUserId = await _applicationUserBusinessLogic.GetCurrentUserIdAsync(jwtToken);
+                if (currentUserId == null || currentUserId <= 0)
+                {
+                    return Unauthorized("User is not authenticated.");
+                }
 
+                bool isSuccess = false;
+                isSuccess = await _navigationRepository.UpdateLocationAsync(siteLocation);
+
+                if (isSuccess)
+                {
+                    return Ok(isSuccess);
+                }
+                else
+                {
+                    return BadRequest();
+                }
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"Internal Server Error: {ex.Message}");
+            }
+        }
+        [HttpPost("CreateLocation")]
+        [ProducesResponseType(typeof(SiteLocation), StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        public async Task<IActionResult> CreateLocationData(SiteLocation siteLocation)
+        {
+            try
+            {
+                var jwtToken = Request.Headers["Authorization"].ToString().Replace("Bearer ", "");
+                if (string.IsNullOrEmpty(jwtToken))
+                {
+                    return Unauthorized("JWT Token is missing");
+                }
+                var currentUserId = await _applicationUserBusinessLogic.GetCurrentUserIdAsync(jwtToken);
+                if (currentUserId == null || currentUserId <= 0)
+                {
+                    return Unauthorized("User is not authenticated.");
+                }
+
+                bool isSuccess = false;
+                isSuccess = await _navigationRepository.CreateLocationAsync(siteLocation);
+
+                if (isSuccess)
+                {
+                    return Ok(isSuccess);
+                }
+                else
+                {
+                    return BadRequest();
+                }
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"Internal Server Error: {ex.Message}");
+            }
+        }
+        [HttpPost("UpdateContact")]
+        [ProducesResponseType(typeof(City), StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        public async Task<IActionResult> UpdateContactData(Contact contact)
+        {
+            try
+            {
+                var jwtToken = Request.Headers["Authorization"].ToString().Replace("Bearer ", "");
+                if (string.IsNullOrEmpty(jwtToken))
+                {
+                    return Unauthorized("JWT Token is missing");
+                }
+                var currentUserId = await _applicationUserBusinessLogic.GetCurrentUserIdAsync(jwtToken);
+                if (currentUserId == null || currentUserId <= 0)
+                {
+                    return Unauthorized("User is not authenticated.");
+                }
+
+                bool isSuccess = false;
+                isSuccess = await _navigationRepository.UpdateContactAsync(contact);
+
+                if (isSuccess)
+                {
+                    return Ok(isSuccess);
+                }
+                else
+                {
+                    return BadRequest();
+                }
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"Internal Server Error: {ex.Message}");
+            }
+        }
+        [HttpPost("CreateContact")]
+        [ProducesResponseType(typeof(City), StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        public async Task<IActionResult> CreateContactData(Contact contact)
+        {
+            try
+            {
+                var jwtToken = Request.Headers["Authorization"].ToString().Replace("Bearer ", "");
+                if (string.IsNullOrEmpty(jwtToken))
+                {
+                    return Unauthorized("JWT Token is missing");
+                }
+                var currentUserId = await _applicationUserBusinessLogic.GetCurrentUserIdAsync(jwtToken);
+                if (currentUserId == null || currentUserId <= 0)
+                {
+                    return Unauthorized("User is not authenticated.");
+                }
+
+                bool isSuccess = false;
+                isSuccess = await _navigationRepository.CreateContactAsync(contact);
+
+                if (isSuccess)
+                {
+                    return Ok(isSuccess);
+                }
+                else
+                {
+                    return BadRequest();
+                }
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"Internal Server Error: {ex.Message}");
+            }
+        }
+
+        #endregion
     }
 }

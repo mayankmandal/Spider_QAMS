@@ -84,6 +84,35 @@ namespace Spider_QAMS.Pages
         }
         public async Task<IActionResult> OnPostUpdateAsync()
         {
+            if (Region.RegionId != null)
+            {
+                var client = _clientFactory.CreateClient();
+                client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", JWTCookieHelper.GetJWTCookie(HttpContext));
+                var apiUrl = $"{_configuration["ApiBaseUrl"]}/Navigation/FetchRecord";
+                var requestBody = new Record { RecordId = Region.RegionId, RecordType = (int)FetchRecordByIdEnum.GetRegionData };
+                var jsonContent = JsonSerializer.Serialize(requestBody);
+                var httpContent = new StringContent(jsonContent, Encoding.UTF8, "application/json");
+                var response = await client.PostAsync(apiUrl, httpContent);
+
+                if (response.IsSuccessStatusCode)
+                {
+                    var responseContent = await response.Content.ReadAsStringAsync();
+                    _region = JsonSerializer.Deserialize<Region>(responseContent, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+                }
+                else
+                {
+                    await LoadAllRegionData();
+                    ModelState.AddModelError("ProfileUsersData.UserId", $"Error fetching user record for {Region.RegionName}. Please ensure the UserId is correct.");
+                    TempData["error"] = $"Model State Validation Failed. Response status: {response.StatusCode} - {response.ReasonPhrase}";
+                    return Page();
+                }
+
+                if (_region.RegionName == Region.RegionName)
+                {
+                    ModelState.Remove("Region.RegionName");
+                }
+            }
+
             if (!ModelState.IsValid)
             {
                 await LoadAllRegionData(); // Reload ProfilesData if there's a validation error

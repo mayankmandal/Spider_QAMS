@@ -21,7 +21,7 @@ BEGIN
     BEGIN TRY
 
 		-- Validate the value of @TextCriteria currently 1 to 4 only
-        IF @TextCriteria NOT BETWEEN 1 AND 8
+        IF @TextCriteria NOT BETWEEN 1 AND 10
 		BEGIN
 				
 			SELECT -1 AS RowsAffected;
@@ -70,9 +70,10 @@ BEGIN
 		-- GetAllLocations
 		ELSE IF @TextCriteria = 7
 		BEGIN
-			SELECT L.*, c.CityName, r.RegionName FROM [Location] l  WITH (NOLOCK)
+			SELECT L.*, c.CityName, r.RegionName, s.SponsorId, s.SponsorName FROM [Location] l  WITH (NOLOCK)
 			INNER JOIN City c WITH (NOLOCK) ON c.CityID = l.CityID
 			INNER JOIN Region r WITH (NOLOCK) ON c.RegionID = r.RegionID
+			INNER JOIN Sponsor s WITH (NOLOCK) ON l.SponsorId = s.SponsorId
 		END
 
 		-- GetRegionListOfCities
@@ -80,6 +81,19 @@ BEGIN
 		BEGIN
 			SELECT c.CityID, c.CityName, r.RegionID, r.RegionName FROM City c WITH (NOLOCK) 
 			INNER JOIN Region r WITH (NOLOCK) ON c.RegionID = r.RegionID
+		END
+
+		-- GetAllSponsors
+		ELSE IF @TextCriteria = 9
+		BEGIN
+			SELECT s.SponsorId, s.SponsorName FROM Sponsor s WITH (NOLOCK)
+		END
+
+		-- GetAllContacts
+		ELSE IF @TextCriteria = 10
+		BEGIN
+			SELECT c.ContactID, c.[Name], c.Designation, c.OfficePhone, c.Mobile, c.EmailID, c.Fax, c.BranchName, c.SponsorId, s.SponsorName FROM Contact c WITH (NOLOCK)
+			INNER JOIN Sponsor s WITH (NOLOCK) ON c.SponsorId = s.SponsorId
 		END
 
 		-- Capture number of rows affected

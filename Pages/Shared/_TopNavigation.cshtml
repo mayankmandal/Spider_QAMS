@@ -52,15 +52,25 @@
             </a>
             <ul class="dropdown-menu dropdown-menu-lg dropdown-menu-end">
                 <!--begin::User Image-->
-                <li class="user-header" id="userImageDiv" style="background-image: linear-gradient(to top, #a8edea 0%, #fed6e3 100%); color:darkblue">
+                <li class="user-header" id="userImageDiv" style="background-image: linear-gradient(to top, #a8edea 0%, #fed6e3 100%); color:#00046B">
                     <img src="" class="rounded-circle shadow" alt="User Image">
                     <p class="fw-bold"></p>
                 </li>
                 <!--end::User Image-->
                 <!--begin::Menu Footer-->
-                <li class="user-footer"> 
-                    <a href="/ViewUserProfile" class="btn btn-outline-info fw-bold">Profile</a> 
-                    <a href="/Account/Logout" class="btn btn-outline-danger float-end fw-bold">Sign out</a>
+                <li class="user-footer">
+                    <a href="/ViewUserProfile" class="btn"
+                       style="background-color:#0BBABB; color:#FAFAFA; border-radius:5px;"
+                       onmouseover="this.style.backgroundColor='#099B9C'; this.style.color='#FFFFFF';"
+                       onmouseout="this.style.backgroundColor='#0BBABB'; this.style.color='#FAFAFA';">
+                        Profile
+                    </a>
+                    <a href="/Account/Logout" class="btn float-end"
+                       style="background-color:#E81B1F; color:#FAFAFA; border-radius:5px;"
+                       onmouseover="this.style.backgroundColor='#C00C0F'; this.style.color='#FFFFFF';"
+                       onmouseout="this.style.backgroundColor='#E81B1F'; this.style.color='#FAFAFA';">
+                        Sign out
+                    </a>
                 </li> <!--end::Menu Footer-->
             </ul>
         </li>

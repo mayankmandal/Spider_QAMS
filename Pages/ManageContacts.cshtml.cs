@@ -1,56 +1,34 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
-using Spider_QAMS.Models.ViewModels;
 using Spider_QAMS.Models;
 using static Spider_QAMS.Utilities.Constants;
 using System.Net.Http.Headers;
 using System.Text.Json;
+using Spider_QAMS.Models.ViewModels;
 using System.Text;
 
 namespace Spider_QAMS.Pages
 {
-    public class ManageLocationsModel : PageModel
+    public class ManageContactsModel : PageModel
     {
         private readonly IConfiguration _configuration;
         private readonly IHttpClientFactory _clientFactory;
-        private SiteLocation _siteLocation;
-        public ManageLocationsModel(IConfiguration configuration, IHttpClientFactory httpClientFactory)
+        private Contact _contact;
+        public ManageContactsModel(IConfiguration configuration, IHttpClientFactory httpClientFactory)
         {
             _configuration = configuration;
             _clientFactory = httpClientFactory;
         }
-        public IList<SiteLocationVM> LocationVMs { get; set; }
-        public IList<RegionAssociatedCities> RegionAssociatedCitiesLst { get; set; }
+        public IList<ContactVM> contactVMList { get; set; }
         public IList<Sponsor> Sponsors { get; set; }
         [BindProperty]
-        public SiteLocationVM siteLocationVM { get; set; }
-        private async Task LoadAllLocationsData()
+        public ContactVM ContactViewModel { get; set; }
+        private async Task LoadAllContactsData()
         {
             var client = _clientFactory.CreateClient();
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", JWTCookieHelper.GetJWTCookie(HttpContext));
-            var response = await client.GetStringAsync($"{_configuration["ApiBaseUrl"]}/Navigation/GetAllLocations");
-            var locations = JsonSerializer.Deserialize<List<SiteLocation>>(response, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
-            LocationVMs = locations.Select(loc => new SiteLocationVM
-            {
-                LocationId = loc.LocationId,
-                Location = loc.Location,
-                StreetName = loc.StreetName,
-                CityId = loc.City.CityId,
-                CityName = loc.City.CityName,
-                RegionId = loc.City.RegionData.RegionId,
-                RegionName = loc.City.RegionData.RegionName,
-                DistrictName = loc.DistrictName,
-                BranchName = loc.BranchName,
-                SponsorId = loc.Sponsor.SponsorId,
-                SponsorName = loc.Sponsor.SponsorName
-            }).ToList();
-        }
-        private async Task LoadAllRegionListOfCitiesData()
-        {
-            var client = _clientFactory.CreateClient();
-            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", JWTCookieHelper.GetJWTCookie(HttpContext));
-            var response = await client.GetStringAsync($"{_configuration["ApiBaseUrl"]}/Navigation/GetRegionListOfCities");
-            RegionAssociatedCitiesLst = JsonSerializer.Deserialize<List<RegionAssociatedCities>>(response, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+            var response = await client.GetStringAsync($"{_configuration["ApiBaseUrl"]}/Navigation/GetAllContacts");
+            contactVMList = JsonSerializer.Deserialize<List<ContactVM>>(response, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
         }
         private async Task LoadAllSponsorsData()
         {
@@ -61,8 +39,7 @@ namespace Spider_QAMS.Pages
         }
         public async Task<IActionResult> OnGetAsync()
         {
-            await LoadAllLocationsData();
-            await LoadAllRegionListOfCitiesData();
+            await LoadAllContactsData();
             await LoadAllSponsorsData();
             return Page();
         }
@@ -72,54 +49,45 @@ namespace Spider_QAMS.Pages
             {
                 var errorMessages = ModelState.Values.SelectMany(x => x.Errors).Select(e => e.ErrorMessage).ToList();
                 TempData["error"] = "Model State Validation Failed: " + string.Join("; ", errorMessages);
-                await LoadAllLocationsData();
-                await LoadAllRegionListOfCitiesData();
+                await LoadAllContactsData();
                 await LoadAllSponsorsData();
                 return Page();
             }
             try
             {
-                _siteLocation = new SiteLocation
+                _contact = new Contact
                 {
-                    LocationId = 0,
+                    ContactId = 0,
                     Sponsor = new Sponsor
                     {
-                        SponsorId = siteLocationVM.SponsorId,
+                        SponsorId = ContactViewModel.SponsorId,
                         SponsorName = ""
                     },
-                    Location = siteLocationVM.Location,
-                    BranchName = siteLocationVM.BranchName,
-                    City = new City
-                    {
-                        CityId = siteLocationVM.CityId,
-                        CityName = "",
-                        RegionData = new Region
-                        {
-                            RegionId = siteLocationVM.RegionId,
-                            RegionName = ""
-                        }
-                    },
-                    DistrictName = siteLocationVM.DistrictName,
-                    StreetName = siteLocationVM.StreetName
+                    Designation = ContactViewModel.Designation,
+                    BranchName = ContactViewModel.BranchName,
+                    EmailID = ContactViewModel.EmailID,
+                    Name = ContactViewModel.Name,
+                    Fax = ContactViewModel.Fax,
+                    Mobile = ContactViewModel.Mobile,
+                    OfficePhone = ContactViewModel.OfficePhone,
                 };
                 var client = _clientFactory.CreateClient();
                 client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", JWTCookieHelper.GetJWTCookie(HttpContext));
-                var apiUrl = $"{_configuration["ApiBaseUrl"]}/Navigation/CreateLocation";
-                var jsonContent = JsonSerializer.Serialize(_siteLocation);
+                var apiUrl = $"{_configuration["ApiBaseUrl"]}/Navigation/CreateContact";
+                var jsonContent = JsonSerializer.Serialize(_contact);
                 var httpContent = new StringContent(jsonContent, Encoding.UTF8, "application/json");
                 HttpResponseMessage response = await client.PostAsync(apiUrl, httpContent);
 
                 if (response.IsSuccessStatusCode)
                 {
-                    TempData["success"] = $"{siteLocationVM.Location} - Created Successfully";
+                    TempData["success"] = $"{ContactViewModel.Name} - Created Successfully";
                     return RedirectToPage();
                 }
                 else
                 {
-                    await LoadAllLocationsData();
-                    await LoadAllRegionListOfCitiesData();
+                    await LoadAllContactsData();
                     await LoadAllSponsorsData();
-                    TempData["error"] = $"{siteLocationVM.Location} - Error occurred in response with status: {response.StatusCode} - {response.ReasonPhrase}";
+                    TempData["error"] = $"{ContactViewModel.Name} - Error occurred in response with status: {response.StatusCode} - {response.ReasonPhrase}";
                     return Page();
                 }
             }
@@ -138,12 +106,12 @@ namespace Spider_QAMS.Pages
         }
         public async Task<IActionResult> OnPostUpdateAsync()
         {
-            if (siteLocationVM.LocationId != null)
+            if (ContactViewModel.ContactId != null)
             {
                 var client = _clientFactory.CreateClient();
                 client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", JWTCookieHelper.GetJWTCookie(HttpContext));
                 var apiUrl = $"{_configuration["ApiBaseUrl"]}/Navigation/FetchRecord";
-                var requestBody = new Record { RecordId = siteLocationVM.LocationId, RecordType = (int)FetchRecordByIdEnum.GetLocationData };
+                var requestBody = new Record { RecordId = ContactViewModel.ContactId, RecordType = (int)FetchRecordByIdEnum.GetContactData };
                 var jsonContent = JsonSerializer.Serialize(requestBody);
                 var httpContent = new StringContent(jsonContent, Encoding.UTF8, "application/json");
                 var response = await client.PostAsync(apiUrl, httpContent);
@@ -151,14 +119,13 @@ namespace Spider_QAMS.Pages
                 if (response.IsSuccessStatusCode)
                 {
                     var responseContent = await response.Content.ReadAsStringAsync();
-                    _siteLocation = JsonSerializer.Deserialize<SiteLocation>(responseContent, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+                    _contact = JsonSerializer.Deserialize<Contact>(responseContent, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
                 }
                 else
                 {
-                    await LoadAllLocationsData();
-                    await LoadAllRegionListOfCitiesData();
+                    await LoadAllContactsData();
                     await LoadAllSponsorsData();
-                    ModelState.AddModelError("ProfileUsersData.UserId", $"Error fetching user record for {siteLocationVM.Location}. Please ensure the UserId is correct.");
+                    // ModelState.AddModelError("ProfileUsersData.UserId", $"Error fetching user record for {ContactViewModel.Name}. Please ensure the UserId is correct.");
                     TempData["error"] = $"Model State Validation Failed. Response status: {response.StatusCode} - {response.ReasonPhrase}";
                     return Page();
                 }
@@ -166,55 +133,45 @@ namespace Spider_QAMS.Pages
 
             if (!ModelState.IsValid)
             {
-                await LoadAllLocationsData();
-                await LoadAllRegionListOfCitiesData();
                 await LoadAllSponsorsData();
                 TempData["error"] = "Model State Validation Failed.";
                 return Page();
             }
             try
             {
-                _siteLocation = new SiteLocation
+                _contact = new Contact
                 {
-                    LocationId = siteLocationVM.LocationId,
+                    ContactId = ContactViewModel.ContactId,
                     Sponsor = new Sponsor
                     {
-                        SponsorId = siteLocationVM.SponsorId,
+                        SponsorId = ContactViewModel.SponsorId,
                         SponsorName = ""
                     },
-                    Location = siteLocationVM.Location,
-                    BranchName = siteLocationVM.BranchName,
-                    City = new City
-                    {
-                        CityId = siteLocationVM.CityId,
-                        CityName = "",
-                        RegionData = new Region
-                        {
-                            RegionId = siteLocationVM.RegionId,
-                            RegionName = ""
-                        }
-                    },
-                    DistrictName = siteLocationVM.DistrictName,
-                    StreetName = siteLocationVM.StreetName
+                    Designation = ContactViewModel.Designation,
+                    BranchName = ContactViewModel.BranchName,
+                    EmailID = ContactViewModel.EmailID,
+                    Name = ContactViewModel.Name,
+                    Fax = ContactViewModel.Fax,
+                    Mobile = ContactViewModel.Mobile,
+                    OfficePhone = ContactViewModel.OfficePhone,
                 };
                 var client = _clientFactory.CreateClient();
                 client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", JWTCookieHelper.GetJWTCookie(HttpContext));
-                var apiUrl = $"{_configuration["ApiBaseUrl"]}/Navigation/UpdateLocation";
-                var jsonContent = JsonSerializer.Serialize(_siteLocation);
+                var apiUrl = $"{_configuration["ApiBaseUrl"]}/Navigation/UpdateContact";
+                var jsonContent = JsonSerializer.Serialize(_contact);
                 var httpContent = new StringContent(jsonContent, Encoding.UTF8, "application/json");
                 HttpResponseMessage response = await client.PostAsync(apiUrl, httpContent);
 
                 if (response.IsSuccessStatusCode)
                 {
-                    TempData["success"] = $"{siteLocationVM.Location} - Profile Updated Successfully";
+                    TempData["success"] = $"{ContactViewModel.Name} - Contact Updated Successfully";
                     return RedirectToPage();
                 }
                 else
                 {
-                    await LoadAllLocationsData();
-                    await LoadAllRegionListOfCitiesData();
+                    await LoadAllContactsData();
                     await LoadAllSponsorsData();
-                    TempData["error"] = $"{siteLocationVM.Location} - Error occurred in response with status: {response.StatusCode} - {response.ReasonPhrase}";
+                    TempData["error"] = $"{ContactViewModel.Name} - Error occurred in response with status: {response.StatusCode} - {response.ReasonPhrase}";
                     return Page();
                 }
             }
@@ -231,35 +188,33 @@ namespace Spider_QAMS.Pages
                 return HandleError(ex, "An unexpected error occurred.");
             }
         }
-        public async Task<IActionResult> OnPostDeleteAsync(int LocationId)
+        public async Task<IActionResult> OnPostDeleteAsync(int ContactId)
         {
-            if (LocationId <= 0)
+            if (ContactId <= 0)
             {
-                TempData["error"] = "User ID is required.";
-                await LoadAllLocationsData();
-                await LoadAllRegionListOfCitiesData();
+                TempData["error"] = "Contact ID is required.";
+                await LoadAllContactsData();
                 await LoadAllSponsorsData();
-                return RedirectToPage("");
+                return RedirectToPage();
             }
             try
             {
                 var client = _clientFactory.CreateClient();
                 client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", JWTCookieHelper.GetJWTCookie(HttpContext));
-                var apiUrl = $"{_configuration["ApiBaseUrl"]}/Navigation/DeleteEntity?deleteId={LocationId}&deleteType={DeleteEntityType.Location}";
+                var apiUrl = $"{_configuration["ApiBaseUrl"]}/Navigation/DeleteEntity?deleteId={ContactId}&deleteType={DeleteEntityType.Contact}";
                 HttpResponseMessage response;
                 response = await client.DeleteAsync(apiUrl);
 
                 if (response.IsSuccessStatusCode)
                 {
-                    TempData["success"] = $"Location - {LocationId} deleted Successfully";
+                    TempData["success"] = $"Contact - {ContactId} deleted Successfully";
                     return RedirectToPage();
                 }
                 else
                 {
-                    await LoadAllLocationsData();
-                    await LoadAllRegionListOfCitiesData();
+                    await LoadAllContactsData();
                     await LoadAllSponsorsData();
-                    TempData["error"] = $"Location - {LocationId} - Error occurred in response with status: {response.StatusCode} - {response.ReasonPhrase}";
+                    TempData["error"] = $"Contact - {ContactId} - Error occurred in response with status: {response.StatusCode} - {response.ReasonPhrase}";
                     return Page();
                 }
             }

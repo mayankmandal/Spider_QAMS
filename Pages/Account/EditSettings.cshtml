@@ -132,16 +132,11 @@
                         </div>
                     </div>
 
-                    <div style="display: flex; justify-content:space-around;height:auto;">
-                        <div class="row">
-                            <div class="col-2"></div>
-                            <div class="col-3 me-4">
-                                <button type="submit" class="btn create-btn" style="width:140px;">Update</button>
-                            </div>
-                            <div class="col-4 ms-3">
-                                <a asp-page="/Dashboard" class="btn btn-secondary" style="width:180px;"> Back to Dashboard</a>
-                            </div>
-                            <div class="col-3"></div>
+                    <!-- Buttons for form submission -->
+                    <div style="display: flex; justify-content: center; align-items: center; margin-top: 20px;">
+                        <div class="row" style="width: 100%; max-width: 600px; display: flex; justify-content: space-around;">
+                            <button type="submit" class="btn update-btn">Update Settings</button>
+                            <button type="button" class="btn btn-secondary" asp-page="/Dashboard">Back to Dashboard</button>
                         </div>
                     </div>
                 </div>

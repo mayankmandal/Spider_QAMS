@@ -1,4 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc.Rendering;
+using Spider_QAMS.Models;
+using Spider_QAMS.Models.ViewModels;
 
 namespace Spider_QAMS.Utilities
 {
@@ -24,7 +26,7 @@ namespace Spider_QAMS.Utilities
         public const string SP_CheckUniqueness = "dbo.uspCheckUniqueness";
         public const string SP_GetUserData = "dbo.uspGetUserData";
         public const string SP_GetTableAllData = "dbo.uspGetTableAllData";
-        public const string SP_GetCurrentUserProfilePagesCategories = "dbo.uspGetCurrentUserProfilePagesCategories";
+        public const string SP_uspFetchRecordById = "dbo.uspFetchRecordById";
 
         public const string SP_DeleteEntityRecord = "dbo.uspDeleteEntityRecord";
         public const string SP_UpdateEntityRecord = "dbo.uspUpdateEntityRecord";
@@ -66,27 +68,61 @@ namespace Spider_QAMS.Utilities
             GetUserRoles = 3,       // Fetch user roles by ID
         }
 
-        public enum GetUserCurrentProfileDetails
+        public enum FetchRecordByIdEnum
         {
             None = 0,
             GetCurrentUserDetails = 1,      // Fetch user data
             GetCurrentUserProfile = 2,      // Fetch user's profile
             GetCurrentUserPages = 3,        // Fetch user pages list
             GetCurrentUserCategories = 4,   // Fetch user categories list
-            GetSettingsData = 5,            // Fetch user data
+            GetSettingsData = 5,            // Fetch settings data
+            GetProfileData = 6,             // Fetch profile data
+            GetCategoryData = 7,            // Fetch category data
+            GetRegionData = 8,              // Fetch region data
+            GetCityData = 9,                // Fetch city data
+            GetLocationData = 10,           // Fetch location data
+            GetContactData = 11,           // Fetch location data
+        }
+
+        public static class FetchRecordTypeMapper
+        {
+            private static readonly Dictionary<FetchRecordByIdEnum, Type> TypeMappings = new()
+            {
+                { FetchRecordByIdEnum.GetCurrentUserDetails, typeof(ProfileUserAPIVM) },
+                { FetchRecordByIdEnum.GetCurrentUserProfile, typeof(ProfileSite) },
+                { FetchRecordByIdEnum.GetCurrentUserPages, typeof(List<PageSiteVM>) },
+                { FetchRecordByIdEnum.GetCurrentUserCategories, typeof(List<CategoriesSetDTO>) },
+                { FetchRecordByIdEnum.GetSettingsData, typeof(ProfileUserAPIVM) },
+                { FetchRecordByIdEnum.GetProfileData, typeof(ProfileSite) },
+                { FetchRecordByIdEnum.GetCategoryData, typeof(PageCategory) },
+                { FetchRecordByIdEnum.GetRegionData, typeof(Region) },
+                { FetchRecordByIdEnum.GetCityData, typeof(City) },
+                { FetchRecordByIdEnum.GetLocationData, typeof(SiteLocation) },
+                { FetchRecordByIdEnum.GetContactData, typeof(Contact) }
+            };
+            public static Type GetTypeByEnum(FetchRecordByIdEnum recordType)
+            {
+                if(TypeMappings.TryGetValue(recordType, out var type))
+                {
+                    return type;
+                }
+                throw new InvalidOperationException("Invalid Record Type.");
+            }
         }
 
         public enum GetTableData
         {
             None = 0,
-            GetAllUsersData = 1,   // Fetch all users
-            GetAllProfiles = 2,    // Fetch al profiles
-            GetAllPages = 3,       // Fetch all pages
-            GetAllCategories = 4,  // Fetch all categories
-            GetAllRegions = 5,     // Fetch all regions
-            GetAllCities = 6,     // Fetch all cities
-            GetAllLocations = 7,     // Fetch all cities
-            GetRegionListOfCities = 8,     // Fetch all cities
+            GetAllUsersData = 1,            // Fetch all users
+            GetAllProfiles = 2,             // Fetch al profiles
+            GetAllPages = 3,                // Fetch all pages
+            GetAllCategories = 4,           // Fetch all categories
+            GetAllRegions = 5,              // Fetch all regions
+            GetAllCities = 6,               // Fetch all cities
+            GetAllLocations = 7,            // Fetch all cities
+            GetRegionListOfCities = 8,      // Fetch all cities
+            GetAllSponsors = 9,             // Fetch all sponsors
+            GetAllContacts = 10,             // Fetch all contacts
         }
 
         public enum TableNameCheckUniqueness
@@ -96,7 +132,9 @@ namespace Spider_QAMS.Utilities
             PageCategory = 3,
             Region = 4,
             City = 5,
-            Location = 6
+            Location = 6,
+            Sponsor = 7,
+            Contact = 8
         };
 
         public static class DeleteEntityType
@@ -107,6 +145,8 @@ namespace Spider_QAMS.Utilities
             public static string Region = "Region";
             public static string City = "City";
             public static string Location = "Location";
+            public static string Sponsor = "Sponsor";
+            public static string Contact = "Contact";
         }
 
         public static class TableNameClassForUniqueness
@@ -116,7 +156,6 @@ namespace Spider_QAMS.Utilities
             public static string[] PageCategory = { "categoryname" };
             public static string[] Region = { "regionname" };
             public static string[] City = { "cityname" };
-            public static string[] Location = { };
         };
 
         public static class UserPermissionStates

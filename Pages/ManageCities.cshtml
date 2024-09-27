@@ -19,12 +19,11 @@
         </div>
     </div>
 
-    <div style="overflow-x:auto; max-height:20rem; width:70rem;" class="mb-4">
+    <div style="overflow-x:auto; max-height:20rem; width: 100%;" class="mb-4">
         <!-- Table: List of Existing Cities -->
         <table class="table table-bordered table-striped text-center">
             <thead class="table-header" style="background: linear-gradient(to bottom, #59636E, #6A7682); color: white;">
                 <tr>
-                    <th>City Id</th>
                     <th>City Name</th>
                     <th>Region Name</th>
                     <th>Actions</th>
@@ -34,7 +33,6 @@
                 @foreach (var city in Model.Cities)
                 {
                     <tr>
-                        <td>@city.CityId</td>
                         <td>@city.CityName</td>
                         <td>@city.RegionData.RegionName</td>
                         <td style="white-space: nowrap;">
@@ -95,16 +93,10 @@
                         </div>
 
                         <!-- Buttons for form submission -->
-                        <div style="display: flex; justify-content:space-around;height:auto;">
-                            <div class="row">
-                                <div class="col-2"></div>
-                                <div class="col-3 me-4">
-                                    <button type="submit" class="btn create-btn" style="width:140px;">Add City</button>
-                                </div>
-                                <div class="col-4 ms-3">
-                                    <button type="button" class="btn btn-secondary" style="width:180px;" onclick="hideAllForms()"> Cancel</button>
-                                </div>
-                                <div class="col-3"></div>
+                        <div style="display: flex; justify-content: center; align-items: center; margin-top: 20px;">
+                            <div class="row" style="width: 100%; max-width: 600px; display: flex; justify-content: space-around;">
+                                <button type="submit" class="btn create-btn">Add City</button>
+                                <button type="button" class="btn btn-secondary" onclick="hideAllForms()">Cancel</button>
                             </div>
                         </div>
                     </div>
@@ -156,16 +148,10 @@
                         </div>
 
                         <!-- Buttons for form submission -->
-                        <div style="display: flex; justify-content:space-around;height:auto;">
-                            <div class="row">
-                                <div class="col-2"></div>
-                                <div class="col-3 me-4">
-                                    <button type="submit" class="btn create-btn" style="width:140px;">Update City</button>
-                                </div>
-                                <div class="col-4 ms-3">
-                                    <button type="button" class="btn btn-secondary" style="width:180px;" onclick="hideAllForms()"> Cancel</button>
-                                    <div class="col-3"></div>
-                                </div>
+                        <div style="display: flex; justify-content: center; align-items: center; margin-top: 20px;">
+                            <div class="row" style="width: 100%; max-width: 600px; display: flex; justify-content: space-around;">
+                                <button type="submit" class="btn update-btn">Update City</button>
+                                <button type="button" class="btn btn-secondary" onclick="hideAllForms()">Cancel</button>
                             </div>
                         </div>
                     </div>
@@ -180,7 +166,7 @@
             <input type="hidden" name="CityId" id="deleteCityId" />
             <div class="container form-control border-2 mb-2" style="display:flex; justify-content:space-around; height:auto; flex-direction:column;width: 45rem;">
                 <div class="row pb-1 pt-2">
-                    <div style="color:#17a2b8; text-align:center; font-size:1.7rem; font-weight:500">DELETE CITY</div>
+                    <div style="color:#dc3545; text-align:center; font-size:1.7rem; font-weight:500">DELETE CITY</div>
                     <div><hr /></div>
                 </div>
                 <div class="card">
@@ -210,16 +196,10 @@
 
                         <p class="text">Are you sure you want to delete city <strong id="deleteCityPName"></strong>?</p>
                         <!-- Buttons for deletion confirmation -->
-                        <div style="display: flex; justify-content:space-around;height:auto;">
-                            <div class="row">
-                                <div class="col-2"></div>
-                                <div class="col-3 me-4">
-                                    <button type="submit" class="btn btn-danger" style="width:140px;">Confirm Delete</button>
-                                </div>
-                                <div class="col-4 ms-3">
-                                    <button type="button" class="btn btn-secondary" style="width:180px;" onclick="hideAllForms()"> Cancel</button>
-                                </div>
-                                <div class="col-3"></div>
+                        <div style="display: flex; justify-content: center; align-items: center; margin-top: 20px;">
+                            <div class="row" style="width: 100%; max-width: 600px; display: flex; justify-content: space-around;">
+                                <button type="submit" class="btn delete-btn">Confirm Delete</button>
+                                <button type="button" class="btn btn-secondary" onclick="hideAllForms()">Cancel</button>
                             </div>
                         </div>
                     </div>
@@ -260,6 +240,31 @@
         // Function to hide All Forms
         function hideAllForms() {
             $('#createFormDiv, #editFormDiv, #deleteFormDiv').hide();
+            clearValidationMessages();
+        }
+
+        // Function to clear validation messages and reset form validation state
+        function clearValidationMessages(){
+            // Clear validation messages and reset validation state for the create form
+            var createForm = $('#createCityForm');
+            if (createForm.length > 0) { 
+                createForm.validate().resetForm(); // Clear valdiation errors
+                createForm[0].reset(); // Reset form fields
+            }
+
+            // Clear validation messages and reset validation state for the edit form
+            var editForm = $('#editFormDiv form');
+            if (editForm.length > 0) {
+                editForm.validate().resetForm();  // Clear validation errors
+                editForm[0].reset();  // Reset form fields
+            }
+
+            // Clear validation messages and reset validation state for the delete form
+            var deleteForm = $('#deleteFormDiv form');
+            if (deleteForm.length > 0) {
+                deleteForm.validate().resetForm();  // Clear validation errors
+                deleteForm[0].reset();  // Reset form fields
+            }
         }
     </script>
 }

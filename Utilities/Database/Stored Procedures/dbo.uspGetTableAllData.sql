@@ -20,8 +20,8 @@ BEGIN
 
     BEGIN TRY
 
-		-- Validate the value of @TextCriteria currently 1 to 4 only
-        IF @TextCriteria NOT BETWEEN 1 AND 10
+		-- Validate the value of @TextCriteria currently 1 to 14 only
+        IF @TextCriteria NOT BETWEEN 1 AND 14
 		BEGIN
 				
 			SELECT -1 AS RowsAffected;
@@ -39,7 +39,7 @@ BEGIN
 		-- GetAllProfiles
 		ELSE IF @TextCriteria = 2
 		BEGIN
-			SELECT ProfileId, ProfileName, CreateDate, CreateUserId, UpdateDate, UpdateUserId FROM Profiles p WITH (NOLOCK)
+			SELECT ProfileId, ProfileName FROM Profiles p WITH (NOLOCK)
 		END
 
 		-- GetAllPages
@@ -94,6 +94,33 @@ BEGIN
 		BEGIN
 			SELECT c.ContactID, c.[Name], c.Designation, c.OfficePhone, c.Mobile, c.EmailID, c.Fax, c.BranchName, c.SponsorId, s.SponsorName FROM Contact c WITH (NOLOCK)
 			INNER JOIN Sponsor s WITH (NOLOCK) ON c.SponsorId = s.SponsorId
+		END
+
+		-- GetAllSiteTypes
+		ELSE IF @TextCriteria = 11
+		BEGIN
+			SELECT st.SiteTypeID, st.[Description], st.SponsorID, s.SponsorName FROM SiteTypes st WITH (NOLOCK)
+			INNER JOIN Sponsor s WITH (NOLOCK) ON st.SponsorId = s.SponsorId
+		END
+
+		-- GetAllBranchTypes
+		ELSE IF @TextCriteria = 12
+		BEGIN
+			SELECT bt.BranchTypeId, bt.[Description], bt.SiteTypeID, st.Description, st.SponsorID, s.SponsorName FROM BranchType bt WITH (NOLOCK)
+			INNER JOIN SiteTypes st WITH (NOLOCK) ON bt.SiteTypeID = st.SiteTypeID
+			INNER JOIN Sponsor s WITH (NOLOCK) ON st.SponsorID = s.SponsorId
+		END
+
+		-- GetAllVisitStatuses
+		ELSE IF @TextCriteria = 13
+		BEGIN
+			SELECT vs.VisitStatusID, vs.VisitStatus FROM VisitStatus vs WITH (NOLOCK)
+		END
+
+		-- GetAllATMClasses
+		ELSE IF @TextCriteria = 14
+		BEGIN
+			SELECT a.Class FROM ATMClass a WITH (NOLOCK)
 		END
 
 		-- Capture number of rows affected

@@ -59,6 +59,10 @@
                         </td>
                     </tr>
                 }
+                @if (Model.contactVMList.Count <= 0)
+                {
+                    <tr><td colspan="9" class="text-center">No Contacts found.</td></tr>
+                }
             </tbody>
         </table>
     </div>
@@ -446,7 +450,7 @@
             $('#createContactFormDiv').show();
         }
         // Function to show the Edit Form
-        function showEditContactForm(contactId, contactName, designation, emailID, mobile, fax, officePhone, branchName, sponsorId) {
+        function showEditContactForm(contactId, designation, contactName, emailID, mobile, fax, officePhone, branchName, sponsorId) {
             hideAllForms();
             $('#editContactId').val(contactId);
             $('#editContactName').val(contactName);
@@ -461,7 +465,7 @@
         }
 
         // Function to show the Delete form
-        function showDeleteContactForm(contactId, contactName, designation, emailID, mobile, fax, officePhone, branchName, sponsorId, sponsorName) {
+        function showDeleteContactForm(contactId, designation, contactName, emailID, mobile, fax, officePhone, branchName, sponsorId, sponsorName) {
             hideAllForms();
             $('#deleteContactId').val(contactId);
             $('#deleteContactName').val(contactName);

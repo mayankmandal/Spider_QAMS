@@ -29,7 +29,7 @@ namespace Spider_QAMS.Pages
             var client = _clientFactory.CreateClient();
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", JWTCookieHelper.GetJWTCookie(HttpContext));
             var response = await client.GetStringAsync($"{_configuration["ApiBaseUrl"]}/Navigation/GetAllLocations");
-            var locations = JsonSerializer.Deserialize<List<SiteLocation>>(response, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+            var locations = string.IsNullOrEmpty(response) ? new List<SiteLocation>() : JsonSerializer.Deserialize<List<SiteLocation>>(response, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
             LocationVMs = locations.Select(loc => new SiteLocationVM
             {
                 LocationId = loc.LocationId,
@@ -50,14 +50,14 @@ namespace Spider_QAMS.Pages
             var client = _clientFactory.CreateClient();
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", JWTCookieHelper.GetJWTCookie(HttpContext));
             var response = await client.GetStringAsync($"{_configuration["ApiBaseUrl"]}/Navigation/GetRegionListOfCities");
-            RegionAssociatedCitiesLst = JsonSerializer.Deserialize<List<RegionAssociatedCities>>(response, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+            RegionAssociatedCitiesLst = string.IsNullOrEmpty(response) ? new List<RegionAssociatedCities>() : JsonSerializer.Deserialize<List<RegionAssociatedCities>>(response, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
         }
         private async Task LoadAllSponsorsData()
         {
             var client = _clientFactory.CreateClient();
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", JWTCookieHelper.GetJWTCookie(HttpContext));
             var response = await client.GetStringAsync($"{_configuration["ApiBaseUrl"]}/Navigation/GetAllSponsors");
-            Sponsors = JsonSerializer.Deserialize<List<Sponsor>>(response, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+            Sponsors = string.IsNullOrEmpty(response) ? new List<Sponsor>() : JsonSerializer.Deserialize<List<Sponsor>>(response, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
         }
         public async Task<IActionResult> OnGetAsync()
         {

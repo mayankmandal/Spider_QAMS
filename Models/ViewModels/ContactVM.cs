@@ -10,7 +10,7 @@ namespace Spider_QAMS.Models.ViewModels
         [DisplayName("Name")]
         [Required(ErrorMessage = "Name is required")]
         [StringLength(200, ErrorMessage = "Name must be 200 characters or fewer")]
-        [RegularExpression(@"^[a-zA-Z0-9 ]*$", ErrorMessage = "Name can only contain letters, numbers, and spaces.")]
+        [RegularExpression(@"^[a-zA-Z\- ]*$", ErrorMessage = "Name can only contain letters, numbers, spaces and dashes.")]
         public string Name { get; set; }
         [DisplayName("Designation")]
         [Required(ErrorMessage = "Designation is required")]

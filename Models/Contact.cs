@@ -10,7 +10,7 @@
         public string EmailID { get; set; }
         public string Fax { get; set; }
         public string BranchName { get; set; }
-        public Sponsor Sponsor { get; set; }
+        public Sponsor sponsor { get; set; }
 
     }
 }

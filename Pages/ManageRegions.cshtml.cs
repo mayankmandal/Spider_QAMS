@@ -80,7 +80,7 @@ namespace Spider_QAMS.Pages
             var client = _clientFactory.CreateClient();
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", JWTCookieHelper.GetJWTCookie(HttpContext));
             var response = await client.GetStringAsync($"{_configuration["ApiBaseUrl"]}/Navigation/GetAllRegion");
-            Regions = JsonSerializer.Deserialize<List<RegionVM>>(response, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+            Regions = string.IsNullOrEmpty(response) ? new List<RegionVM>() : JsonSerializer.Deserialize<List<RegionVM>>(response, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
         }
         public async Task<IActionResult> OnPostUpdateAsync()
         {

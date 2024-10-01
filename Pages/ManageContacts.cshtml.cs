@@ -28,14 +28,27 @@ namespace Spider_QAMS.Pages
             var client = _clientFactory.CreateClient();
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", JWTCookieHelper.GetJWTCookie(HttpContext));
             var response = await client.GetStringAsync($"{_configuration["ApiBaseUrl"]}/Navigation/GetAllContacts");
-            contactVMList = JsonSerializer.Deserialize<List<ContactVM>>(response, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+            var contacts = string.IsNullOrEmpty(response)? new List<Contact>() : JsonSerializer.Deserialize<List<Contact>>(response, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+            contactVMList = contacts.Select(s => new ContactVM
+            {
+                ContactId = s.ContactId,
+                BranchName = s.BranchName,
+                Designation = s.Designation,
+                EmailID = s.EmailID,
+                Fax = s.Fax,
+                Mobile = s.Mobile,
+                Name = s.Name,
+                OfficePhone = s.OfficePhone,
+                SponsorId = s.sponsor.SponsorId,
+                SponsorName = s.sponsor.SponsorName
+            }).ToList();
         }
         private async Task LoadAllSponsorsData()
         {
             var client = _clientFactory.CreateClient();
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", JWTCookieHelper.GetJWTCookie(HttpContext));
             var response = await client.GetStringAsync($"{_configuration["ApiBaseUrl"]}/Navigation/GetAllSponsors");
-            Sponsors = JsonSerializer.Deserialize<List<Sponsor>>(response, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+            Sponsors = string.IsNullOrEmpty(response) ? new List<Sponsor>() : JsonSerializer.Deserialize<List<Sponsor>>(response, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
         }
         public async Task<IActionResult> OnGetAsync()
         {
@@ -58,7 +71,7 @@ namespace Spider_QAMS.Pages
                 _contact = new Contact
                 {
                     ContactId = 0,
-                    Sponsor = new Sponsor
+                    sponsor = new Sponsor
                     {
                         SponsorId = ContactViewModel.SponsorId,
                         SponsorName = ""
@@ -142,7 +155,7 @@ namespace Spider_QAMS.Pages
                 _contact = new Contact
                 {
                     ContactId = ContactViewModel.ContactId,
-                    Sponsor = new Sponsor
+                    sponsor = new Sponsor
                     {
                         SponsorId = ContactViewModel.SponsorId,
                         SponsorName = ""

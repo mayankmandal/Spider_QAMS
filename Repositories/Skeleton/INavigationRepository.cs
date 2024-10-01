@@ -48,6 +48,10 @@ namespace Spider_QAMS.Repositories.Skeleton
         Task<List<SiteLocation>> GetAllLocationsAsync();
         Task<List<CityRegionViewModel>> GetRegionListOfCitiesAsync();
         Task<List<Sponsor>> GetAllSponsorsAsync();
-        Task<List<ContactVM>> GetAllContactsAsync();
+        Task<List<Contact>> GetAllContactsAsync();
+        Task<List<SiteType>> GetAllSiteTypesAsync();
+        Task<List<BranchType>> GetAllBranchTypesAsync();
+        Task<List<VisitStatusModel>> GetAllVisitStatusesAsync();
+        Task<List<string>> GetAllATMClassesAsync();
     }
 }

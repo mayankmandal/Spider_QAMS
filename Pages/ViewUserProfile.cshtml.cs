@@ -41,14 +41,14 @@ namespace Spider_QAMS.Pages
             var client = _clientFactory.CreateClient();
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", JWTCookieHelper.GetJWTCookie(HttpContext));
             var response = await client.GetStringAsync($"{_configuration["ApiBaseUrl"]}/Navigation/GetCurrentUserDetails");
-            CurrentUserDetailsData = JsonSerializer.Deserialize<ProfileUserAPIVM>(response, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+            CurrentUserDetailsData = string.IsNullOrEmpty(response) ? new ProfileUserAPIVM() : JsonSerializer.Deserialize<ProfileUserAPIVM>(response, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
         }
         private async Task LoadCurrentPageSites()
         {
             var client = _clientFactory.CreateClient();
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", JWTCookieHelper.GetJWTCookie(HttpContext));
             var response = await client.GetStringAsync($"{_configuration["ApiBaseUrl"]}/Navigation/GetCurrentUserPages");
-            CurrentPageSites = JsonSerializer.Deserialize<List<PageSiteVM>>(response, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+            CurrentPageSites = string.IsNullOrEmpty(response) ? new List<PageSiteVM>() : JsonSerializer.Deserialize<List<PageSiteVM>>(response, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
             CurrentPageSites = CurrentPageSites.OrderBy(page => page.PageDesc).ToList();
         }
         private async Task LoadCurrentCategoriesSetDTOs()
@@ -56,7 +56,7 @@ namespace Spider_QAMS.Pages
             var client = _clientFactory.CreateClient();
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", JWTCookieHelper.GetJWTCookie(HttpContext));
             var response = await client.GetStringAsync($"{_configuration["ApiBaseUrl"]}/Navigation/GetCurrentUserCategories");
-            StructureData = JsonSerializer.Deserialize<List<CategoryDisplayViewModel>>(response, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+            StructureData = string.IsNullOrEmpty(response) ? new List<CategoryDisplayViewModel>() : JsonSerializer.Deserialize<List<CategoryDisplayViewModel>>(response, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
         }
         private IActionResult HandleError(Exception ex, string errorMessage)
         {

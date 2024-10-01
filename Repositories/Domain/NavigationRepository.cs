@@ -522,7 +522,7 @@ namespace Spider_QAMS.Repositories.Domain
                     new SqlParameter("@NewInput5", SqlDbType.VarChar, 200){Value = contact.EmailID},
                     new SqlParameter("@NewInput6", SqlDbType.VarChar, 200){Value = contact.Fax},
                     new SqlParameter("@NewInput7", SqlDbType.VarChar, 200){Value = contact.BranchName},
-                    new SqlParameter("@NewIntInput2", SqlDbType.Int){Value = contact.Sponsor.SponsorId},
+                    new SqlParameter("@NewIntInput2", SqlDbType.Int){Value = contact.sponsor.SponsorId},
                     new SqlParameter("@Type", SqlDbType.VarChar, 10){Value = DeleteEntityType.Contact},
                     new SqlParameter("@RowsAffected", SqlDbType.Int) { Direction = ParameterDirection.Output }
                 };
@@ -560,7 +560,7 @@ namespace Spider_QAMS.Repositories.Domain
                     new SqlParameter("@NewInput5", SqlDbType.VarChar, 200){Value = contact.EmailID},
                     new SqlParameter("@NewInput6", SqlDbType.VarChar, 200){Value = contact.Fax},
                     new SqlParameter("@NewInput7", SqlDbType.VarChar, 200){Value = contact.BranchName},
-                    new SqlParameter("@NewIntInput1", SqlDbType.Int){Value = contact.Sponsor.SponsorId},
+                    new SqlParameter("@NewIntInput1", SqlDbType.Int){Value = contact.sponsor.SponsorId},
                     new SqlParameter("@Type", SqlDbType.VarChar, 10){Value = DeleteEntityType.Contact},
                     new SqlParameter("@NewID", SqlDbType.Int) { Direction = ParameterDirection.Output }
                 };
@@ -744,11 +744,7 @@ namespace Spider_QAMS.Repositories.Domain
                             profileSite = new ProfileSite
                             {
                                 ProfileId = (int)row["ProfileId"],
-                                ProfileName = row["ProfileName"].ToString(),
-                                CreateDate = (DateTime)row["CreateDate"],
-                                CreateUserId = (int)row["CreateUserId"],
-                                UpdateDate = (DateTime)row["UpdateDate"],
-                                UpdateUserId = (int)row["UpdateUserId"],
+                                ProfileName = row["ProfileName"].ToString()
                             };
                         }
                     }
@@ -1203,7 +1199,7 @@ namespace Spider_QAMS.Repositories.Domain
                         contact = new Contact
                         {
                             ContactId = dataRow["ContactId"] != DBNull.Value ? (int)dataRow["ContactId"] : 0,
-                            Sponsor = new Sponsor
+                            sponsor = new Sponsor
                             {
                                 SponsorId = dataRow["SponsorId"] != DBNull.Value ? (int)dataRow["SponsorId"] : 0,
                                 SponsorName = dataRow["SponsorName"] != DBNull.Value ? dataRow["SponsorName"].ToString() : string.Empty
@@ -1322,11 +1318,7 @@ namespace Spider_QAMS.Repositories.Domain
                             ProfileSite profile = new ProfileSite
                             {
                                 ProfileId = (int)dataRow["ProfileId"],
-                                ProfileName = dataRow["ProfileName"].ToString(),
-                                CreateDate = (DateTime)dataRow["CreateDate"],
-                                CreateUserId = (int)dataRow["CreateUserId"],
-                                UpdateDate = (DateTime)dataRow["UpdateDate"],
-                                UpdateUserId = (int)dataRow["UpdateUserId"],
+                                ProfileName = dataRow["ProfileName"].ToString()
                             };
                             profiles.Add(profile);
                         }
@@ -1720,9 +1712,9 @@ namespace Spider_QAMS.Repositories.Domain
             }
             return sponsors;
         }
-        public async Task<List<ContactVM>> GetAllContactsAsync()
+        public async Task<List<Contact>> GetAllContactsAsync()
         {
-            List<ContactVM> contacts = new List<ContactVM>();
+            List<Contact> contacts = new List<Contact>();
             try
             {
                 SqlParameter[] sqlParameters = new SqlParameter[]
@@ -1738,7 +1730,7 @@ namespace Spider_QAMS.Repositories.Domain
                     {
                         foreach (DataRow dataRow in dataTable.Rows)
                         {
-                            ContactVM contact = new ContactVM
+                            Contact contact = new Contact
                             {
                                 ContactId = Convert.ToInt32(dataRow["ContactId"]),
                                 Name = dataRow["Name"].ToString(),
@@ -1748,8 +1740,11 @@ namespace Spider_QAMS.Repositories.Domain
                                 EmailID = dataRow["EmailID"].ToString(),
                                 Fax = dataRow["Fax"].ToString(),
                                 BranchName = dataRow["BranchName"].ToString(),
-                                SponsorId = Convert.ToInt32(dataRow["SponsorId"]),
-                                SponsorName = dataRow["SponsorName"].ToString(),
+                                sponsor = new Sponsor 
+                                {
+                                    SponsorId = Convert.ToInt32(dataRow["SponsorId"]),
+                                    SponsorName = dataRow["SponsorName"].ToString(),
+                                }
                             };
                             contacts.Add(contact);
                         }
@@ -1775,6 +1770,210 @@ namespace Spider_QAMS.Repositories.Domain
                 throw new Exception("Error in Getting All Sponsors List.", ex);
             }
             return contacts;
+        }
+        public async Task<List<SiteType>> GetAllSiteTypesAsync()
+        {
+            List<SiteType> siteTypes = new List<SiteType>();
+            try
+            {
+                SqlParameter[] sqlParameters = new SqlParameter[]
+                {
+                    new SqlParameter("@TextCriteria", SqlDbType.Int) { Value = GetTableData.GetAllSiteTypes },
+                    new SqlParameter("@RowsAffected", SqlDbType.Int) { Direction = ParameterDirection.Output }
+                };
+                List<DataTable> dataTables = SqlDBHelper.ExecuteParameterizedNonQuery(SP_GetTableAllData, CommandType.StoredProcedure, sqlParameters);
+                if (dataTables.Count > 0)
+                {
+                    DataTable dataTable = dataTables[0];
+                    if (dataTable.Rows.Count > 0)
+                    {
+                        foreach (DataRow dataRow in dataTable.Rows)
+                        {
+                            SiteType siteType = new SiteType
+                            {
+                                SiteTypeID = Convert.ToInt32(dataRow["SiteTypeID"]),
+                                Description = dataRow["Description"].ToString(),
+                                sponsor = new Sponsor
+                                {
+                                    SponsorId = Convert.ToInt32(dataRow["SponsorId"]),
+                                    SponsorName = dataRow["SponsorName"].ToString()
+                                }
+                            };
+                            siteTypes.Add(siteType);
+                        }
+                    }
+                    else
+                    {
+                        return null;
+                    }
+                }
+                else
+                {
+                    return null;
+                }
+            }
+            catch (SqlException sqlEx)
+            {
+                // Log or handle SQL exceptions
+                throw new Exception("Error executing SQL command.", sqlEx);
+            }
+            catch (Exception ex)
+            {
+                // Log or handle other exceptions
+                throw new Exception("Error in Getting All SiteType List.", ex);
+            }
+            return siteTypes;
+        }
+        public async Task<List<BranchType>> GetAllBranchTypesAsync()
+        {
+            List<BranchType> branchTypes = new List<BranchType>();
+            try
+            {
+                SqlParameter[] sqlParameters = new SqlParameter[]
+                {
+                    new SqlParameter("@TextCriteria", SqlDbType.Int) { Value = GetTableData.GetAllBranchTypes },
+                    new SqlParameter("@RowsAffected", SqlDbType.Int) { Direction = ParameterDirection.Output }
+                };
+                List<DataTable> dataTables = SqlDBHelper.ExecuteParameterizedNonQuery(SP_GetTableAllData, CommandType.StoredProcedure, sqlParameters);
+                if (dataTables.Count > 0)
+                {
+                    DataTable dataTable = dataTables[0];
+                    if (dataTable.Rows.Count > 0)
+                    {
+                        foreach (DataRow dataRow in dataTable.Rows)
+                        {
+                            BranchType branchType = new BranchType
+                            {
+                                BranchTypeId = Convert.ToInt32(dataRow["BranchTypeId"]),
+                                Description = dataRow["Description"].ToString(),
+                                siteType = new SiteType
+                                {
+                                    SiteTypeID = Convert.ToInt32(dataRow["SiteTypeID"]),
+                                    Description = dataRow["Description"].ToString(),
+                                    sponsor = new Sponsor
+                                    {
+                                        SponsorId = Convert.ToInt32(dataRow["SponsorId"]),
+                                        SponsorName = dataRow["SponsorName"].ToString()
+                                    }
+                                }
+                                
+                            };
+                            branchTypes.Add(branchType);
+                        }
+                    }
+                    else
+                    {
+                        return null;
+                    }
+                }
+                else
+                {
+                    return null;
+                }
+            }
+            catch (SqlException sqlEx)
+            {
+                // Log or handle SQL exceptions
+                throw new Exception("Error executing SQL command.", sqlEx);
+            }
+            catch (Exception ex)
+            {
+                // Log or handle other exceptions
+                throw new Exception("Error in Getting All Branch Type List.", ex);
+            }
+            return branchTypes;
+        }
+        public async Task<List<VisitStatusModel>> GetAllVisitStatusesAsync()
+        {
+            List<VisitStatusModel> visitStatuses = new List<VisitStatusModel>();
+            try
+            {
+                SqlParameter[] sqlParameters = new SqlParameter[]
+                {
+                    new SqlParameter("@TextCriteria", SqlDbType.Int) { Value = GetTableData.GetAllVisitStatuses },
+                    new SqlParameter("@RowsAffected", SqlDbType.Int) { Direction = ParameterDirection.Output }
+                };
+                List<DataTable> dataTables = SqlDBHelper.ExecuteParameterizedNonQuery(SP_GetTableAllData, CommandType.StoredProcedure, sqlParameters);
+                if (dataTables.Count > 0)
+                {
+                    DataTable dataTable = dataTables[0];
+                    if (dataTable.Rows.Count > 0)
+                    {
+                        foreach (DataRow dataRow in dataTable.Rows)
+                        {
+                            VisitStatusModel visitStatus = new VisitStatusModel
+                            {
+                                VisitStatusID = Convert.ToInt32(dataRow["VisitStatusID"]),
+                                VisitStatus = dataRow["VisitStatus"].ToString(),
+                            };
+                            visitStatuses.Add(visitStatus);
+                        }
+                    }
+                    else
+                    {
+                        return null;
+                    }
+                }
+                else
+                {
+                    return null;
+                }
+            }
+            catch (SqlException sqlEx)
+            {
+                // Log or handle SQL exceptions
+                throw new Exception("Error executing SQL command.", sqlEx);
+            }
+            catch (Exception ex)
+            {
+                // Log or handle other exceptions
+                throw new Exception("Error in Getting All Visit Status List.", ex);
+            }
+            return visitStatuses;
+        }
+        public async Task<List<string>> GetAllATMClassesAsync()
+        {
+            List<string> atmClasses = new List<string>();
+            try
+            {
+                SqlParameter[] sqlParameters = new SqlParameter[]
+                {
+                    new SqlParameter("@TextCriteria", SqlDbType.Int) { Value = GetTableData.GetAllATMClasses },
+                    new SqlParameter("@RowsAffected", SqlDbType.Int) { Direction = ParameterDirection.Output }
+                };
+                List<DataTable> dataTables = SqlDBHelper.ExecuteParameterizedNonQuery(SP_GetTableAllData, CommandType.StoredProcedure, sqlParameters);
+                if (dataTables.Count > 0)
+                {
+                    DataTable dataTable = dataTables[0];
+                    if (dataTable.Rows.Count > 0)
+                    {
+                        foreach (DataRow dataRow in dataTable.Rows)
+                        {
+                            string classToken = dataRow["Class"].ToString();
+                            atmClasses.Add(classToken);
+                        }
+                    }
+                    else
+                    {
+                        return null;
+                    }
+                }
+                else
+                {
+                    return null;
+                }
+            }
+            catch (SqlException sqlEx)
+            {
+                // Log or handle SQL exceptions
+                throw new Exception("Error executing SQL command.", sqlEx);
+            }
+            catch (Exception ex)
+            {
+                // Log or handle other exceptions
+                throw new Exception("Error in Getting All Visit Status List.", ex);
+            }
+            return atmClasses;
         }
     }
 }

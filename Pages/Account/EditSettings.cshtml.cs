@@ -37,7 +37,7 @@ namespace Spider_QAMS.Pages.Account
             var client = _clientFactory.CreateClient();
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", JWTCookieHelper.GetJWTCookie(HttpContext));
             var response = await client.GetStringAsync($"{_configuration["ApiBaseUrl"]}/Navigation/GetSettingsData");
-            _userSettings = JsonSerializer.Deserialize<ProfileUserAPIVM>(response, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+            _userSettings = string.IsNullOrEmpty(response) ? new ProfileUserAPIVM() : JsonSerializer.Deserialize<ProfileUserAPIVM>(response, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
 
             if (!string.IsNullOrEmpty(_userSettings.UserName))
             {

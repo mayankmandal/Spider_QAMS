@@ -1,0 +1,215 @@
+﻿@page
+@model Spider_QAMS.Pages.SiteDetailsModel
+@{
+    ViewData["Title"] = "Site Details";
+    TempData["NavigationalPageName"] = "Site Details";
+}
+
+
+<div style="display:flex; flex-direction:column; justify-content:center; align-items:center; min-height:20vh;">
+    <form method="post" enctype="multipart/form-data" id="createSiteForm">
+        <div class="container form-control border-2 mb-2" style="display:flex; justify-content:space-around; height:auto; flex-direction:column;width: 70rem;">
+            <div class="row pb-1 pt-2">
+                <div style="color:#17a2b8; text-align:center; font-size:1.7rem; font-weight:500">CREATE NEW SITE</div>
+                <div>
+                    <hr />
+                </div>
+            </div>
+            <div class="card">
+                <div class="card-body">
+                    <div class="row" style="display: flex; justify-content: space-between; align-items:flex-end;">
+                        <!-- First Column -->
+                        <div style="flex: 1; padding: 10px;">
+                            <div class="mb-3">
+                                <label asp-for="SiteDetailVM.SiteCode" class="form-label"></label>
+                                <input type="text" asp-for="SiteDetailVM.SiteCode" placeholder="Site Code" class="form-control" />
+                                <span asp-validation-for="SiteDetailVM.SiteCode" class="text-danger fw-bold"></span>
+                            </div>
+                            <div class="mb-3">
+                                <label asp-for="SiteDetailVM.SiteName" class="form-label"></label>
+                                <input type="text" asp-for="SiteDetailVM.SiteName" placeholder="Site Name" class="form-control" />
+                                <span asp-validation-for="SiteDetailVM.SiteName" class="text-danger fw-bold"></span>
+                            </div>
+                            <div class="mb-3">
+                                <label asp-for="SiteDetailVM.SiteCategory" class="form-label"></label>
+                                <select asp-for="SiteDetailVM.SiteCategory" class="form-select" id="siteCategorySelect">
+                                    <option value="" disabled selected>Select Site Category</option>
+                                    <!-- Populate options here -->
+                                </select>
+                                <span asp-validation-for="SiteDetailVM.SiteCategory" class="text-danger fw-bold"></span>
+                            </div>
+                            <div class="mb-3">
+                                <label asp-for="SiteDetailVM.SponsorID" class="form-label"></label>
+                                <select asp-for="SiteDetailVM.SponsorID" class="form-select" id="sponsorSelect">
+                                    <option value="" disabled selected>Select Sponsor</option>
+                                    <!-- Populate options here -->
+                                </select>
+                                <span asp-validation-for="SiteDetailVM.SponsorID" class="text-danger fw-bold"></span>
+                            </div>
+                            <div class="mb-3">
+                                <label asp-for="SiteDetailVM.ContactID" class="form-label"></label>
+                                <select asp-for="SiteDetailVM.ContactID" class="form-select" id="contactSelect">
+                                    <option value="" disabled selected>Select Sponsor</option>
+                                </select>
+                                <span asp-validation-for="SiteDetailVM.ContactID" class="text-danger fw-bold"></span>
+                            </div>
+                        </div>
+
+                        <!-- Second Column -->
+                        <div style="flex: 1; padding: 10px;">
+                            <div class="mb-3">
+                                <label asp-for="SiteDetailVM.RegionID" class="form-label"></label>
+                                <select asp-for="SiteDetailVM.RegionID" class="form-select" id="regionSelect">
+                                    <option value="" disabled selected>Select Region</option>
+                                    <!-- Populate options here -->
+                                </select>
+                                <span asp-validation-for="SiteDetailVM.RegionID" class="text-danger fw-bold"></span>
+                            </div>
+                            <div class="mb-3">
+                                <label asp-for="SiteDetailVM.CityID" class="form-label"></label>
+                                <select asp-for="SiteDetailVM.CityID" class="form-select" id="citySelect">
+                                    <option value="" disabled selected>Select City</option>
+                                    <!-- Populate options here -->
+                                </select>
+                                <span asp-validation-for="SiteDetailVM.CityID" class="text-danger fw-bold"></span>
+                            </div>
+                            <div class="mb-3">
+                                <label asp-for="SiteDetailVM.LocationID" class="form-label"></label>
+                                <select asp-for="SiteDetailVM.LocationID" class="form-select" id="locationSelect">
+                                    <option value="" disabled selected>Select Location</option>
+                                    <!-- Populate options here -->
+                                </select>
+                                <span asp-validation-for="SiteDetailVM.LocationID" class="text-danger fw-bold"></span>
+                            </div>
+                            <div class="mb-3">
+                                <label asp-for="SiteDetailVM.GPSLong" class="form-label"></label>
+                                <input type="text" asp-for="SiteDetailVM.GPSLong" placeholder="GPS Longitude" class="form-control" />
+                                <span asp-validation-for="SiteDetailVM.GPSLong" class="text-danger fw-bold"></span>
+                            </div>
+                            <div class="mb-3">
+                                <label asp-for="SiteDetailVM.GPSLatt" class="form-label"></label>
+                                <input type="text" asp-for="SiteDetailVM.GPSLatt" placeholder="GPS Latitude" class="form-control" />
+                                <span asp-validation-for="SiteDetailVM.GPSLatt" class="text-danger fw-bold"></span>
+                            </div>
+                        </div>
+
+                        <!-- Third Column -->
+                        <div style="flex: 1; padding: 10px;">
+                            <!-- Map View -->
+                            <div id="mapContainer" style="width:100%; height: 150px; border: 1px solid #ccc; margin-bottom: 15px;">
+                                <!-- Placeholder for the map -->
+                                <p style="text-align: center; line-height:150px">Map will be here</p>
+                            </div>
+
+                            <div class="mb-3">
+                                <label asp-for="SiteDetailVM.SiteTypeID" class="form-label"></label>
+                                <select asp-for="SiteDetailVM.SiteTypeID" class="form-select" id="siteTypeSelect">
+                                    <option value="" disabled selected>Select Site Type</option>
+                                    <!-- Populate options here -->
+                                </select>
+                                <span asp-validation-for="SiteDetailVM.SiteTypeID" class="text-danger fw-bold"></span>
+                            </div>
+                            <div class="mb-3">
+                                <label asp-for="SiteDetailVM.BranchNo" class="form-label"></label>
+                                <input type="text" asp-for="SiteDetailVM.BranchNo" placeholder="Branch No" class="form-control" />
+                                <span asp-validation-for="SiteDetailVM.BranchNo" class="text-danger fw-bold"></span>
+                            </div>
+                            <div class="mb-3">
+                                <label asp-for="SiteDetailVM.BranchTypeId" class="form-label"></label>
+                                <select asp-for="SiteDetailVM.BranchTypeId" class="form-select" id="branchTypeSelect">
+                                    <option value="" disabled selected>Select Branch Type</option>
+                                    <!-- Populate options here -->
+                                </select>
+                                <span asp-validation-for="SiteDetailVM.BranchTypeId" class="text-danger fw-bold"></span>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label asp-for="SiteDetailVM.AtmClass" class="form-label"></label>
+                                <select asp-for="SiteDetailVM.AtmClass" class="form-select" id="atmClassSelect">
+                                    <option value="" disabled selected>Select ATM Class</option>
+                                    @foreach (var clas in Model.ATMClass)
+                                    {
+                                        <option value="@clas">Class @clas</option>
+                                    }
+                                </select>
+                                <span asp-validation-for="SiteDetailVM.AtmClass" class="text-danger fw-bold"></span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row" style="display: flex; justify-content: space-between; margin-top: 20px;">
+                        <!-- First Column -->
+                        <div style="flex: 1; padding: 10px;">
+                            <div class="mb-3">
+                                <label asp-for="SiteDetailVM.VisitUserID" class="form-label"></label>
+                                <select asp-for="SiteDetailVM.VisitUserID" class="form-select" id="visitUserSelect">
+                                    <option value="" disabled selected>Select Visit User</option>
+                                    <!-- Populate options here -->
+                                </select>
+                                <span asp-validation-for="SiteDetailVM.VisitUserID" class="text-danger fw-bold"></span>
+                            </div>
+                            <div class="mb-3">
+                                <label asp-for="SiteDetailVM.VisitedDate" class="form-label"></label>
+                                <input type="date" asp-for="SiteDetailVM.VisitedDate" class="form-control" />
+                                <span asp-validation-for="SiteDetailVM.VisitedDate" class="text-danger fw-bold"></span>
+                            </div>
+                        </div>
+
+                        <!-- Second Column -->
+                        <div style="flex: 1; padding: 10px;">
+                            <div class="mb-3">
+                                <label asp-for="SiteDetailVM.ApprovedUserID" class="form-label"></label>
+                                <select asp-for="SiteDetailVM.ApprovedUserID" class="form-select" id="approvedUserSelect">
+                                    <option value="" disabled selected>Select Approved User</option>
+                                    <!-- Populate options here -->
+                                </select>
+                                <span asp-validation-for="SiteDetailVM.ApprovedUserID" class="text-danger fw-bold"></span>
+                            </div>
+                            <div class="mb-3">
+                                <label asp-for="SiteDetailVM.ApprovalDate" class="form-label"></label>
+                                <input type="date" asp-for="SiteDetailVM.ApprovalDate" class="form-control" />
+                                <span asp-validation-for="SiteDetailVM.ApprovalDate" class="text-danger fw-bold"></span>
+                            </div>
+                        </div>
+
+                        <!-- Third Column -->
+                        <div style="flex: 1; padding: 10px;">
+                            <div class="mb-3">
+                                <label asp-for="SiteDetailVM.IsActive" class="form-label"></label>
+                                <select asp-for="SiteDetailVM.IsActive" class="form-select" id="isActiveSelect">
+                                    <option value="" disabled selected>Select Is Active</option>
+                                    <option value="true">Yes</option>
+                                    <option value="false">No</option>
+                                </select>
+                                <span asp-validation-for="SiteDetailVM.IsActive" class="text-danger fw-bold"></span>
+                            </div>
+                            <div class="mb-3">
+                                <label asp-for="SiteDetailVM.VisitStatusID" class="form-label"></label>
+                                <select asp-for="SiteDetailVM.VisitStatusID" class="form-select" id="visitStatusSelect">
+                                    <option value="" disabled selected>Select Visit Status</option>
+                                    @foreach (var visitState in Model.VisitStatuses)
+                                    {
+                                        <option value="@visitState.VisitStatusID">@visitState.VisitStatus</option>
+                                    }
+                                </select>
+                                <span asp-validation-for="SiteDetailVM.VisitStatusID" class="text-danger fw-bold"></span>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Create Button -->
+                    <div style="display: flex; justify-content: center; align-items: center; margin-top: 20px;">
+                        <button type="submit" class="btn create-btn">Create Site</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </form>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script>
+        const groupedData = @Html.Raw(Json.Serialize(Model.SponsorsList));
+    </script>
+    <script src="~/js/site-details.js" asp-append-version="true"></script>
+    <script src="~/plugins/leaflet/leaflet.js" asp-append-version="true"></script>
+}

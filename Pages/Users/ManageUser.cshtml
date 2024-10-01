@@ -29,11 +29,11 @@
     <div class="mb-3 mt-2 d-flex" style="justify-content: flex-start; width: 100%;">
         <label for="searchBy" class="me-2">Search by:</label>
         <select id="searchBy" class="form-select me-2" style="width:200px;">
-            <option value="fullName">Name</option>
-            <option value="emailId">Email</option>
-            <option value="phoneNumber">Phone Number</option>
-            <option value="designation">Designation</option>
-            <option value="userName">Username</option>
+            <option value="FullName">Full Name</option>
+            <option value="EmailId">Email Address</option>
+            <option value="PhoneNumber">Phone Number</option>
+            <option value="Designation">Designation</option>
+            <option value="UserName">Username</option>
         </select>
         <label for="searchInput" class="me-2">Search value:</label>
         <input type="text" id="searchInput" class="form-control me-2" style="width: 300px;" />
@@ -78,6 +78,10 @@
                             <a asp-page="/Users/DeleteUser" asp-route-userId="@user.UserId" class="btn btn-danger btn-sm"><i class="fas fa-trash-alt"></i></a>
                         </td>
                     </tr>
+                }
+                @if (Model.Users.Count <= 0)
+                {
+                    <tr><td colspan="9" class="text-center">No users found.</td></tr>
                 }
             </tbody>
         </table>
@@ -131,7 +135,7 @@
             }
 
             // Function to dynamically update the table with user data
-            function updateTable(users){
+            function updateTable(users) {
                 var tbody = $('table tbody');
                 tbody.empty(); // Clear the existing table content
 
@@ -142,27 +146,27 @@
                 }
 
                 // Loop through the user data and generate table rows
-                $.each(users, function (index, user){
+                $.each(users, function (index, user) {
                     var row = `
-                                <tr>
-                                            <td>${user.Designation}</td>
-                                            <td>${user.FullName}</td>
-                                            <td>${user.EmailID}</td>
-                                            <td>${user.UserName}</td>
-                                                    <td>${user.ProfileSiteData.ProfileName}</td>
-                                            <td>${user.PhoneNumber}</td>
-                                    <td>
-                                                <input class="ms-1 form-check-input" type="checkbox" disabled ${user.IsActive ? "checked" : ""} />
-                                    </td>
-                                    <td>
-                                                <input class="ms-1 form-check-input" type="checkbox" disabled ${user.IsADUser ? "checked" : ""} />
-                                    </td>
-                                    <td style="white-space: nowrap;">
-                                                <a href="/Users/UpdateUser?userId=${user.UserId}" class="btn btn-primary btn-sm"><i class="fas fa-edit"></i></a>
-                                                <a href="/Users/DeleteUser?userId=${user.UserId}" class="btn btn-danger btn-sm"><i class="fas fa-trash-alt"></i></a>
-                                    </td>
-                                </tr>
-                            `;
+                            <tr>
+                                <td>${user.Designation}</td>
+                                <td>${user.FullName}</td>
+                                <td>${user.EmailID}</td>
+                                <td>${user.UserName}</td>
+                                <td>${user.ProfileSiteData.ProfileName}</td>
+                                <td>${user.PhoneNumber}</td>
+                                <td>
+                                    <input class="ms-1 form-check-input" type="checkbox" disabled ${user.IsActive ? "checked" : ""} style="position:relative;" />
+                                </td>
+                                <td>
+                                    <input class="ms-1 form-check-input" type="checkbox" disabled ${user.IsADUser ? "checked" : ""} style="position:relative;" />
+                                </td>
+                                <td style="white-space: nowrap;">
+                                            <a href="/Users/UpdateUser?userId=${user.UserId}" class="btn btn-primary btn-sm"><i class="fas fa-edit"></i></a>
+                                            <a href="/Users/DeleteUser?userId=${user.UserId}" class="btn btn-danger btn-sm"><i class="fas fa-trash-alt"></i></a>
+                                </td>
+                            </tr>
+                                    `;
                     tbody.append(row); // Append the row to the table
                 });
             }

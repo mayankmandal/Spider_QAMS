@@ -98,7 +98,7 @@ namespace Spider_QAMS.Pages.Users
             var client = _clientFactory.CreateClient();
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", JWTCookieHelper.GetJWTCookie(HttpContext));
             var response = await client.GetStringAsync($"{_configuration["ApiBaseUrl"]}/Navigation/GetAllProfiles");
-            ProfilesData = JsonSerializer.Deserialize<List<ProfileSiteVM>>(response, new JsonSerializerOptions
+            ProfilesData = string.IsNullOrEmpty(response) ? new List<ProfileSiteVM>() : JsonSerializer.Deserialize<List<ProfileSiteVM>>(response, new JsonSerializerOptions
             {
                 PropertyNameCaseInsensitive = true
             });

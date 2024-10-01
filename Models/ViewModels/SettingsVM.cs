@@ -10,7 +10,7 @@ namespace Spider_QAMS.Models.ViewModels
         public int SettingUserId { get; set; }
         [DisplayName("Full Name")]
         [StringLength(200, ErrorMessage = "Full Name must be 200 characters or fewer")]
-        [RegularExpression(@"^[a-zA-Z\s]*$", ErrorMessage = "Full Name must contain only alphabets and spaces")]
+        [RegularExpression(@"^[a-zA-Z\s\-]*$", ErrorMessage = "Full Name must contain only alphabets, spaces and dashes")]
         public string? SettingFullName { get; set; }
         [DisplayName("Username")]
         [StringLength(100, ErrorMessage = "Username must be 100 characters or fewer")]

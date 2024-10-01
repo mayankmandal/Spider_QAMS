@@ -28,14 +28,14 @@ namespace Spider_QAMS.Pages
             var client = _clientFactory.CreateClient();
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", JWTCookieHelper.GetJWTCookie(HttpContext));
             var response = await client.GetStringAsync($"{_configuration["ApiBaseUrl"]}/Navigation/GetAllCities");
-            Cities = JsonSerializer.Deserialize<List<CityVM>>(response, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+            Cities = string.IsNullOrEmpty(response) ? new List<CityVM>() : JsonSerializer.Deserialize<List<CityVM>>(response, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
         }
         private async Task LoadAllRegionData()
         {
             var client = _clientFactory.CreateClient();
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", JWTCookieHelper.GetJWTCookie(HttpContext));
             var response = await client.GetStringAsync($"{_configuration["ApiBaseUrl"]}/Navigation/GetAllRegion");
-            Regions = JsonSerializer.Deserialize<List<Region>>(response, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+            Regions = string.IsNullOrEmpty(response) ? new List<Region>() : JsonSerializer.Deserialize<List<Region>>(response, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
         }
         public async Task<IActionResult> OnGetAsync()
         {

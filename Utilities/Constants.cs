@@ -122,7 +122,11 @@ namespace Spider_QAMS.Utilities
             GetAllLocations = 7,            // Fetch all cities
             GetRegionListOfCities = 8,      // Fetch all cities
             GetAllSponsors = 9,             // Fetch all sponsors
-            GetAllContacts = 10,             // Fetch all contacts
+            GetAllContacts = 10,            // Fetch all contacts
+            GetAllSiteTypes = 11,           // Fetch all site types
+            GetAllBranchTypes = 12,         // Fetch all branch types
+            GetAllVisitStatuses = 13,       // Fetch all visit statuses
+            GetAllATMClasses = 14,          // Fetch all atm classes
         }
 
         public enum TableNameCheckUniqueness

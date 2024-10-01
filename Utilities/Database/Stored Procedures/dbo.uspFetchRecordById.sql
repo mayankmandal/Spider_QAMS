@@ -40,7 +40,7 @@ BEGIN
 		-- GetCurrentUserProfile
 		ELSE IF @TextCriteria = 2
 		BEGIN
-			SELECT tp.ProfileID, tp.ProfileName, tp.CreateDate, tp.UpdateDate, tp.CreateUserId, tp.UpdateUserId FROM Profiles tp WITH (NOLOCK)
+			SELECT tp.ProfileID, tp.ProfileName FROM Profiles tp WITH (NOLOCK)
 			INNER JOIN UserProfile tbup WITH (NOLOCK) on tp.ProfileID = tbup.ProfileID WHERE tbup.UserId = @InputInt;
 		END
 

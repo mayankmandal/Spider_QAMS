@@ -989,7 +989,7 @@ namespace Spider_QAMS.Controllers
                     return Unauthorized("User is not authenticated.");
                 }
                 List<CityRegionViewModel> cityRegionList = await _navigationRepository.GetRegionListOfCitiesAsync();
-                var regions = cityRegionList
+                var regions = cityRegionList == null? new List<RegionAssociatedCities>() : cityRegionList
                     .GroupBy(cr => new { cr.RegionId, cr.RegionName }) // Group by RegionId and RegionName
                     .Select(g => new RegionAssociatedCities
                     {
@@ -1035,7 +1035,7 @@ namespace Spider_QAMS.Controllers
             }
         }
         [HttpGet("GetAllContacts")]
-        [ProducesResponseType(typeof(List<Sponsor>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(List<Contact>), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         public async Task<IActionResult> GetAllContactsData()
@@ -1052,14 +1052,119 @@ namespace Spider_QAMS.Controllers
                 {
                     return Unauthorized("User is not authenticated.");
                 }
-                List<ContactVM> sponsors = await _navigationRepository.GetAllContactsAsync();
-                return Ok(sponsors);
+                List<Contact> contacts = await _navigationRepository.GetAllContactsAsync();
+                return Ok(contacts);
             }
             catch (Exception ex)
             {
                 return StatusCode(500, $"Internal Server Error: {ex.Message}");
             }
         }
+        [HttpGet("GetAllSiteTypes")]
+        [ProducesResponseType(typeof(List<Sponsor>), StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        public async Task<IActionResult> GetAllSiteTypesData()
+        {
+            try
+            {
+                var jwtToken = Request.Headers["Authorization"].ToString().Replace("Bearer ", "");
+                if (string.IsNullOrEmpty(jwtToken))
+                {
+                    return Unauthorized("JWT Token is missing");
+                }
+                var userId = await _applicationUserBusinessLogic.GetCurrentUserIdAsync(jwtToken);
+                if (userId == null)
+                {
+                    return Unauthorized("User is not authenticated.");
+                }
+                List<SiteType> siteTypes = await _navigationRepository.GetAllSiteTypesAsync();
+                return Ok(siteTypes);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"Internal Server Error: {ex.Message}");
+            }
+        }
+        [HttpGet("GetAllBranchTypes")]
+        [ProducesResponseType(typeof(List<Sponsor>), StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        public async Task<IActionResult> GetAllBranchTypesData()
+        {
+            try
+            {
+                var jwtToken = Request.Headers["Authorization"].ToString().Replace("Bearer ", "");
+                if (string.IsNullOrEmpty(jwtToken))
+                {
+                    return Unauthorized("JWT Token is missing");
+                }
+                var userId = await _applicationUserBusinessLogic.GetCurrentUserIdAsync(jwtToken);
+                if (userId == null)
+                {
+                    return Unauthorized("User is not authenticated.");
+                }
+                List<BranchType> branchTypes = await _navigationRepository.GetAllBranchTypesAsync();
+                return Ok(branchTypes);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"Internal Server Error: {ex.Message}");
+            }
+        }
+        [HttpGet("GetAllVisitStatuses")]
+        [ProducesResponseType(typeof(List<Sponsor>), StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        public async Task<IActionResult> GetAllVisitStatusesData()
+        {
+            try
+            {
+                var jwtToken = Request.Headers["Authorization"].ToString().Replace("Bearer ", "");
+                if (string.IsNullOrEmpty(jwtToken))
+                {
+                    return Unauthorized("JWT Token is missing");
+                }
+                var userId = await _applicationUserBusinessLogic.GetCurrentUserIdAsync(jwtToken);
+                if (userId == null)
+                {
+                    return Unauthorized("User is not authenticated.");
+                }
+                List<VisitStatusModel> visitStatuses = await _navigationRepository.GetAllVisitStatusesAsync();
+                return Ok(visitStatuses);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"Internal Server Error: {ex.Message}");
+            }
+        }
+        [HttpGet("GetAllATMClasses")]
+        [ProducesResponseType(typeof(List<string>), StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        public async Task<IActionResult> GetAllATMClassesData()
+        {
+            try
+            {
+                var jwtToken = Request.Headers["Authorization"].ToString().Replace("Bearer ", "");
+                if (string.IsNullOrEmpty(jwtToken))
+                {
+                    return Unauthorized("JWT Token is missing");
+                }
+                var userId = await _applicationUserBusinessLogic.GetCurrentUserIdAsync(jwtToken);
+                if (userId == null)
+                {
+                    return Unauthorized("User is not authenticated.");
+                }
+                List<string> atmClasses = await _navigationRepository.GetAllATMClassesAsync();
+                return Ok(atmClasses);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"Internal Server Error: {ex.Message}");
+            }
+        }
+
         [HttpPost("UpdateLocation")]
         [ProducesResponseType(typeof(SiteLocation), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]

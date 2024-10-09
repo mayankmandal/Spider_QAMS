@@ -24,13 +24,13 @@ namespace Spider_QAMS.Models.ViewModels
         [DisplayName("Email Address")]
         [StringLength(100, ErrorMessage = "Email Address must be 100 characters or fewer")]
         [EmailAddress(ErrorMessage = "Invalid Email Address")]
-        [CheckUniquenessinDB("emailid")]
+        [CheckUniquenessinDB("EmailID")]
         public string EmailID { get; set; }
 
         [Required(ErrorMessage = "Mobile Number is required")]
         [DisplayName("Mobile Number")]
         [RegularExpression(@"^\d{10}$", ErrorMessage = "Mobile Number must be a 10-digit number")]
-        [CheckUniquenessinDB("phonenumber")]
+        [CheckUniquenessinDB("PhoneNumber")]
         public string PhoneNumber { get; set; }
 
         [Required(ErrorMessage = "Profile Data is required")]
@@ -40,7 +40,7 @@ namespace Spider_QAMS.Models.ViewModels
         [DisplayName("Username")]
         [StringLength(100, ErrorMessage = "Username must be 100 characters or fewer")]
         [RegularExpression(@"^[a-zA-Z0-9._ ]*$", ErrorMessage = "Username must contain only alphabets, numbers, spaces, period and underscores")]
-        [CheckUniquenessinDB("username")]
+        [CheckUniquenessinDB("UserName")]
         public string UserName { get; set; }
 
         [Required(ErrorMessage = "Please upload a profile picture.")]

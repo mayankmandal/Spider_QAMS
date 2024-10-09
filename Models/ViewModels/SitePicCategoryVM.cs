@@ -1,19 +1,14 @@
-﻿using System.ComponentModel;
-
-namespace Spider_QAMS.Models.ViewModels
+﻿namespace Spider_QAMS.Models.ViewModels
 {
     public class SitePicCategoryVM
     {
-        [DisplayName("Pic Category ID")]
-        public int PicCatID { get; set; }
-
-        [DisplayName("Site Type ID")]
-        public int SiteTypeID { get; set; }
-
-        [DisplayName("Sponsor ID")]
-        public int? SponsorID { get; set; }
-
-        [DisplayName("Description")]
+        public int? PicCatID { get; set; }
         public string? Description { get; set; }
+    }
+    public class SitePicCategoryVMAssociation
+    {
+        public int? PicCatID { get; set; }
+        public string? Description { get; set; }
+        public List<SitePicturesAssociation> Images { get; set; } = new List<SitePicturesAssociation>();
     }
 }

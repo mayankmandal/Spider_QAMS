@@ -13,8 +13,10 @@ GO
 ALTER PROCEDURE [dbo].[uspCheckUniqueness]
     -- Add the parameters for the stored procedure here
 	@TableId INT,
-	@Field NVARCHAR(50),
-    @Value NVARCHAR(100)
+	@Field1 NVARCHAR(50) = NULL,
+	@Field2 NVARCHAR(50) = NULL,
+    @Value1 NVARCHAR(100) = NULL,
+	@Value2 NVARCHAR(100) = NULL
 AS
 BEGIN
     
@@ -25,28 +27,38 @@ BEGIN
 
 		IF @TableId = 1
 		BEGIN
-			SET @query = N'SELECT CASE WHEN EXISTS (SELECT 1 FROM Users WITH (NOLOCK) WHERE ' + @Field + ' = @Value) THEN 0 ELSE 1 END AS IsUnique';
-			EXEC sp_executesql @query, N'@Value VARCHAR(100)', @Value;
+			SET @query = N'SELECT CASE WHEN EXISTS (SELECT 1 FROM Users WITH (NOLOCK) WHERE ' + @Field1 + ' = @Value1) THEN 0 ELSE 1 END AS IsUnique';
+			EXEC sp_executesql @query, N'@Value1 VARCHAR(100)', @Value1;
 		END
 		ELSE IF @TableId = 2
 		BEGIN
-			SET @query = N'SELECT CASE WHEN EXISTS (SELECT 1 FROM Profiles WITH (NOLOCK) WHERE ' + @Field + ' = @Value) THEN 0 ELSE 1 END AS IsUnique';
-			EXEC sp_executesql @query, N'@Value VARCHAR(100)', @Value;
+			SET @query = N'SELECT CASE WHEN EXISTS (SELECT 1 FROM Profiles WITH (NOLOCK) WHERE ' + @Field1 + ' = @Value1) THEN 0 ELSE 1 END AS IsUnique';
+			EXEC sp_executesql @query, N'@Value1 VARCHAR(100)', @Value1;
 		END
 		ELSE IF @TableId = 3
 		BEGIN
-			SET @query = N'SELECT CASE WHEN EXISTS (SELECT 1 FROM tblPageCategory WITH (NOLOCK) WHERE ' + @Field + ' = @Value) THEN 0 ELSE 1 END AS IsUnique';
-			EXEC sp_executesql @query, N'@Value VARCHAR(100)', @Value;
+			SET @query = N'SELECT CASE WHEN EXISTS (SELECT 1 FROM tblPageCategory WITH (NOLOCK) WHERE ' + @Field1 + ' = @Value1) THEN 0 ELSE 1 END AS IsUnique';
+			EXEC sp_executesql @query, N'@Value1 VARCHAR(100)', @Value1;
 		END
 		ELSE IF @TableId = 4
 		BEGIN
-			SET @query = N'SELECT CASE WHEN EXISTS (SELECT 1 FROM Region WITH (NOLOCK) WHERE ' + @Field + ' = @Value) THEN 0 ELSE 1 END AS IsUnique';
-			EXEC sp_executesql @query, N'@Value VARCHAR(100)', @Value;
+			SET @query = N'SELECT CASE WHEN EXISTS (SELECT 1 FROM Region WITH (NOLOCK) WHERE ' + @Field1 + ' = @Value1) THEN 0 ELSE 1 END AS IsUnique';
+			EXEC sp_executesql @query, N'@Value1 VARCHAR(100)', @Value1;
 		END
 		ELSE IF @TableId = 5
 		BEGIN
-			SET @query = N'SELECT CASE WHEN EXISTS (SELECT 1 FROM City WITH (NOLOCK) WHERE ' + @Field + ' = @Value) THEN 0 ELSE 1 END AS IsUnique';
-			EXEC sp_executesql @query, N'@Value VARCHAR(100)', @Value;
+			SET @query = N'SELECT CASE WHEN EXISTS (SELECT 1 FROM City WITH (NOLOCK) WHERE ' + @Field1 + ' = @Value1) THEN 0 ELSE 1 END AS IsUnique';
+			EXEC sp_executesql @query, N'@Value1 VARCHAR(100)', @Value1;
+		END
+		ELSE IF @TableId = 6
+		BEGIN
+			SET @query = N'SELECT CASE WHEN EXISTS (SELECT 1 FROM SiteDetails WITH (NOLOCK) WHERE ' + @Field1 + ' = @Value1) THEN 0 ELSE 1 END AS IsUnique';
+			EXEC sp_executesql @query, N'@Value1 VARCHAR(100)', @Value1;
+		END
+		ELSE IF @TableId = 7
+		BEGIN
+			SET @query = N'SELECT CASE WHEN EXISTS (SELECT 1 FROM SiteDetails WITH (NOLOCK) WHERE ' + @Field1 + ' = @Value1 AND ' + @Field2 + ' = @Value2) THEN 0 ELSE 1 END AS IsUnique';
+			EXEC sp_executesql @query, N'@Value1 VARCHAR(100), @Value2 VARCHAR(100)', @Value1, @Value2;
 		END
 
     END TRY

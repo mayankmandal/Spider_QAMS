@@ -32,6 +32,9 @@ namespace Spider_QAMS.Utilities
         public const string SP_UpdateEntityRecord = "dbo.uspUpdateEntityRecord";
         public const string SP_CreateEntityRecord = "dbo.uspCreateEntityRecord";
 
+        public const string SP_CreateSiteDetails = "dbo.uspCreateSiteDetails";
+        public const string SP_CreateSitePictures = "dbo.uspCreateSitePictures";
+
         public static List<SelectListItem> GetTimeDropDown()
         {
             int minute = 60;
@@ -127,6 +130,7 @@ namespace Spider_QAMS.Utilities
             GetAllBranchTypes = 12,         // Fetch all branch types
             GetAllVisitStatuses = 13,       // Fetch all visit statuses
             GetAllATMClasses = 14,          // Fetch all atm classes
+            GetAllPicCategories = 15,       // Fetch all picture categories
         }
 
         public enum TableNameCheckUniqueness
@@ -136,9 +140,8 @@ namespace Spider_QAMS.Utilities
             PageCategory = 3,
             Region = 4,
             City = 5,
-            Location = 6,
-            Sponsor = 7,
-            Contact = 8
+            SiteDetailWith1Field = 6,
+            SiteDetailWith2Field = 7
         };
 
         public static class DeleteEntityType
@@ -155,11 +158,12 @@ namespace Spider_QAMS.Utilities
 
         public static class TableNameClassForUniqueness
         {
-            public static string[] User = { "emailid", "phonenumber", "username", "profilepicname" };
-            public static string[] Profile = { "profilename" };
-            public static string[] PageCategory = { "categoryname" };
-            public static string[] Region = { "regionname" };
-            public static string[] City = { "cityname" };
+            public static string[] User = { "EmailID", "PhoneNumber", "UserName" };
+            public static string[] Profile = { "ProfileName" };
+            public static string[] PageCategory = { "CategoryName" };
+            public static string[] Region = { "RegionName" };
+            public static string[] City = { "CityName" };
+            public static string[] SiteDetail = { "SiteCode", "SiteName", "GPSLong", "GPSLatt" };
         };
 
         public static class UserPermissionStates

@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc.Rendering;
+using Spider_QAMS.Utilities.ValidationAttributes;
 using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
 
@@ -10,39 +11,43 @@ namespace Spider_QAMS.Models.ViewModels
         public long SiteID { get; set; }
 
         [DisplayName("Site Code")]
+        [CheckUniquenessinDB("SiteCode")]
         [Required(ErrorMessage = "Site Code is required")]
         public string SiteCode { get; set; }
 
         [DisplayName("Site Name")]
+        [CheckUniquenessinDB("SiteName")]
         [Required(ErrorMessage = "Site Name is required")]
         public string SiteName { get; set; }
 
         [DisplayName("Site Category")]
-        public string? SiteCategory { get; set; }
+        public string SiteCategory { get; set; }
 
         [DisplayName("Sponsor ID")]
-        public int? SponsorID { get; set; }
+        public int SponsorID { get; set; }
 
         [DisplayName("Region ID")]
-        public int? RegionID { get; set; }
+        public int RegionID { get; set; }
 
         [DisplayName("City ID")]
-        public int? CityID { get; set; }
+        public int CityID { get; set; }
 
         [DisplayName("Location ID")]
-        public int? LocationID { get; set; }
+        public int LocationID { get; set; }
 
         [DisplayName("Contact ID")]
-        public int? ContactID { get; set; }
+        public int ContactID { get; set; }
 
         [DisplayName("Site Type ID")]
-        public int? SiteTypeID { get; set; }
+        public int SiteTypeID { get; set; }
 
         [DisplayName("GPS Longitude")]
-        public string? GPSLong { get; set; }
+        [CheckUniquenessinDB("GPSLong", "GPSLatt")]
+        public string GPSLong { get; set; }
 
         [DisplayName("GPS Latitude")]
-        public string? GPSLatt { get; set; }
+        [CheckUniquenessinDB("GPSLatt", "GPSLong")]
+        public string GPSLatt { get; set; }
 
         [DisplayName("Visit User ID")]
         public int? VisitUserID { get; set; }
@@ -60,15 +65,25 @@ namespace Spider_QAMS.Models.ViewModels
         public int? VisitStatusID { get; set; }
 
         [DisplayName("Is Active")]
-        public bool? IsActive { get; set; }
+        public bool IsActive { get; set; } = false;
 
-        [DisplayName("Branch No")]
-        public string? BranchNo { get; set; }
+        [DisplayName("Branch Number")]
+        public string BranchNo { get; set; }
 
-        [DisplayName("Branch Type ID")]
+        [DisplayName("Branch Type")]
         public int? BranchTypeId { get; set; }
 
         [DisplayName("ATM Class")]
-        public char? AtmClass { get; set; }
+        public string? AtmClass { get; set; }
+
+        // Referencing Other View Models
+        public List<SitePicturesVM> SitePicturesLst { get; set; }
+        public SiteContactInformationVM SiteContactInformation { get; set; }
+        public GeographicalDetailsVM GeographicalDetails { get; set; }
+        public SiteBranchFacilitiesVM SiteBranchFacilities { get; set; }
+        public SiteDataCenterVM SiteDataCenter { get; set; }
+        public SignBoardTypeVM SignBoardType { get; set; }
+        public SiteMiscInformationVM SiteMiscInformation { get; set; }
+        public BranchMiscInformationVM BranchMiscInformation { get; set; }
     }
 }

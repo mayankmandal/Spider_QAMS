@@ -11,7 +11,7 @@ namespace Spider_QAMS.Models.ViewModels
         [Required(ErrorMessage = "City Name is required")]
         [DisplayName("City Name")]
         [StringLength(100, ErrorMessage = "City Name must be 100 characters or fewer")]
-        [CheckUniquenessinDB("cityname")]
+        [CheckUniquenessinDB("CityName")]
         [RegularExpression(@"^[a-zA-Z\s]*$", ErrorMessage = "City Name must contain only alphabets and spaces")]
         public string CityName { get; set; }
         public Region RegionData { get; set; }

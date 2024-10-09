@@ -20,8 +20,8 @@ BEGIN
 
     BEGIN TRY
 
-		-- Validate the value of @TextCriteria currently 1 to 14 only
-        IF @TextCriteria NOT BETWEEN 1 AND 14
+		-- Validate the value of @TextCriteria currently 1 to 15 only
+        IF @TextCriteria NOT BETWEEN 1 AND 15
 		BEGIN
 				
 			SELECT -1 AS RowsAffected;
@@ -106,7 +106,7 @@ BEGIN
 		-- GetAllBranchTypes
 		ELSE IF @TextCriteria = 12
 		BEGIN
-			SELECT bt.BranchTypeId, bt.[Description], bt.SiteTypeID, st.Description, st.SponsorID, s.SponsorName FROM BranchType bt WITH (NOLOCK)
+			SELECT bt.BranchTypeId, bt.[Description] AS BranchDescription, bt.SiteTypeID, st.[Description] AS SiteDescription, st.SponsorID, s.SponsorName FROM BranchType bt WITH (NOLOCK)
 			INNER JOIN SiteTypes st WITH (NOLOCK) ON bt.SiteTypeID = st.SiteTypeID
 			INNER JOIN Sponsor s WITH (NOLOCK) ON st.SponsorID = s.SponsorId
 		END
@@ -121,6 +121,12 @@ BEGIN
 		ELSE IF @TextCriteria = 14
 		BEGIN
 			SELECT a.Class FROM ATMClass a WITH (NOLOCK)
+		END
+
+		-- GetAllPicCategories
+		ELSE IF @TextCriteria = 15
+		BEGIN
+			SELECT spc.PicCatID, spc.[Description] FROM SitePicCategory spc WITH (NOLOCK)
 		END
 
 		-- Capture number of rows affected

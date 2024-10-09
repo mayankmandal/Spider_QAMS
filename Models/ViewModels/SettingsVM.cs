@@ -15,12 +15,12 @@ namespace Spider_QAMS.Models.ViewModels
         [DisplayName("Username")]
         [StringLength(100, ErrorMessage = "Username must be 100 characters or fewer")]
         [RegularExpression(@"^[a-zA-Z0-9._ ]*$", ErrorMessage = "Username must contain only alphabets, numbers, spaces, period and underscores")]
-        [CheckUniquenessinDB("username")]
+        [CheckUniquenessinDB("UserName")]
         public string? SettingUserName { get; set; }
         [DisplayName("Email Address")]
         [StringLength(100, ErrorMessage = "Email Address must be 100 characters or fewer")]
         [EmailAddress(ErrorMessage = "Invalid Email Address")]
-        [CheckUniquenessinDB("emailid")]
+        [CheckUniquenessinDB("EmailID")]
         public string? SettingEmailID { get; set; }
         [DisplayName("User Photo")]
         [AllowedExtensions(new string[] { ".jpg", ".png", ".jpeg" })]

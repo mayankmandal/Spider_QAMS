@@ -40,8 +40,112 @@ namespace Spider_QAMS.Repositories.Domain
                     throw new Exception("Invalid Record Type");
             }
         }
-        
-        
+        public async Task<bool> CheckUniquenessAsync(UniquenessCheckRequest uniquenessCheckRequest)
+        {
+            int isUnique = 0;
+            try
+            {
+                TableNameCheckUniqueness? tableEnum = null;
+                if (TableNameClassForUniqueness.User.Contains(uniquenessCheckRequest.Field1))
+                {
+                    tableEnum = TableNameCheckUniqueness.User;
+                }
+                else if (TableNameClassForUniqueness.Profile.Contains(uniquenessCheckRequest.Field1))
+                {
+                    tableEnum = TableNameCheckUniqueness.Profile;
+                }
+                else if (TableNameClassForUniqueness.PageCategory.Contains(uniquenessCheckRequest.Field1))
+                {
+                    tableEnum = TableNameCheckUniqueness.PageCategory;
+                }
+                else if (TableNameClassForUniqueness.Region.Contains(uniquenessCheckRequest.Field1))
+                {
+                    tableEnum = TableNameCheckUniqueness.Region;
+                }
+                else if (TableNameClassForUniqueness.City.Contains(uniquenessCheckRequest.Field1))
+                {
+                    tableEnum = TableNameCheckUniqueness.City;
+                }
+                else if (string.IsNullOrEmpty(uniquenessCheckRequest.Field2) && !string.IsNullOrEmpty(uniquenessCheckRequest.Field1) && TableNameClassForUniqueness.SiteDetail.Contains(uniquenessCheckRequest.Field1))
+                {
+                    tableEnum = TableNameCheckUniqueness.SiteDetailWith1Field;
+                }
+                else if (!string.IsNullOrEmpty(uniquenessCheckRequest.Field2) && !string.IsNullOrEmpty(uniquenessCheckRequest.Field1) && TableNameClassForUniqueness.SiteDetail.Contains(uniquenessCheckRequest.Field1) && TableNameClassForUniqueness.SiteDetail.Contains(uniquenessCheckRequest.Field2))
+                {
+                    tableEnum = TableNameCheckUniqueness.SiteDetailWith2Field;
+                }
+                if (tableEnum == null)
+                {
+                    throw new ArgumentException($"Field - {uniquenessCheckRequest.Field1} does not match any known column.");
+                }
+                // User Profile Creation
+                SqlParameter[] sqlParameters = new SqlParameter[]
+                {
+                    new SqlParameter("@TableId", SqlDbType.Int) { Value = (int)tableEnum },
+                    new SqlParameter("@Field1", SqlDbType.VarChar, 50) { Value = uniquenessCheckRequest.Field1 },
+                    new SqlParameter("@Field2", SqlDbType.VarChar, 50) { Value = uniquenessCheckRequest.Field2 },
+                    new SqlParameter("@Value1", SqlDbType.VarChar, 100) { Value = uniquenessCheckRequest.Value1 },
+                    new SqlParameter("@Value2", SqlDbType.VarChar, 100) { Value = uniquenessCheckRequest.Value2 }
+                };
+
+                // Execute the command
+                List<DataTable> tables = SqlDBHelper.ExecuteParameterizedNonQuery(SP_CheckUniqueness, CommandType.StoredProcedure, sqlParameters);
+                if (tables.Count > 0)
+                {
+                    DataTable dataTable = tables[0];
+                    if (dataTable.Rows.Count > 0)
+                    {
+                        DataRow dataRow = dataTable.Rows[0];
+                        isUnique = (int)dataRow["IsUnique"];
+                    }
+                    else
+                    {
+                        return false;
+                    }
+
+                }
+                else
+                {
+                    return false;
+                }
+            }
+            catch (SqlException sqlEx)
+            {
+                throw new Exception($"Error while checking existing {uniquenessCheckRequest.Field1} - SQL Exception.", sqlEx);
+            }
+            catch (Exception ex)
+            {
+                throw new Exception($"Error while checking existing {uniquenessCheckRequest.Field1}.", ex);
+            }
+            return isUnique > 0;
+        }
+        public async Task<bool> DeleteEntityAsync(int deleteId, string deleteType)
+        {
+            try
+            {
+                SqlParameter[] sqlParameters = new SqlParameter[]
+                {
+                    new SqlParameter("@Id", SqlDbType.Int){Value = deleteId},
+                    new SqlParameter("@Type", SqlDbType.VarChar, 10){Value = deleteType},
+                };
+
+                bool isFailure = SqlDBHelper.ExecuteNonQuery(SP_DeleteEntityRecord, CommandType.StoredProcedure, sqlParameters);
+                if (isFailure)
+                {
+                    return false;
+                }
+                return true;
+            }
+            catch (SqlException sqlEx)
+            {
+                throw new Exception($"Error deleting record for {deleteType} - SQL Exception.", sqlEx);
+            }
+            catch (Exception ex)
+            {
+                throw new Exception($"Error deleting record for {deleteType}.", ex);
+            }
+        }
+
         public async Task<bool> CreateUserProfileAsync(ProfileUser userProfileData, int CurrentUserId)
         {
             try
@@ -199,102 +303,7 @@ namespace Spider_QAMS.Repositories.Domain
             }
             return profileUserExisting.ProfilePicName;
         }
-        public async Task<bool> CheckUniquenessAsync(string field, string value)
-        {
-            int isUnique = 0;
-            try
-            {
-                TableNameCheckUniqueness? tableEnum = null;
-                if (TableNameClassForUniqueness.User.Contains(field.ToLower()))
-                {
-                    tableEnum = TableNameCheckUniqueness.User;
-                }
-                else if (TableNameClassForUniqueness.Profile.Contains(field.ToLower()))
-                {
-                    tableEnum = TableNameCheckUniqueness.Profile;
-                }
-                else if (TableNameClassForUniqueness.PageCategory.Contains(field.ToLower()))
-                {
-                    tableEnum = TableNameCheckUniqueness.PageCategory;
-                }
-                else if (TableNameClassForUniqueness.Region.Contains(field.ToLower()))
-                {
-                    tableEnum = TableNameCheckUniqueness.Region;
-                }
-                else if (TableNameClassForUniqueness.City.Contains(field.ToLower()))
-                {
-                    tableEnum = TableNameCheckUniqueness.City;
-                }
-                if (tableEnum == null)
-                {
-                    throw new ArgumentException($"Field - {field} does not match any known column.");
-                }
-                // User Profile Creation
-                SqlParameter[] sqlParameters = new SqlParameter[]
-                {
-                    new SqlParameter("@TableId", SqlDbType.Int) { Value = (int)tableEnum },
-                    new SqlParameter("@Field", SqlDbType.VarChar, 50) { Value = field },
-                    new SqlParameter("@Value", SqlDbType.VarChar, 100) { Value = value }
-                };
-
-                // Execute the command
-                List<DataTable> tables = SqlDBHelper.ExecuteParameterizedNonQuery(SP_CheckUniqueness, CommandType.StoredProcedure, sqlParameters);
-                if (tables.Count > 0)
-                {
-                    DataTable dataTable = tables[0];
-                    if (dataTable.Rows.Count > 0)
-                    {
-                        DataRow dataRow = dataTable.Rows[0];
-                        isUnique = (int)dataRow["IsUnique"];
-                    }
-                    else
-                    {
-                        return false;
-                    }
-
-                }
-                else
-                {
-                    return false;
-                }
-            }
-            catch (SqlException sqlEx)
-            {
-                throw new Exception($"Error while checking existing {field} - SQL Exception.", sqlEx);
-            }
-            catch (Exception ex)
-            {
-                throw new Exception($"Error while checking existing {field}.", ex);
-            }
-            return isUnique > 0;
-        }
         
-        public async Task<bool> DeleteEntityAsync(int deleteId, string deleteType)
-        {
-            try
-            {
-                SqlParameter[] sqlParameters = new SqlParameter[]
-                {
-                    new SqlParameter("@Id", SqlDbType.Int){Value = deleteId},
-                    new SqlParameter("@Type", SqlDbType.VarChar, 10){Value = deleteType},
-                };
-
-                bool isFailure = SqlDBHelper.ExecuteNonQuery(SP_DeleteEntityRecord, CommandType.StoredProcedure, sqlParameters);
-                if (isFailure)
-                {
-                    return false;
-                }
-                return true;
-            }
-            catch (SqlException sqlEx)
-            {
-                throw new Exception($"Error deleting record for {deleteType} - SQL Exception.", sqlEx);
-            }
-            catch (Exception ex)
-            {
-                throw new Exception($"Error deleting record for {deleteType}.", ex);
-            }
-        }
         public async Task<string> UpdateSettingsDataAsync(ProfileUser userSettings, int CurrentUserId)
         {
             ProfileUser profileUserExisting = new ProfileUser();
@@ -659,6 +668,148 @@ namespace Spider_QAMS.Repositories.Domain
                 throw new Exception($"Error creating record for {siteLocation.Location}.", ex);
             }
             return true;
+        }
+
+        public async Task<SiteDetail> CreateSiteDetailsAsync(SiteDetail siteDetail)
+        {
+            try
+            {
+                SqlParameter[] sqlParameters = new SqlParameter[]
+                {
+                    // SiteDetails table parameters
+                    new SqlParameter("@SiteCode", SqlDbType.VarChar, 50) { Value = string.IsNullOrEmpty(siteDetail.SiteCode) ? (object)DBNull.Value : siteDetail.SiteCode },
+                    new SqlParameter("@SiteName", SqlDbType.VarChar, 50) { Value = string.IsNullOrEmpty(siteDetail.SiteName) ? (object)DBNull.Value : siteDetail.SiteName },
+                    new SqlParameter("@SiteCategory", SqlDbType.VarChar, 50) { Value = string.IsNullOrEmpty(siteDetail.SiteCategory) ? (object)DBNull.Value : siteDetail.SiteCategory },
+                    new SqlParameter("@SponsorID", SqlDbType.Int) { Value = siteDetail.SponsorID == 0 ? (object)DBNull.Value : siteDetail.SponsorID },
+                    new SqlParameter("@RegionID", SqlDbType.Int) { Value = siteDetail.RegionID == 0 ? (object)DBNull.Value : siteDetail.RegionID },
+                    new SqlParameter("@CityID", SqlDbType.Int) { Value = siteDetail.CityID == 0 ? (object)DBNull.Value : siteDetail.CityID },
+                    new SqlParameter("@LocationID", SqlDbType.Int) { Value = siteDetail.LocationID == 0 ? (object)DBNull.Value : siteDetail.LocationID },
+                    new SqlParameter("@ContactID", SqlDbType.Int) { Value = siteDetail.ContactID == 0 ? (object)DBNull.Value : siteDetail.ContactID },
+                    new SqlParameter("@SiteTypeID", SqlDbType.Int) { Value = siteDetail.SiteTypeID == 0 ? (object)DBNull.Value : siteDetail.SiteTypeID },
+                    new SqlParameter("@GPSLong", SqlDbType.VarChar, 30) { Value = string.IsNullOrEmpty(siteDetail.GPSLong) ? (object)DBNull.Value : siteDetail.GPSLong },
+                    new SqlParameter("@GPSLatt", SqlDbType.VarChar, 30) { Value = string.IsNullOrEmpty(siteDetail.GPSLatt) ? (object)DBNull.Value : siteDetail.GPSLatt },
+                    new SqlParameter("@VisitUserID", SqlDbType.Int) { Value = siteDetail.VisitUserID == 0 ? (object)DBNull.Value : siteDetail.VisitUserID },
+                    new SqlParameter("@VisitedDate", SqlDbType.DateTime) { Value = siteDetail.VisitedDate == DateTime.MinValue ? (object)DBNull.Value : siteDetail.VisitedDate },
+                    new SqlParameter("@ApprovedUserID", SqlDbType.Int) { Value = siteDetail.ApprovedUserID == 0 ? (object)DBNull.Value : siteDetail.ApprovedUserID },
+                    new SqlParameter("@ApprovalDate", SqlDbType.DateTime) { Value = siteDetail.ApprovalDate == DateTime.MinValue ? (object)DBNull.Value : siteDetail.ApprovalDate },
+                    new SqlParameter("@VisitStatusID", SqlDbType.Int) { Value = siteDetail.VisitStatusID == 0 ? (object)DBNull.Value : siteDetail.VisitStatusID },
+                    new SqlParameter("@IsActive", SqlDbType.Bit) { Value = siteDetail.IsActive? 1 : 0 },
+                    new SqlParameter("@BranchNo", SqlDbType.VarChar, 50) { Value = string.IsNullOrEmpty(siteDetail.BranchNo) ? (object)DBNull.Value : siteDetail.BranchNo },
+                    new SqlParameter("@BranchTypeId", SqlDbType.Int) { Value = siteDetail.BranchTypeId == 0 ? (object)DBNull.Value : siteDetail.BranchTypeId },
+                    new SqlParameter("@AtmClass", SqlDbType.Char, 1) { Value = string.IsNullOrEmpty(siteDetail.AtmClass) ? (object)DBNull.Value : siteDetail.AtmClass },
+
+                    // GeographicalDetails table parameters
+                    new SqlParameter("@NearestLandmark", SqlDbType.VarChar, 50) { Value = string.IsNullOrEmpty(siteDetail.GeographicalDetails.NearestLandmark) ? (object)DBNull.Value : siteDetail.GeographicalDetails.NearestLandmark },
+                    new SqlParameter("@NumberofKmNearestCity", SqlDbType.VarChar, 50) { Value = string.IsNullOrEmpty(siteDetail.GeographicalDetails.NumberOfKmNearestCity) ? (object)DBNull.Value : siteDetail.GeographicalDetails.NumberOfKmNearestCity },
+                    new SqlParameter("@BranchConstructionType", SqlDbType.VarChar, 50) { Value = string.IsNullOrEmpty(siteDetail.GeographicalDetails.BranchConstructionType) ? (object)DBNull.Value : siteDetail.GeographicalDetails.BranchConstructionType },
+                    new SqlParameter("@BranchIsLocatedAt", SqlDbType.VarChar, 50) { Value = string.IsNullOrEmpty(siteDetail.GeographicalDetails.BranchIsLocatedAt) ? (object)DBNull.Value : siteDetail.GeographicalDetails.BranchIsLocatedAt },
+                    new SqlParameter("@HowToReachThere", SqlDbType.VarChar, 50) { Value = string.IsNullOrEmpty(siteDetail.GeographicalDetails.HowToReachThere) ? (object)DBNull.Value : siteDetail.GeographicalDetails.HowToReachThere },
+                    new SqlParameter("@SiteisonServiceRoad", SqlDbType.Bit) { Value = siteDetail.GeographicalDetails.SiteIsOnServiceRoad? 1 : 0 },
+                    new SqlParameter("@Howtogetthere", SqlDbType.VarChar, 50) { Value = string.IsNullOrEmpty(siteDetail.GeographicalDetails.HowToGetThere) ? (object)DBNull.Value : siteDetail.GeographicalDetails.HowToGetThere },
+
+                    // SiteBranchFacilities table parameters
+                    new SqlParameter("@Parking", SqlDbType.Bit) { Value = siteDetail.BranchFacilities.Parking? 1 : 0 },
+                    new SqlParameter("@Landscape", SqlDbType.Bit) { Value = siteDetail.BranchFacilities.Landscape? 1 : 0 },
+                    new SqlParameter("@Elevator", SqlDbType.Bit) { Value = siteDetail.BranchFacilities.Elevator? 1 : 0 },
+                    new SqlParameter("@VIPSection", SqlDbType.Bit) { Value = siteDetail.BranchFacilities.VIPSection? 1 : 0 },
+                    new SqlParameter("@SafeBox", SqlDbType.Bit) { Value = siteDetail.BranchFacilities.SafeBox? 1 : 0 },
+                    new SqlParameter("@ICAP", SqlDbType.Bit) { Value = siteDetail.BranchFacilities.ICAP? 1 : 0 },
+
+                    // SiteContactInformation table parameters
+                    new SqlParameter("@BranchTelephoneNumber", SqlDbType.VarChar, 20) { Value = string.IsNullOrEmpty(siteDetail.ContactInformation.BranchTelephoneNumber) ? (object)DBNull.Value : siteDetail.ContactInformation.BranchTelephoneNumber },
+                    new SqlParameter("@BranchFaxNumber", SqlDbType.VarChar, 20) { Value = string.IsNullOrEmpty(siteDetail.ContactInformation.BranchFaxNumber) ? (object)DBNull.Value : siteDetail.ContactInformation.BranchFaxNumber },
+                    new SqlParameter("@EmailAddress", SqlDbType.Text) { Value = string.IsNullOrEmpty(siteDetail.ContactInformation.EmailAddress) ? (object)DBNull.Value : siteDetail.ContactInformation.EmailAddress },
+
+                    // SiteDataCenter table parameters
+                    new SqlParameter("@UPSBrand", SqlDbType.VarChar, 50) { Value = string.IsNullOrEmpty(siteDetail.DataCenter.UPSBrand) ? (object)DBNull.Value : siteDetail.DataCenter.UPSBrand },
+                    new SqlParameter("@UPSCapacity", SqlDbType.VarChar, 50) { Value = string.IsNullOrEmpty(siteDetail.DataCenter.UPSCapacity) ? (object)DBNull.Value : siteDetail.DataCenter.UPSCapacity },
+                    new SqlParameter("@PABXBrand", SqlDbType.VarChar, 50) { Value = string.IsNullOrEmpty(siteDetail.DataCenter.PABXBrand) ? (object)DBNull.Value : siteDetail.DataCenter.PABXBrand },
+                    new SqlParameter("@StabilizerBrand", SqlDbType.VarChar, 50) { Value = string.IsNullOrEmpty(siteDetail.DataCenter.StabilizerBrand) ? (object)DBNull.Value : siteDetail.DataCenter.StabilizerBrand },
+                    new SqlParameter("@StabilizerCapacity", SqlDbType.VarChar, 50) { Value = string.IsNullOrEmpty(siteDetail.DataCenter.StabilizerCapacity) ? (object)DBNull.Value : siteDetail.DataCenter.StabilizerCapacity },
+                    new SqlParameter("@SecurityAccessSystemBrand", SqlDbType.VarChar, 50) { Value = string.IsNullOrEmpty(siteDetail.DataCenter.SecurityAccessSystemBrand) ? (object)DBNull.Value : siteDetail.DataCenter.SecurityAccessSystemBrand },
+
+                    // SiteMiscInformation table parameters
+                    new SqlParameter("@TypeofATMLocation", SqlDbType.VarChar, 50) { Value = string.IsNullOrEmpty(siteDetail.MiscSiteInfo.TypeOfATMLocation) ? (object)DBNull.Value : siteDetail.MiscSiteInfo.TypeOfATMLocation },
+                    new SqlParameter("@NoofExternalCameras", SqlDbType.Int) { Value = siteDetail.MiscSiteInfo.NoOfExternalCameras == 0 ? (object)DBNull.Value : siteDetail.MiscSiteInfo.NoOfExternalCameras },
+                    new SqlParameter("@NoofInternalCameras", SqlDbType.Int) { Value = siteDetail.MiscSiteInfo.NoOfInternalCameras == 0 ? (object)DBNull.Value : siteDetail.MiscSiteInfo.NoOfInternalCameras },
+                    new SqlParameter("@TrackingSystem", SqlDbType.VarChar, 50) { Value = string.IsNullOrEmpty(siteDetail.MiscSiteInfo.TrackingSystem) ? (object)DBNull.Value : siteDetail.MiscSiteInfo.TrackingSystem },
+
+                    // BranchMiscInformation table parameters
+                    new SqlParameter("@Noofcleaners", SqlDbType.Int) { Value = siteDetail.MiscBranchInfo.NoOfCleaners == 0 ? (object)DBNull.Value : siteDetail.MiscBranchInfo.NoOfCleaners },
+                    new SqlParameter("@Frequencyofdailymailingservice", SqlDbType.Int) { Value = siteDetail.MiscBranchInfo.FrequencyOfDailyMailingService == 0 ? (object)DBNull.Value : siteDetail.MiscBranchInfo.FrequencyOfDailyMailingService },
+                    new SqlParameter("@ElectricSupply", SqlDbType.VarChar, 50) { Value = string.IsNullOrEmpty(siteDetail.MiscBranchInfo.ElectricSupply) ? (object)DBNull.Value : siteDetail.MiscBranchInfo.ElectricSupply },
+                    new SqlParameter("@WaterSupply", SqlDbType.VarChar, 50) { Value = string.IsNullOrEmpty(siteDetail.MiscBranchInfo.WaterSupply) ? (object)DBNull.Value : siteDetail.MiscBranchInfo.WaterSupply },
+                    new SqlParameter("@BranchOpenDate", SqlDbType.Date) { Value = siteDetail.MiscBranchInfo.BranchOpenDate == DateTime.MinValue ? (object)DBNull.Value : siteDetail.MiscBranchInfo.BranchOpenDate },
+                    new SqlParameter("@TellersCounter", SqlDbType.Int) { Value = siteDetail.MiscBranchInfo.TellersCounter == 0 ? (object)DBNull.Value : siteDetail.MiscBranchInfo.TellersCounter },
+                    new SqlParameter("@NoofSalesmanageroffices", SqlDbType.Int) { Value = siteDetail.MiscBranchInfo.NoOfSalesManagerOffices == 0 ? (object)DBNull.Value : siteDetail.MiscBranchInfo.NoOfSalesManagerOffices },
+                    new SqlParameter("@ExistVIPsection", SqlDbType.Bit) { Value = siteDetail.MiscBranchInfo.ExistVIPSection? 1 : 0 },
+                    new SqlParameter("@ContractStartDate", SqlDbType.Date) { Value = siteDetail.MiscBranchInfo.ContractStartDate == DateTime.MinValue ? (object)DBNull.Value : siteDetail.MiscBranchInfo.ContractStartDate },
+                    new SqlParameter("@NoofRenovationRetouchtime", SqlDbType.Int) { Value = siteDetail.MiscBranchInfo.NoOfRenovationRetouchTime == 0 ? (object)DBNull.Value : siteDetail.MiscBranchInfo.NoOfRenovationRetouchTime },
+                    new SqlParameter("@LeasedOwbuilding", SqlDbType.Bit) { Value = siteDetail.MiscBranchInfo.LeasedOwBuilding? 1 : 0 },
+                    new SqlParameter("@Noofteaboys", SqlDbType.Int) { Value = siteDetail.MiscBranchInfo.NoOfTeaBoys == 0 ? (object)DBNull.Value : siteDetail.MiscBranchInfo.NoOfTeaBoys },
+                    new SqlParameter("@Frequencyofmonthlycleaningservice", SqlDbType.Int) { Value = siteDetail.MiscBranchInfo.FrequencyOfMonthlyCleaningService == 0 ? (object)DBNull.Value : siteDetail.MiscBranchInfo.FrequencyOfMonthlyCleaningService },
+                    new SqlParameter("@DrainSewerage", SqlDbType.VarChar, 50) { Value = string.IsNullOrEmpty(siteDetail.MiscBranchInfo.DrainSewerage) ? (object)DBNull.Value : siteDetail.MiscBranchInfo.DrainSewerage },
+                    new SqlParameter("@CentralAC", SqlDbType.Bit) { Value = siteDetail.MiscBranchInfo.CentralAC? 1 : 0 },
+                    new SqlParameter("@SplitAC", SqlDbType.Bit) { Value = siteDetail.MiscBranchInfo.SplitAC? 1 : 0 },
+                    new SqlParameter("@WindowAC", SqlDbType.Bit) { Value = siteDetail.MiscBranchInfo.WindowAC? 1 : 0 },
+                    new SqlParameter("@Cashcountertype", SqlDbType.Int) { Value = siteDetail.MiscBranchInfo.CashCounterType == 0 ? (object)DBNull.Value : siteDetail.MiscBranchInfo.CashCounterType },
+                    new SqlParameter("@NoofTellerCounters", SqlDbType.Int) { Value = siteDetail.MiscBranchInfo.NoOfTellerCounters == 0 ? (object)DBNull.Value : siteDetail.MiscBranchInfo.NoOfTellerCounters },
+                    new SqlParameter("@Noofaffluentrelationshipmanageroffices", SqlDbType.Int) { Value = siteDetail.MiscBranchInfo.NoOfAffluentRelationshipManagerOffices == 0 ? (object)DBNull.Value : siteDetail.MiscBranchInfo.NoOfAffluentRelationshipManagerOffices },
+                    new SqlParameter("@SeperateVIPsection", SqlDbType.Bit) { Value = siteDetail.MiscBranchInfo.SeperateVIPSection? 1 : 0 },
+                    new SqlParameter("@ContractEndDate", SqlDbType.Date) { Value = siteDetail.MiscBranchInfo.ContractEndDate == DateTime.MinValue ? (object)DBNull.Value : siteDetail.MiscBranchInfo.ContractEndDate },
+                    new SqlParameter("@RenovationRetouchDate", SqlDbType.Date) { Value = siteDetail.MiscBranchInfo.RenovationRetouchDate == DateTime.MinValue ? (object)DBNull.Value : siteDetail.MiscBranchInfo.RenovationRetouchDate },
+                    new SqlParameter("@NoofTCRmachines", SqlDbType.Int) { Value = siteDetail.MiscBranchInfo.NoOfTCRMachines == 0 ? (object)DBNull.Value : siteDetail.MiscBranchInfo.NoOfTCRMachines },
+                    new SqlParameter("@NoOfTotem", SqlDbType.Int) { Value = siteDetail.MiscBranchInfo.TellersCounter == 0 ? (object)DBNull.Value : siteDetail.MiscBranchInfo.TellersCounter },
+                    new SqlParameter("@NewSiteID", SqlDbType.BigInt) { Direction = ParameterDirection.Output }
+                };
+
+                bool isFailure = SqlDBHelper.ExecuteNonQuery(SP_CreateSiteDetails, CommandType.StoredProcedure, sqlParameters);
+
+                siteDetail.SiteID = (sqlParameters[71].Value != DBNull.Value) ? (long)sqlParameters[71].Value : -1;
+
+                // Validate if the SiteID is greater than 0
+                if (siteDetail.SiteID <= 0 && !isFailure)
+                {
+                    return null;
+                }
+                List<SitePictures> SitePicturesData = new List<SitePictures>();
+
+                foreach(var sitePicture in siteDetail.SitePicturesLst)
+                {
+                    sitePicture.SiteID = siteDetail.SiteID;
+                    sitePicture.PicPath = siteDetail.SiteCode + "_" + siteDetail.SiteTypeID + "_" + siteDetail.SiteID + "_" + sitePicture.PicPath;
+
+                    sqlParameters = new SqlParameter[]
+                    {
+                        new SqlParameter("@SiteID", SqlDbType.BigInt) { Value = sitePicture.SiteID == 0 ? (object)DBNull.Value : sitePicture.SiteID },
+                        new SqlParameter("@PicCatID", SqlDbType.Int) { Value = sitePicture.SitePicCategoryData.PicCatID == 0 ? (object)DBNull.Value : sitePicture.SitePicCategoryData.PicCatID },
+                        new SqlParameter("@Description", SqlDbType.VarChar, -1) { Value = string.IsNullOrEmpty(sitePicture.Description) ? (object)DBNull.Value : sitePicture.Description },
+                        new SqlParameter("@PicPath", SqlDbType.VarChar, -1) { Value = string.IsNullOrEmpty(sitePicture.PicPath) ? (object)DBNull.Value : sitePicture.PicPath },
+                        new SqlParameter("@NewSitePicID", SqlDbType.Int) { Direction = ParameterDirection.Output }
+                    };
+
+                    isFailure = SqlDBHelper.ExecuteNonQuery(SP_CreateSitePictures, CommandType.StoredProcedure, sqlParameters);
+                    
+                    sitePicture.SitePicID = (sqlParameters[4].Value != DBNull.Value) ? (int)sqlParameters[4].Value : -1;
+
+                    // Validate if the newId is greater than 0
+                    if (sitePicture.SitePicID <= 0 && isFailure)
+                    {
+                        return null;
+                    }
+                    SitePicturesData.Add(sitePicture);
+                }
+                siteDetail.SitePicturesLst = SitePicturesData;
+            }
+            catch (SqlException sqlEx)
+            {
+                throw new Exception($"Error creating record for {siteDetail.SiteName} - SQL Exception.", sqlEx);
+            }
+            catch (Exception ex)
+            {
+                throw new Exception($"Error creating record for {siteDetail.SiteName}.", ex);
+            }
+            return siteDetail;
         }
 
         public async Task<ProfileUserAPIVM> GetUserRecordAsync(int newUserId)
@@ -1845,11 +1996,11 @@ namespace Spider_QAMS.Repositories.Domain
                             BranchType branchType = new BranchType
                             {
                                 BranchTypeId = Convert.ToInt32(dataRow["BranchTypeId"]),
-                                Description = dataRow["Description"].ToString(),
+                                Description = dataRow["BranchDescription"].ToString(),
                                 siteType = new SiteType
                                 {
                                     SiteTypeID = Convert.ToInt32(dataRow["SiteTypeID"]),
-                                    Description = dataRow["Description"].ToString(),
+                                    Description = dataRow["SiteDescription"].ToString(),
                                     sponsor = new Sponsor
                                     {
                                         SponsorId = Convert.ToInt32(dataRow["SponsorId"]),
@@ -1974,6 +2125,54 @@ namespace Spider_QAMS.Repositories.Domain
                 throw new Exception("Error in Getting All Visit Status List.", ex);
             }
             return atmClasses;
+        }
+        public async Task<List<SitePicCategory>> GetAllPicCategoriesAsync()
+        {
+            List<SitePicCategory> sitePicCategories = new List<SitePicCategory>();
+            try
+            {
+                SqlParameter[] sqlParameters = new SqlParameter[]
+                {
+                    new SqlParameter("@TextCriteria", SqlDbType.Int) { Value = GetTableData.GetAllPicCategories },
+                    new SqlParameter("@RowsAffected", SqlDbType.Int) { Direction = ParameterDirection.Output }
+                };
+                List<DataTable> dataTables = SqlDBHelper.ExecuteParameterizedNonQuery(SP_GetTableAllData, CommandType.StoredProcedure, sqlParameters);
+                if (dataTables.Count > 0)
+                {
+                    DataTable dataTable = dataTables[0];
+                    if (dataTable.Rows.Count > 0)
+                    {
+                        foreach (DataRow dataRow in dataTable.Rows)
+                        {
+                            SitePicCategory sitePicCategory = new SitePicCategory
+                            {
+                                PicCatID = Convert.ToInt32(dataRow["PicCatID"]),
+                                Description = dataRow["Description"].ToString(),
+                            };
+                            sitePicCategories.Add(sitePicCategory);
+                        }
+                    }
+                    else
+                    {
+                        return null;
+                    }
+                }
+                else
+                {
+                    return null;
+                }
+            }
+            catch (SqlException sqlEx)
+            {
+                // Log or handle SQL exceptions
+                throw new Exception("Error executing SQL command.", sqlEx);
+            }
+            catch (Exception ex)
+            {
+                // Log or handle other exceptions
+                throw new Exception("Error in Getting All Visit Status List.", ex);
+            }
+            return sitePicCategories;
         }
     }
 }

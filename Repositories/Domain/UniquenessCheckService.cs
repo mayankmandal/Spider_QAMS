@@ -11,24 +11,30 @@ namespace Spider_QAMS.Repositories.Domain
         private readonly IHttpClientFactory _httpClientFactory;
         private readonly IConfiguration _configuration;
         private readonly IHttpContextAccessor _httpContextAccessor;
-        public string JwtToken { get; private set; }
         public UniquenessCheckService(IHttpClientFactory httpClientFactory, IConfiguration configuration, IHttpContextAccessor httpContextAccessor)
         {
             _httpClientFactory = httpClientFactory;
             _configuration = configuration;
             _httpContextAccessor = httpContextAccessor;
         }
-        public async Task<bool> IsUniqueAsync(string field, string value)
+        public async Task<bool> IsUniqueAsync(string field1, string value1, string? field2 = null, string? value2 = null)
         {
-            JwtToken = JWTCookieHelper.GetJWTCookie(_httpContextAccessor.HttpContext);
+            // Prepare the HTTP client and token
+            var jwtToken = JWTCookieHelper.GetJWTCookie(_httpContextAccessor.HttpContext);
             var client = _httpClientFactory.CreateClient();
 
-            if (!string.IsNullOrEmpty(JwtToken))
+            if (!string.IsNullOrEmpty(jwtToken))
             {
-                client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", JwtToken);
+                client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", jwtToken);
             }
-
-            var requestPayload = new UniquenessCheckRequest { Field = field, Value = value };
+            // Create request payload
+            var requestPayload = new UniquenessCheckRequest 
+            { 
+                Field1 = field1,
+                Value1 = value1,
+                Field2 = field2 == null ? string.Empty : field2,
+                Value2 = value2 == null ? string.Empty : value2
+            };
             var content = new StringContent(JsonSerializer.Serialize(requestPayload), Encoding.UTF8, "application/json");
             var response = await client.PostAsync($"{_configuration["ApiBaseUrl"]}/Navigation/CheckUniqueness", content);
 
@@ -39,7 +45,7 @@ namespace Spider_QAMS.Repositories.Domain
             }
             var responseContent = await response.Content.ReadAsStringAsync();
             var result = JsonSerializer.Deserialize<ApiResponse>(responseContent, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
-            return result == null ? false : result.IsUnique;
+            return result?.IsUnique ?? false;
         }
         private class ApiResponse
         {
@@ -48,7 +54,9 @@ namespace Spider_QAMS.Repositories.Domain
     }
     public class UniquenessCheckRequest
     {
-        public string Field { get; set; }
-        public string Value { get; set; }
+        public string Field1 { get; set; }
+        public string Field2 { get; set; }
+        public string Value1 { get; set; }
+        public string Value2 { get; set; }
     }
 }

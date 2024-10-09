@@ -1,12 +1,13 @@
 ﻿using Spider_QAMS.Models;
 using Spider_QAMS.Models.ViewModels;
+using Spider_QAMS.Repositories.Domain;
 
 namespace Spider_QAMS.Repositories.Skeleton
 {
     public interface INavigationRepository
     {
         Task<object> FetchRecordByTypeAsync(Record record);
-        Task<bool> CheckUniquenessAsync(string field, string value);
+        Task<bool> CheckUniquenessAsync(UniquenessCheckRequest uniqueRequest);
         Task<bool> DeleteEntityAsync(int deleteId, string deleteType);
 
         Task<bool> CreateUserProfileAsync(ProfileUser profileUsersData, int CurrentUserId);
@@ -25,6 +26,8 @@ namespace Spider_QAMS.Repositories.Skeleton
 
         Task<bool> UpdateContactAsync(Contact contact);
         Task<bool> CreateContactAsync(Contact contact);
+
+        Task<SiteDetail> CreateSiteDetailsAsync(SiteDetail siteDetail);
 
         Task<ProfileUserAPIVM> GetUserRecordAsync(int newUserId);
         Task<ProfileSite> GetCurrentUserProfileAsync(int CurrentUserId);
@@ -53,5 +56,6 @@ namespace Spider_QAMS.Repositories.Skeleton
         Task<List<BranchType>> GetAllBranchTypesAsync();
         Task<List<VisitStatusModel>> GetAllVisitStatusesAsync();
         Task<List<string>> GetAllATMClassesAsync();
+        Task<List<SitePicCategory>> GetAllPicCategoriesAsync();
     }
 }

@@ -13,7 +13,7 @@ namespace Spider_QAMS.Models.ViewModels
         [DisplayName("Profile Name")]
         [RegularExpression(@"^[a-zA-Z0-9_\s]*$", ErrorMessage = "Profile Name can only contain alphabets, numbers, whitespaces and underscore.")]
         [StringLength(100, ErrorMessage = "Profile Name must be 100 characters or fewer")]
-        [CheckUniquenessinDB("profilename")]
+        [CheckUniquenessinDB("ProfileName")]
         public string ProfileName { get; set; }
     }
 }

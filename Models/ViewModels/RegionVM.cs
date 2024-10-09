@@ -11,7 +11,7 @@ namespace Spider_QAMS.Models.ViewModels
         [Required(ErrorMessage = "Region Name is required")]
         [DisplayName("Region Name")]
         [StringLength(100, ErrorMessage = "Region Name must be 100 characters or fewer")]
-        [CheckUniquenessinDB("regionname")]
+        [CheckUniquenessinDB("RegionName")]
         [RegularExpression(@"^[a-zA-Z\s]*$", ErrorMessage = "Region Name must contain only alphabets and spaces")]
         public string RegionName { get; set; }
     }

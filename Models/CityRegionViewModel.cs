@@ -45,4 +45,9 @@
         public string SiteTypeDescription { get; set; }
         public List<BranchType> BranchTypes { get; set; } = new List<BranchType>();
     }
+    public class BranchTypeGroup
+    {
+        public int BranchTypeId { get; set; }
+        public string? Description { get; set; }
+    }
 }

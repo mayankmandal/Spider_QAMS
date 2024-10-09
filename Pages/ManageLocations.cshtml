@@ -18,49 +18,9 @@
             </button>
         </div>
     </div>
-
-    <div style="overflow-x:auto; max-height:20rem; width: 100%;" class="mb-4">
-        <!-- Table: List of Existing Locations -->
-        <table class="table table-bordered table-striped text-center">
-            <thead class="table-header" style="background: linear-gradient(to bottom, #59636E, #6A7682); color: white;">
-                <tr>
-                    <th>Location</th>
-                    <th>Street Name</th>
-                    <th>City</th>
-                    <th>Region</th>
-                    <th>Sponsor</th>
-                    <th>Actions</th>
-                </tr>
-            </thead>
-            <tbody>
-                @foreach (var location in Model.LocationVMs)
-                {
-                    <tr>
-                        <td>@location.Location</td>
-                        <td>@location.StreetName</td>
-                        <td>@location.CityName</td>
-                        <td>@location.RegionName</td>
-                        <td>@location.SponsorName</td>
-                        <td style="white-space: nowrap;">
-                            <!-- Edit Button -->
-                            <button type="button" class="btn btn-primary btn-sm" onclick="showEditForm('@location.LocationId', '@location.Location', '@location.StreetName', '@location.CityId', '@location.RegionId', '@location.BranchName','@location.DistrictName','@location.SponsorId')">
-                                <i class="fas fa-edit"></i> Edit
-                            </button>
-                            <!-- Delete Button -->
-                            <button type="button" class="btn btn-danger btn-sm" onclick="showDeleteForm('@location.LocationId', '@location.Location', '@location.StreetName', '@location.CityId', '@location.RegionId', '@location.RegionName','@location.BranchName','@location.DistrictName','@location.CityId', '@location.CityName','@location.SponsorId','@location.SponsorName')">
-                                <i class="fas fa-trash-alt"></i> Delete
-                            </button>
-                        </td>
-                    </tr>
-                }
-                @if (Model.LocationVMs.Count <= 0)
-                {
-                    <tr><td colspan="6" class="text-center">No Locations found.</td></tr>
-                }
-            </tbody>
-        </table>
-    </div>
-
+    
+    <div id="jsGrid"></div>
+    
     <!-- Create New Location Form (Hidden Initially) -->
     <div id="createFormDiv" style="display:none; flex-direction: column; align-items: center; min-height: 20vh;">
         <form method="post" asp-page-handler="Create" id="createLocationForm">
@@ -447,77 +407,10 @@
 
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />
+    <script src="./plugins/jsgrid/jsgrid.min.js"></script>
     <script>
         var regionData = @Html.Raw(Json.Serialize(Model.RegionAssociatedCitiesLst));
-
-        function showCreateForm() {
-            hideAllForms();
-            $("#createFormDiv").css("display", "flex");
-        }
-
-        function showEditForm(locationId, locationName, streetName, cityId, regionId, branchName, districtName, sponsorId) {
-            hideAllForms();
-            $("#editFormDiv").css("display", "flex");
-
-            $("#editLocationId").val(locationId);
-            $("#editLocationName").val(locationName);
-            $("#editStreetName").val(streetName);
-            $("#editBranchName").val(branchName);
-            $("#editDistrictName").val(districtName);
-
-            // Set region dropdown and trigger city load
-            $("#editRegionId").val(regionId);
-
-            $("#editSponsorId").val(sponsorId);
-
-            // Load cities for the selected region and set the city value after cities are loaded
-            loadCities(regionId, cityId, 'edit'); // Pass cityId to select it later
-        }
-
-        function showDeleteForm(locationId, locationName, streetName, cityId, regionId, regionName, branchName, districtName, cityId, cityName, sponsorId, sponsorName) {
-            hideAllForms();
-            $("#deleteFormDiv").css("display", "flex");
-            $("#deleteLocationId").val(locationId);
-            $("#deleteLocationName").val(locationName);
-            $("#deleteStreetName").val(streetName);
-            $("#deleteBranchName").val(branchName);
-            $("#deleteDistrictName").val(districtName);
-
-            // Set region dropdown and trigger city load
-            $('#deleteRegionId').empty().append(new Option(regionName, regionId)).prop('disabled', true); // Set and disable the dropdown
-            $('#deleteCitySelect').empty().append(new Option(cityName, cityId)).prop('disabled', true); // Set and disable the dropdown
-            $('#deleteSponsorId').empty().append(new Option(sponsorName, sponsorId)).prop('disabled', true); // Set and disable the dropdown
-        }
-
-        function hideAllForms() {
-            $("#createFormDiv").css("display", "none");
-            $("#editFormDiv").css("display", "none");
-            $("#deleteFormDiv").css("display", "none");
-        }
-
-        // Function to load cities and optionally select a city
-        function loadCities(regionId, selectedCityId = null, formType = "create") {
-            // Determine which city select element to target based on form type
-            var citySelectId = formType === "edit" ? '#editCitySelect' : '#createCitySelect';
-
-            // Clear the current city options
-            $(citySelectId).empty();
-            $(citySelectId).append('<option value="" disabled selected>--Select City--</option>');
-
-            // Find the selected region's cities from regionData
-            var selectedRegion = regionData.find(r => r.regionId == parseInt(regionId));
-
-            // Check if selectedRegion has cities
-            if (selectedRegion && selectedRegion.cities) {
-                // Add cities to the city dropdown
-                selectedRegion.cities.forEach(function (city) {
-                    $(citySelectId).append(`<option value="${city.cityId}">${city.cityName}</option>`);
-                });
-            }
-            // If there's a city to be selected, set it after cities are loaded
-            if (selectedCityId) {
-                $(citySelectId).val(selectedCityId);
-            }
-        }
+        var locationsData = @Html.Raw(Json.Serialize(Model.LocationVMs));
     </script>
+    <script src="./js/manageLocation.js" asp-append-version="true"></script>
 }

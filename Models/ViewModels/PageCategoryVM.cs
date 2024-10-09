@@ -11,7 +11,7 @@ namespace Spider_QAMS.Models.ViewModels
         [Required]
         [RegularExpression(@"^[a-zA-Z0-9_\s]*$", ErrorMessage = "Category Name can only contain alphabets, numbers, whitespaces and underscore.")]
         [StringLength(100, ErrorMessage = "Category Name cannot exceed 100 characters.")]
-        [CheckUniquenessinDB("categoryname")]
+        [CheckUniquenessinDB("CategoryName")]
         public string CategoryName { get; set; }
         // Navigation property for Pages
         public int PageId { get; set; }

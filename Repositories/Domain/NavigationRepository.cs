@@ -728,6 +728,10 @@ namespace Spider_QAMS.Repositories.Domain
                     new SqlParameter("@StabilizerCapacity", SqlDbType.VarChar, 50) { Value = string.IsNullOrEmpty(siteDetail.DataCenter.StabilizerCapacity) ? (object)DBNull.Value : siteDetail.DataCenter.StabilizerCapacity },
                     new SqlParameter("@SecurityAccessSystemBrand", SqlDbType.VarChar, 50) { Value = string.IsNullOrEmpty(siteDetail.DataCenter.SecurityAccessSystemBrand) ? (object)DBNull.Value : siteDetail.DataCenter.SecurityAccessSystemBrand },
 
+                    // SignBoardType table parameters
+                    new SqlParameter("@Cylinder", SqlDbType.Bit) { Value = siteDetail.SignBoard.Cylinder? 1 : 0 },
+                    new SqlParameter("@StraightOrTotem", SqlDbType.Bit) { Value = siteDetail.SignBoard.StraightOrTotem? 1 : 0 },
+
                     // SiteMiscInformation table parameters
                     new SqlParameter("@TypeofATMLocation", SqlDbType.VarChar, 50) { Value = string.IsNullOrEmpty(siteDetail.MiscSiteInfo.TypeOfATMLocation) ? (object)DBNull.Value : siteDetail.MiscSiteInfo.TypeOfATMLocation },
                     new SqlParameter("@NoofExternalCameras", SqlDbType.Int) { Value = siteDetail.MiscSiteInfo.NoOfExternalCameras == 0 ? (object)DBNull.Value : siteDetail.MiscSiteInfo.NoOfExternalCameras },
@@ -759,7 +763,7 @@ namespace Spider_QAMS.Repositories.Domain
                     new SqlParameter("@ContractEndDate", SqlDbType.Date) { Value = siteDetail.MiscBranchInfo.ContractEndDate == DateTime.MinValue ? (object)DBNull.Value : siteDetail.MiscBranchInfo.ContractEndDate },
                     new SqlParameter("@RenovationRetouchDate", SqlDbType.Date) { Value = siteDetail.MiscBranchInfo.RenovationRetouchDate == DateTime.MinValue ? (object)DBNull.Value : siteDetail.MiscBranchInfo.RenovationRetouchDate },
                     new SqlParameter("@NoofTCRmachines", SqlDbType.Int) { Value = siteDetail.MiscBranchInfo.NoOfTCRMachines == 0 ? (object)DBNull.Value : siteDetail.MiscBranchInfo.NoOfTCRMachines },
-                    new SqlParameter("@NoOfTotem", SqlDbType.Int) { Value = siteDetail.MiscBranchInfo.TellersCounter == 0 ? (object)DBNull.Value : siteDetail.MiscBranchInfo.TellersCounter },
+                    new SqlParameter("@NoOfTotem", SqlDbType.Int) { Value = siteDetail.MiscBranchInfo.NoOfTotem == 0 ? (object)DBNull.Value : siteDetail.MiscBranchInfo.NoOfTotem },
                     new SqlParameter("@NewSiteID", SqlDbType.BigInt) { Direction = ParameterDirection.Output }
                 };
 

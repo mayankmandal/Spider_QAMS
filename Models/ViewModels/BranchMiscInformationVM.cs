@@ -7,7 +7,7 @@ namespace Spider_QAMS.Models.ViewModels
         [DisplayName("Number of Cleaners")]
         public int? NoOfCleaners { get; set; }
 
-        [DisplayName("Daily Mailing Service Frequency")]
+        [DisplayName("Frequency of Daily Mailing Service")]
         public int? FrequencyOfDailyMailingService { get; set; }
 
         [DisplayName("Electric Supply")]
@@ -30,16 +30,16 @@ namespace Spider_QAMS.Models.ViewModels
         [DisplayName("Contract Start Date")]
         public DateTime? ContractStartDate { get; set; }
 
-        [DisplayName("Renovation Retouch Time")]
+        [DisplayName("Number of Renovation Retouch Time")]
         public int? NoOfRenovationRetouchTime { get; set; }
 
-        [DisplayName("Leased or Owned Building")]
+        [DisplayName("Leased/Owned Building")]
         public bool LeasedOwBuilding { get; set; } = false;
 
         [DisplayName("Number of Tea Boys")]
         public int? NoOfTeaBoys { get; set; }
 
-        [DisplayName("Monthly Cleaning Service Frequency")]
+        [DisplayName("Frequency of Monthly Cleaning Service")]
         public int? FrequencyOfMonthlyCleaningService { get; set; }
 
         [DisplayName("Drain/Sewerage")]

@@ -5,6 +5,10 @@
     TempData["NavigationalPageName"] = "Site Details";
 }
 
+<head>
+    <link rel="stylesheet" href="~/plugins/leaflet/leaflet.css" asp-append-version="true" />
+</head>
+
 <div style="display:flex; flex-direction:column; justify-content:center; align-items:center; min-height:20vh;">
     <form method="post" enctype="multipart/form-data" id="createSiteForm">
         <div class="form-control border-2 mb-2" style="display:flex; justify-content:space-around; height:auto; width:75rem;flex-direction:column;">
@@ -105,9 +109,32 @@
                             <!-- Third Column -->
                             <div style="flex: 1; padding: 10px;">
                                 <!-- Map View -->
-                                <div id="mapContainer" style="width:100%; height: 150px; border: 1px solid #ccc; margin-bottom: 15px;">
+                                <div id="mapContainer" style="position: relative; width: 100%; height: 150px; border: 1px solid #ccc; margin-bottom: 15px;">
+                                    <!-- Map Button in the Bottom Left Corner -->
+                                    <button id="enlargeMapBtn" style="position: absolute; bottom: 10px; left: 10px; background-color: rgba(255, 255, 255, 0.8); border: none; padding: 10px; border-radius: 50%; cursor: pointer;" title="Enlarge Map">
+                                        <i class="fas fa-expand-arrows-alt" style="font-size: 18px;"></i>
+                                    </button>
                                     <!-- Placeholder for the map -->
-                                    <p style="text-align: center; line-height:150px">Map will be here</p>
+                                    <p style="text-align: center; line-height: 150px;">Map will be here</p>
+                                </div>
+
+                                <!-- Full Screen Map Model-->
+                                <div class="modal fade" id="mapModel" tabindex="-1" aria-labelledby="mapModalLabel" aria-hidden="true">
+                                    <div class="modal-dialog modal-lg modal-dialog-centered">
+                                        <div class="modal-content">
+                                            <div class="m-2">
+                                                <div class="modal-header">
+                                                    <h5 class="modal-title" id="mapModalLabel">Full-Screen Map View</h5>
+                                                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close" id="cancelButton"></button>
+                                                </div>
+                                            </div>
+                                            <div class="m-2">
+                                                <div class="modal-body" id="fullMapContainer" style="width: 100%; height: 500px;">
+                                                <!-- Full-size map will render here -->
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
                                 </div>
 
                                 <div class="mb-3">
@@ -232,6 +259,8 @@
                                         <input type="text" asp-for="SiteDetailVM.SiteContactInformation.BranchFaxNumber" class="form-control" placeholder="Branch Fax Number" />
                                         <span asp-validation-for="SiteDetailVM.SiteContactInformation.BranchFaxNumber" class="text-danger fw-bold"></span>
                                     </div>
+                                </div>
+                                <div class="col-md-6">
                                     <div class="mb-3">
                                         <label asp-for="SiteDetailVM.SiteContactInformation.EmailAddress" class="form-label"></label>
                                         <input type="email" asp-for="SiteDetailVM.SiteContactInformation.EmailAddress" class="form-control" placeholder="Email Address" />
@@ -260,6 +289,10 @@
                                         <input type="text" asp-for="SiteDetailVM.GeographicalDetails.BranchConstructionType" class="form-control" placeholder="Branch Construction Type" />
                                         <span asp-validation-for="SiteDetailVM.GeographicalDetails.BranchConstructionType" class="text-danger fw-bold"></span>
                                     </div>
+                                    <div class="mb-3 form-check">
+                                        <label asp-for="SiteDetailVM.GeographicalDetails.SiteIsOnServiceRoad" class="form-check-label"></label>
+                                        <input type="checkbox" asp-for="SiteDetailVM.GeographicalDetails.SiteIsOnServiceRoad" class="mx-2 form-check-input" style="position:relative;" />
+                                    </div>
                                 </div>
                                 <div class="col-md-6">
                                     <div class="mb-3">
@@ -272,9 +305,10 @@
                                         <textarea asp-for="SiteDetailVM.GeographicalDetails.HowToReachThere" class="form-control" placeholder="How To Reach There"></textarea>
                                         <span asp-validation-for="SiteDetailVM.GeographicalDetails.HowToReachThere" class="text-danger fw-bold"></span>
                                     </div>
-                                    <div class="mb-3 form-check">
-                                        <label asp-for="SiteDetailVM.GeographicalDetails.SiteIsOnServiceRoad" class="form-check-label"></label>
-                                        <input type="checkbox" asp-for="SiteDetailVM.GeographicalDetails.SiteIsOnServiceRoad" class="mx-1 form-check-input" style="position:relative;" />
+                                    <div class="mb-3">
+                                        <label asp-for="SiteDetailVM.GeographicalDetails.HowToGetThere" class="form-label"></label>
+                                        <textarea asp-for="SiteDetailVM.GeographicalDetails.HowToGetThere" class="form-control" placeholder="How To Get There"></textarea>
+                                        <span asp-validation-for="SiteDetailVM.GeographicalDetails.HowToGetThere" class="text-danger fw-bold"></span>
                                     </div>
                                 </div>
                             </div>
@@ -286,29 +320,29 @@
                                 <div class="col-md-6">
                                     <div class="mb-3 form-check">
                                         <label asp-for="SiteDetailVM.SiteBranchFacilities.Parking" class="form-check-label">Parking Available</label>
-                                        <input type="checkbox" asp-for="SiteDetailVM.SiteBranchFacilities.Parking" class="mx-1 form-check-input" style="position:relative;" />
+                                        <input type="checkbox" asp-for="SiteDetailVM.SiteBranchFacilities.Parking" class="mx-2 form-check-input" style="position:relative;" />
                                     </div>
                                     <div class="mb-3 form-check">
                                         <label asp-for="SiteDetailVM.SiteBranchFacilities.Landscape" class="form-check-label">Landscape Available</label>
-                                        <input type="checkbox" asp-for="SiteDetailVM.SiteBranchFacilities.Landscape" class="mx-1 form-check-input" style="position:relative;" />
+                                        <input type="checkbox" asp-for="SiteDetailVM.SiteBranchFacilities.Landscape" class="mx-2 form-check-input" style="position:relative;" />
                                     </div>
                                     <div class="mb-3 form-check">
                                         <label asp-for="SiteDetailVM.SiteBranchFacilities.Elevator" class="form-check-label">Elevator Available</label>
-                                        <input type="checkbox" asp-for="SiteDetailVM.SiteBranchFacilities.Elevator" class="mx-1 form-check-input" style="position:relative;" />
+                                        <input type="checkbox" asp-for="SiteDetailVM.SiteBranchFacilities.Elevator" class="mx-2 form-check-input" style="position:relative;" />
                                     </div>
                                     <div class="mb-3 form-check">
                                         <label asp-for="SiteDetailVM.SiteBranchFacilities.VIPSection" class="form-check-label">VIP Section Available</label>
-                                        <input type="checkbox" asp-for="SiteDetailVM.SiteBranchFacilities.VIPSection" class="mx-1 form-check-input" style="position:relative;" />
+                                        <input type="checkbox" asp-for="SiteDetailVM.SiteBranchFacilities.VIPSection" class="mx-2 form-check-input" style="position:relative;" />
                                     </div>
                                 </div>
                                 <div class="col-md-6">
                                     <div class="mb-3 form-check">
                                         <label asp-for="SiteDetailVM.SiteBranchFacilities.SafeBox" class="form-check-label">Safe Box Available</label>
-                                        <input type="checkbox" asp-for="SiteDetailVM.SiteBranchFacilities.SafeBox" class="mx-1 form-check-input" style="position:relative;" />
+                                        <input type="checkbox" asp-for="SiteDetailVM.SiteBranchFacilities.SafeBox" class="mx-2 form-check-input" style="position:relative;" />
                                     </div>
                                     <div class="mb-3 form-check">
                                         <label asp-for="SiteDetailVM.SiteBranchFacilities.ICAP" class="form-check-label">ICAP Available</label>
-                                        <input type="checkbox" asp-for="SiteDetailVM.SiteBranchFacilities.ICAP" class="mx-1 form-check-input" style="position:relative;" />
+                                        <input type="checkbox" asp-for="SiteDetailVM.SiteBranchFacilities.ICAP" class="mx-2 form-check-input" style="position:relative;" />
                                     </div>
                                 </div>
                             </div>
@@ -333,13 +367,13 @@
                                         <input type="text" asp-for="SiteDetailVM.SiteDataCenter.PABXBrand" class="form-control" placeholder="PABX Brand" />
                                         <span asp-validation-for="SiteDetailVM.SiteDataCenter.PABXBrand" class="text-danger fw-bold"></span>
                                     </div>
+                                </div>
+                                <div class="col-md-6">
                                     <div class="mb-3">
                                         <label asp-for="SiteDetailVM.SiteDataCenter.StabilizerBrand" class="form-label"></label>
                                         <input type="text" asp-for="SiteDetailVM.SiteDataCenter.StabilizerBrand" class="form-control" placeholder="Stabilizer Brand" />
                                         <span asp-validation-for="SiteDetailVM.SiteDataCenter.StabilizerBrand" class="text-danger fw-bold"></span>
                                     </div>
-                                </div>
-                                <div class="col-md-6">
                                     <div class="mb-3">
                                         <label asp-for="SiteDetailVM.SiteDataCenter.StabilizerCapacity" class="form-label"></label>
                                         <input type="text" asp-for="SiteDetailVM.SiteDataCenter.StabilizerCapacity" class="form-control" placeholder="Stabilizer Capacity" />
@@ -358,11 +392,7 @@
                         <div class="tab-pane fade" id="signBoard" role="tabpanel" aria-labelledby="custom-tabs-one-settings-tab">
                             <div class="row">
                                 <div class="col-md-6">
-                                    <div class="mb-3">
-                                        <label asp-for="SiteDetailVM.SignBoardType.TypeOfSignBoard" class="form-label"></label>
-                                        <input type="text" asp-for="SiteDetailVM.SignBoardType.TypeOfSignBoard" class="form-control" placeholder="Type of Sign Board" />
-                                        <span asp-validation-for="SiteDetailVM.SignBoardType.TypeOfSignBoard" class="text-danger fw-bold"></span>
-                                    </div>
+                                    <h5 class="mx-2 mb-3">Type Of Sign Board</h5>
                                     <div class="mb-3 form-check">
                                         <label asp-for="SiteDetailVM.SignBoardType.Cylinder" class="form-check-label">Cylinder</label>
                                         <input type="checkbox" asp-for="SiteDetailVM.SignBoardType.Cylinder" class="mx-1 form-check-input" style="position:relative;" />
@@ -377,7 +407,7 @@
 
                         <!-- Miscellaneous Tab -->
                         <div class="tab-pane fade" id="miscellaneous" role="tabpanel" aria-labelledby="custom-tabs-one-settings-tab">
-                            <h4 class="mb-2">Site Miscellaneous Information</h4>
+                            <h5 class="mb-3 text-center text-decoration-underline">Site Miscellaneous Information</h5>
                             <div class="row">
                                 <!-- First Column -->
                                 <div class="col-md-6">
@@ -409,7 +439,7 @@
                             </div>
 
                             <hr />
-                            <h4 class="mb-2">Branch Miscellaneous Information</h4>
+                            <h5 class="mb-3 text-center text-decoration-underline">Branch Miscellaneous Information</h5>
                             <div class="row">
                                 <!-- First Column -->
                                 <div class="col-md-4">
@@ -443,6 +473,16 @@
                                         <input type="number" asp-for="SiteDetailVM.BranchMiscInformation.NoOfTellerCounters" class="form-control" placeholder="Number of Teller Counters" />
                                         <span asp-validation-for="SiteDetailVM.BranchMiscInformation.NoOfTellerCounters" class="text-danger fw-bold"></span>
                                     </div>
+                                    <div class="mb-3">
+                                        <label asp-for="SiteDetailVM.BranchMiscInformation.NoOfTCRMachines" class="form-label"></label>
+                                        <input type="number" asp-for="SiteDetailVM.BranchMiscInformation.NoOfTCRMachines" class="form-control" placeholder="Number of TCR Machines" />
+                                        <span asp-validation-for="SiteDetailVM.BranchMiscInformation.NoOfTCRMachines" class="text-danger fw-bold"></span>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label asp-for="SiteDetailVM.BranchMiscInformation.NoOfTotem" class="form-label"></label>
+                                        <input type="number" asp-for="SiteDetailVM.BranchMiscInformation.NoOfTotem" class="form-control" placeholder="Number of Totem" />
+                                        <span asp-validation-for="SiteDetailVM.BranchMiscInformation.NoOfTotem" class="text-danger fw-bold"></span>
+                                    </div>
                                 </div>
 
                                 <!-- Second Column -->
@@ -458,13 +498,19 @@
                                         <span asp-validation-for="SiteDetailVM.BranchMiscInformation.ContractStartDate" class="text-danger fw-bold"></span>
                                     </div>
                                     <div class="mb-3">
-                                        <label asp-for="SiteDetailVM.BranchMiscInformation.NoOfRenovationRetouchTime" class="form-label"></label>
-                                        <input type="number" asp-for="SiteDetailVM.BranchMiscInformation.NoOfRenovationRetouchTime" class="form-control" placeholder="Renovation Retouch Time" />
-                                        <span asp-validation-for="SiteDetailVM.BranchMiscInformation.NoOfRenovationRetouchTime" class="text-danger fw-bold"></span>
+                                        <label asp-for="SiteDetailVM.BranchMiscInformation.ContractEndDate" class="form-label"></label>
+                                        <input type="date" asp-for="SiteDetailVM.BranchMiscInformation.ContractEndDate" class="form-control" />
+                                        <span asp-validation-for="SiteDetailVM.BranchMiscInformation.ContractEndDate" class="text-danger fw-bold"></span>
                                     </div>
                                     <div class="mb-3">
-                                        <label asp-for="SiteDetailVM.BranchMiscInformation.LeasedOwBuilding" class="form-check-label"></label>
-                                        <input type="checkbox" asp-for="SiteDetailVM.BranchMiscInformation.LeasedOwBuilding" class="mx-1 form-check-input" style="position:relative;" />
+                                        <label asp-for="SiteDetailVM.BranchMiscInformation.RenovationRetouchDate" class="form-label"></label>
+                                        <input type="date" asp-for="SiteDetailVM.BranchMiscInformation.RenovationRetouchDate" class="form-control" />
+                                        <span asp-validation-for="SiteDetailVM.BranchMiscInformation.RenovationRetouchDate" class="text-danger fw-bold"></span>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label asp-for="SiteDetailVM.BranchMiscInformation.NoOfRenovationRetouchTime" class="form-label"></label>
+                                        <input type="number" asp-for="SiteDetailVM.BranchMiscInformation.NoOfRenovationRetouchTime" class="form-control" placeholder="Number of Renovation Retouch Time" />
+                                        <span asp-validation-for="SiteDetailVM.BranchMiscInformation.NoOfRenovationRetouchTime" class="text-danger fw-bold"></span>
                                     </div>
                                     <div class="mb-3">
                                         <label asp-for="SiteDetailVM.BranchMiscInformation.NoOfTeaBoys" class="form-label"></label>
@@ -476,10 +522,6 @@
                                         <input type="number" asp-for="SiteDetailVM.BranchMiscInformation.FrequencyOfMonthlyCleaningService" class="form-control" placeholder="Monthly Cleaning Service Frequency" />
                                         <span asp-validation-for="SiteDetailVM.BranchMiscInformation.FrequencyOfMonthlyCleaningService" class="text-danger fw-bold"></span>
                                     </div>
-                                    <div class="mb-3">
-                                        <label asp-for="SiteDetailVM.BranchMiscInformation.ExistVIPSection" class="form-check-label"></label>
-                                        <input type="checkbox" asp-for="SiteDetailVM.BranchMiscInformation.ExistVIPSection" class="mx-1 form-check-input" style="position:relative;" />
-                                    </div>
                                 </div>
 
                                 <!-- Third Column -->
@@ -488,18 +530,6 @@
                                         <label asp-for="SiteDetailVM.BranchMiscInformation.DrainSewerage" class="form-label"></label>
                                         <input type="text" asp-for="SiteDetailVM.BranchMiscInformation.DrainSewerage" class="form-control" placeholder="Drain/Sewerage" />
                                         <span asp-validation-for="SiteDetailVM.BranchMiscInformation.DrainSewerage" class="text-danger fw-bold"></span>
-                                    </div>
-                                    <div class="mb-3">
-                                        <label asp-for="SiteDetailVM.BranchMiscInformation.CentralAC" class="form-check-label"></label>
-                                        <input type="checkbox" asp-for="SiteDetailVM.BranchMiscInformation.CentralAC" class="mx-1 form-check-input" style="position:relative;" />
-                                    </div>
-                                    <div class="mb-3">
-                                        <label asp-for="SiteDetailVM.BranchMiscInformation.SplitAC" class="form-check-label"></label>
-                                        <input type="checkbox" asp-for="SiteDetailVM.BranchMiscInformation.SplitAC" class="mx-1 form-check-input" style="position:relative;" />
-                                    </div>
-                                    <div class="mb-3">
-                                        <label asp-for="SiteDetailVM.BranchMiscInformation.WindowAC" class="form-check-label"></label>
-                                        <input type="checkbox" asp-for="SiteDetailVM.BranchMiscInformation.WindowAC" class="mx-1 form-check-input" style="position:relative;" />
                                     </div>
                                     <div class="mb-3">
                                         <label asp-for="SiteDetailVM.BranchMiscInformation.CashCounterType" class="form-label"></label>
@@ -516,9 +546,29 @@
                                         <input type="number" asp-for="SiteDetailVM.BranchMiscInformation.NoOfAffluentRelationshipManagerOffices" class="form-control" placeholder="Number of Affluent Relationship Manager Offices" />
                                         <span asp-validation-for="SiteDetailVM.BranchMiscInformation.NoOfAffluentRelationshipManagerOffices" class="text-danger fw-bold"></span>
                                     </div>
-                                    <div class="mb-3">
+                                    <div class="mb-3 form-check">
+                                        <label asp-for="SiteDetailVM.BranchMiscInformation.LeasedOwBuilding" class="form-check-label"></label>
+                                        <input type="checkbox" asp-for="SiteDetailVM.BranchMiscInformation.LeasedOwBuilding" class="mx-2 form-check-input" style="position:relative;" />
+                                    </div>
+                                    <div class="mb-3 form-check">
+                                        <label asp-for="SiteDetailVM.BranchMiscInformation.CentralAC" class="form-check-label"></label>
+                                        <input type="checkbox" asp-for="SiteDetailVM.BranchMiscInformation.CentralAC" class="mx-2 form-check-input" style="position:relative;" />
+                                    </div>
+                                    <div class="mb-3 form-check">
+                                        <label asp-for="SiteDetailVM.BranchMiscInformation.SplitAC" class="form-check-label"></label>
+                                        <input type="checkbox" asp-for="SiteDetailVM.BranchMiscInformation.SplitAC" class="mx-2 form-check-input" style="position:relative;" />
+                                    </div>
+                                    <div class="mb-3 form-check">
+                                        <label asp-for="SiteDetailVM.BranchMiscInformation.WindowAC" class="form-check-label"></label>
+                                        <input type="checkbox" asp-for="SiteDetailVM.BranchMiscInformation.WindowAC" class="mx-2 form-check-input" style="position:relative;" />
+                                    </div>
+                                    <div class="mb-3 form-check">
+                                        <label asp-for="SiteDetailVM.BranchMiscInformation.ExistVIPSection" class="form-check-label"></label>
+                                        <input type="checkbox" asp-for="SiteDetailVM.BranchMiscInformation.ExistVIPSection" class="mx-2 form-check-input" style="position:relative;" />
+                                    </div>
+                                    <div class="mb-3 form-check">
                                         <label asp-for="SiteDetailVM.BranchMiscInformation.SeparateVIPSection" class="form-check-label"></label>
-                                        <input type="checkbox" asp-for="SiteDetailVM.BranchMiscInformation.SeparateVIPSection" class="mx-1 form-check-input" style="position:relative;" />
+                                        <input type="checkbox" asp-for="SiteDetailVM.BranchMiscInformation.SeparateVIPSection" class="mx-2 form-check-input" style="position:relative;" />
                                         <span asp-validation-for="SiteDetailVM.BranchMiscInformation.SeparateVIPSection" class="text-danger fw-bold"></span>
                                     </div>
                                 </div>

@@ -176,7 +176,6 @@ namespace Spider_QAMS.Pages
                     },
                     SignBoard = new SignBoardType
                     {
-                        TypeOfSignBoard = SiteDetailVM.SignBoardType?.TypeOfSignBoard ?? string.Empty,
                         Cylinder = SiteDetailVM.SignBoardType?.Cylinder ?? false,
                         StraightOrTotem = SiteDetailVM.SignBoardType?.StraightOrTotem ?? false,
                     },

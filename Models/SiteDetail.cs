@@ -31,7 +31,7 @@
         public SiteBranchFacilities BranchFacilities { get; set; }
         public SiteDataCenter DataCenter { get; set; }
         public SignBoardType SignBoard { get; set; }
-        public BranchMiscInformation MiscBranchInfo { get; set; }
         public SiteMiscInformation MiscSiteInfo { get; set; }
+        public BranchMiscInformation MiscBranchInfo { get; set; }
     }
 }

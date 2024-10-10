@@ -1,91 +1,73 @@
-﻿// Function to create a Leaflet map with a marker and popup
-function createLeafletMap(terminalData) {
-    terminalMap = L.map('mapContainer').setView([terminalData.latitude, terminalData.longitude], 18);
-    terminalMap.zoomControl.setPosition('bottomright');
+﻿// Initialize terminalMap globally if it's not already defined
+let terminalMap; // Declare terminalMap
+let terminalMarkerGroup; // Declare terminalMarkerGroup
+
+// Modify your createLeafletMap function to accept a dynamic map container
+function createLeafletMap(terminalData, containerId = 'mapContainer') {
+    const map = L.map(containerId).setView([terminalData.latitude, terminalData.longitude], 10);
+    map.zoomControl.setPosition('bottomright');
+
     // Create a layer group for markers
-    terminalMarkerGroup = L.layerGroup().addTo(terminalMap);
+    terminalMarkerGroup = L.layerGroup().addTo(map);
 
     // Add a marker to the map
-    var singleMarker = L.marker([terminalData.latitude, terminalData.longitude]);
-
-    // Customize tooltip content with HTML
-    var tooltipContent = `
-    <div class="map-tooltip-content">
-        <div class="map-bank-name"><i class="fas fa-university" style="margin-right: 5px;"></i>${terminalData.bankNameEn}</div>
-        <div class="map-address-info">
-            <div><i class="fas fa-city" style="margin-right: 5px;"></i>${terminalData.cityAr}</div>
-            <div>&nbsp;|&nbsp;</div>
-            <div><i class="fas fa-road" style="margin-right: 5px;"></i>${terminalData.streetAr}</div>
-            <div>&nbsp;|&nbsp;</div>
-            <div><i class="fas fa-building" style="margin-right: 5px;"></i>${terminalData.districtAr}</div>
-        </div>
-    </div>`;
-
-    // Set an offset to position the tooltip correctly
-    var tooltipOffset = L.point(0, -28); // Adjust the offset as needed
+    const marker = L.marker([terminalData.latitude, terminalData.longitude]);
 
     // Create a red transparent circle around the marker
-    var circle = L.circle([terminalData.latitude, terminalData.longitude], {
+    const circle = L.circle([terminalData.latitude, terminalData.longitude], {
         radius: 10,
         color: '#e83815',
         fillOpacity: 0.4,
-    });
+    }).addTo(terminalMarkerGroup);
 
-    // Add the circle to the layer group
-    circle.addTo(terminalMarkerGroup);
+    // Customize tooltip content with HTML
+    const tooltipContent = `<div class="map-tooltip-content"></div>`;
+    const tooltipOffset = L.point(0, -28); // Adjust the offset as needed
 
-    singleMarker.bindTooltip(tooltipContent, { direction: 'top', permanent: true, opacity: 0.7, offset: tooltipOffset }).openTooltip();
+    marker.bindTooltip(tooltipContent, { direction: 'top', permanent: true, opacity: 0.7, offset: tooltipOffset }).openTooltip();
+    marker.addTo(terminalMarkerGroup);
 
-    // Add the marker to the layer group
-    singleMarker.addTo(terminalMarkerGroup);
-
-    // Google Map Streets Layer
-    var googleStreets = L.tileLayer('https://{s}.google.com/vt?lyrs=m&x={x}&y={y}&z={z}', {
-        maxZoom: 22,
-        subdomains: ['mt0', 'mt1', 'mt2', 'mt3']
-    });
-
-    // Google Map Hybrid Layer
-    var googleHybrid = L.tileLayer('https://{s}.google.com/vt?lyrs=s,h&x={x}&y={y}&z={z}', {
-        maxZoom: 22,
-        subdomains: ['mt0', 'mt1', 'mt2', 'mt3']
-    });
-
-    // Google Map Satellite Layer
-    var googleSatellite = L.tileLayer('https://{s}.google.com/vt?lyrs=s&x={x}&y={y}&z={z}', {
-        maxZoom: 22,
-        subdomains: ['mt0', 'mt1', 'mt2', 'mt3']
-    });
-
-    // Google Map Terrain Layer
-    var googleTerrain = L.tileLayer('https://{s}.google.com/vt?lyrs=p&x={x}&y={y}&z={z}', {
-        maxZoom: 22,
-        subdomains: ['mt0', 'mt1', 'mt2', 'mt3']
-    });
-
-    //Open Street Map Layer
-    var openStreetMap = L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        maxZoom: 22,
-    });
-
-    // Layer Control
-    var baseLayers = {
-        "Google Street Map": googleStreets,
-        "Google Satellite Map": googleSatellite,
-        "Google Terrain Map": googleTerrain,
-        "Google Hybrid Map": googleHybrid,
-        "Open Street Map": openStreetMap,
-    };
-
-    var overLaysMarker = {
-        "Marker": singleMarker
+    // Google Map Layers
+    const googleLayers = {
+        "Google Street Map": L.tileLayer('https://{s}.google.com/vt?lyrs=m&x={x}&y={y}&z={z}', { maxZoom: 22, subdomains: ['mt0', 'mt1', 'mt2', 'mt3'] }),
+        "Google Satellite Map": L.tileLayer('https://{s}.google.com/vt?lyrs=s&x={x}&y={y}&z={z}', { maxZoom: 22, subdomains: ['mt0', 'mt1', 'mt2', 'mt3'] }),
+        "Google Terrain Map": L.tileLayer('https://{s}.google.com/vt?lyrs=p&x={x}&y={y}&z={z}', { maxZoom: 22, subdomains: ['mt0', 'mt1', 'mt2', 'mt3'] }),
+        "Open Street Map": L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 22 }),
     };
 
     // Set Google Street Map as the default layer
-    googleStreets.addTo(terminalMap);
+    googleLayers["Google Street Map"].addTo(map);
 
     // Add layer control
-    L.control.layers(baseLayers, overLaysMarker).addTo(terminalMap);
+    L.control.layers(googleLayers).addTo(map);
+
+    // Add a FontAwesome button on the map
+    const mapButton = L.control({ position: 'bottomleft' });
+    mapButton.onAdd = function () {
+        const div = L.DomUtil.create('div', 'leaflet-bar leaflet-control leaflet-control-custom');
+        div.innerHTML = '<i id="enlargeMapButton" class="fas fa-expand-arrows-alt px-1"></i>';
+        div.style.backgroundColor = 'white';
+        div.style.padding = '5px';
+        return div;
+    };
+    mapButton.addTo(map);
+
+    // Event listener for clicking to enlarge the map
+    $('#enlargeMapButton').on('click', function (event) {
+        event.preventDefault();
+        $('#mapModel').modal('show');
+
+        // Re-render the map in the modal once the modal is shown
+        $('#mapModel').on('shown.bs.modal', function () {
+            const longitude = $('input[id="SiteDetailVM_GPSLong"]').val();
+            const latitude = $('input[id="SiteDetailVM_GPSLatt"]').val();
+            if (longitude && latitude) {
+                renderLargeMapInModal(longitude, latitude);
+            }
+        });
+    });
+
+    return map;
 }
 
 // Function to remove all previous markers
@@ -98,46 +80,64 @@ function clearMarkers() {
     // Remove the map instance
     if (terminalMap) {
         terminalMap.remove();
+        terminalMap = null; // Reset terminalMap to null
     }
-}
-
-//Function to retrieves and displays terminal data through an AJAX request.
-function showTerminalData(terminalId) {
-    $.ajax({
-        url: '/api/SiteSelection/GetTerminalDetails/' + terminalId,
-        headers: {
-            'Authorization': 'Bearer ' + tokenC
-        },
-        type: 'GET',
-        success: function (result) {
-            renderTerminalDetails(result);
-        },
-        error: function (message) {
-            console.log(message);
-        }
-    });
 }
 
 //Function rendering the details of a terminal in a modal.
-function renderTerminalDetails(terminalResult) {
-    // Check if the map container already has a map instance
-    var existingMap = L.DomUtil.get('mapContainer');
+function renderTerminalDetails(longitude, latitude) {
+    clearMarkers(); // Clear previous markers
 
-    // If a map already exists, remove it before initializing a new one
-    if (existingMap) {
-        existingMap._leaflet_id = null;
-    }
+    const terminalResult = { longitude, latitude };
 
     // Initialize the map
-    createLeafletMap(terminalResult);
+    terminalMap = createLeafletMap(terminalResult); // Assign the returned map to terminalMap
 
-    // Listen for the Bootstrap modal shown event and call invalidateSize when the modal is fully shown
-    $('#terminalDetailsModal').on('shown.bs.modal', function () {
-        terminalMap.invalidateSize();
+    // Listen for the Bootstrap modal shown event
+    $('#mapModel').on('shown.bs.modal', function () {
+        terminalMap.invalidateSize(); // This will ensure the map is rendered correctly in the modal
+    });
+}
+
+// Function to initialize the full-size map in the modal
+function renderLargeMapInModal(longitude, latitude) {
+
+    const terminalResult = { longitude, latitude };
+
+    // Initialize the full-screen map
+    terminalMap = createLeafletMap(terminalResult, 'fullMapContainer');
+
+    // Ensure the map is redrawn when the modal is shown
+    $('#mapModel').on('shown.bs.modal', function () {
+        terminalMap.invalidateSize(); // This will ensure the map is rendered correctly in the modal
     });
 }
 
 $(document).ready(function () {
+    // Select the longitude and latitude input fields
+    const gpsLongInput = $('input[id="SiteDetailVM_GPSLong"]');
+    const gpsLattInput = $('input[id="SiteDetailVM_GPSLatt"]');
+
+    // Function to check if both fields have values and trigger the map rendering
+    function checkAndRenderMap() {
+        const longitude = gpsLongInput.val();
+        const latitude = gpsLattInput.val();
+
+        // Check if both the longitude and latitude are provided
+        if (longitude && latitude) {
+            renderTerminalDetails(longitude, latitude);
+        }
+    }
+
+    // Add event listeners to both inputs to listen for changes
+    gpsLongInput.on('input', checkAndRenderMap);
+    gpsLattInput.on('input', checkAndRenderMap);
+
+    // Assuming your cancel button has an id of "cancelButton"
+    $('#cancelButton').on('click', function () {
+        $('#mapModel').modal('hide'); // Hides the modal
+    });
+
     // Populate Sponsor Dropdown
     function populateSponsorDropdown() {
         const sponsorSelect = $('#sponsorSelect');
@@ -312,19 +312,18 @@ $(document).ready(function () {
 
                                 reader.onload = function (e) {
                                     const imgPreview = `
-                                        <div class="uploaded-image-container d-flex align-items-center mb-3">
-                                            <span class="me-2">${i + 1}.</span>
-                                            <img src="${e.target.result}" class="img-thumbnail" style="max-width: 150px; margin-right: 20px;" />
-                                            <div style="flex-grow: 1;">
-                                                <label class="form-label">Description for ${file.name}</label>
-                                                <input type="text" name="SitePicCategoryList[${categoryIndex}].Images[${i}].Description" class="form-control" placeholder="Add description" />
-                                                <input type="hidden" name="SitePicCategoryList[${categoryIndex}].Images[${i}].PicPath" value="${file.name}" />
-                                                <button type="button" class="btn btn-danger btn-sm remove-individual-image mt-2">Remove Image</button>
-                                            </div>
-                                        </div>
-                                        `;
+                    <div class="uploaded-image-container d-flex align-items-center mb-3">
+                        <span class="me-2">${i + 1}.</span>
+                        <img src="${e.target.result}" class="img-thumbnail" style="max-width: 150px; margin-right: 20px;" />
+                        <div style="flex-grow: 1;">
+                            <label class="form-label">Description for ${file.name}</label>
+                            <input type="text" name="SitePicCategoryList[${categoryIndex}].Images[${i}].Description" class="form-control" placeholder="Add description" />
+                            <input type="hidden" name="SitePicCategoryList[${categoryIndex}].Images[${i}].PicPath" value="${file.name}" />
+                            <button type="button" class="btn btn-danger btn-sm remove-individual-image mt-2">Remove Image</button>
+                        </div>
+                    </div>
+                `;
                                     previewContainer.append(imgPreview);
-
                                     // Remove individual image
                                     previewContainer.find('.remove-individual-image').last().on('click', function () {
                                         $(this).closest('.uploaded-image-container').remove();

@@ -82,11 +82,16 @@ namespace Spider_QAMS.Controllers
                     return Unauthorized("User is not authenticated.");
                 }
 
+                /*if (string.IsNullOrEmpty(record) || string.IsNullOrEmpty(input))
+                {
+                    return BadRequest();
+                }*/
+
                 // Fetch the appropriate type from the repository using the RecordType
                 object result = await _navigationRepository.FetchRecordByTypeAsync(record);
 
                 // Get the expected type for the response
-                Type expectedType = FetchRecordTypeMapper.GetTypeByEnum((FetchRecordByIdEnum)record.RecordType);
+                Type expectedType = FetchRecordTypeMapper.GetTypeByEnum((FetchRecordByIdOrTextEnum)record.RecordType);
 
                 // If the result is not of the expected type, throw an exception
                 if (result != null && result.GetType() != expectedType)
@@ -1360,6 +1365,33 @@ namespace Spider_QAMS.Controllers
                 return StatusCode(500, $"Internal Server Error: {ex.Message}");
             }
         }
+        [HttpGet("GetAllSiteDetails")]
+        [ProducesResponseType(typeof(List<SiteDetail>), StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        public async Task<IActionResult> GetAllSiteDetailsData()
+        {
+            try
+            {
+                var jwtToken = Request.Headers["Authorization"].ToString().Replace("Bearer ", "");
+                if (string.IsNullOrEmpty(jwtToken))
+                {
+                    return Unauthorized("JWT Token is missing");
+                }
+                var userId = await _applicationUserBusinessLogic.GetCurrentUserIdAsync(jwtToken);
+                if (userId == null)
+                {
+                    return Unauthorized("User is not authenticated.");
+                }
+                List<SiteDetail> sites = await _navigationRepository.GetAllSiteDetailsAsync();
+                return Ok(sites);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"Internal Server Error: {ex.Message}");
+            }
+        }
+
         #endregion
     }
 }

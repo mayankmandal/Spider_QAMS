@@ -10,32 +10,46 @@ namespace Spider_QAMS.Repositories.Domain
 {
     public class NavigationRepository : INavigationRepository
     {
+        private static string GetString(object value) => value == DBNull.Value ? string.Empty : value.ToString();
+        private static int? GetNullableInt(object value) => value == DBNull.Value ? (int?)null : Convert.ToInt32(value);
+        private static long? GetNullableLong(object value) => value == DBNull.Value ? (long?)null : Convert.ToInt64(value);
+        private static bool GetBoolean(object value) => value != DBNull.Value && Convert.ToBoolean(value);
+        private static DateTime? GetNullableDateTime(object value) => value == DBNull.Value ? (DateTime?)null : Convert.ToDateTime(value);
+
         public async Task<object> FetchRecordByTypeAsync(Record record)
         {
             switch (record.RecordType)
             {
-                case (int)FetchRecordByIdEnum.GetCurrentUserDetails:
+                case (int)FetchRecordByIdOrTextEnum.GetCurrentUserDetails:
                     return await GetUserRecordAsync(record.RecordId);
-                case (int)FetchRecordByIdEnum.GetCurrentUserProfile:
+                case (int)FetchRecordByIdOrTextEnum.GetCurrentUserProfile:
                     return await GetCurrentUserProfileAsync(record.RecordId);
-                case (int)FetchRecordByIdEnum.GetCurrentUserPages:
+                case (int)FetchRecordByIdOrTextEnum.GetCurrentUserPages:
                     return await GetCurrentUserPagesAsync(record.RecordId);
-                case (int)FetchRecordByIdEnum.GetCurrentUserCategories:
+                case (int)FetchRecordByIdOrTextEnum.GetCurrentUserCategories:
                     return await GetCurrentUserCategoriesAsync(record.RecordId);
-                case (int)FetchRecordByIdEnum.GetSettingsData:
+                case (int)FetchRecordByIdOrTextEnum.GetSettingsData:
                     return await GetSettingsDataAsync(record.RecordId);
-                case (int)FetchRecordByIdEnum.GetProfileData:
+                case (int)FetchRecordByIdOrTextEnum.GetProfileData:
                     return await GetProfileDataAsync(record.RecordId);
-                case (int)FetchRecordByIdEnum.GetCategoryData:
+                case (int)FetchRecordByIdOrTextEnum.GetCategoryData:
                     return await GetCategoryDataAsync(record.RecordId);
-                case (int)FetchRecordByIdEnum.GetRegionData:
+                case (int)FetchRecordByIdOrTextEnum.GetRegionData:
                     return await GetRegionDataAsync(record.RecordId);
-                case (int)FetchRecordByIdEnum.GetCityData:
+                case (int)FetchRecordByIdOrTextEnum.GetCityData:
                     return await GetCityDataAsync(record.RecordId);
-                case (int)FetchRecordByIdEnum.GetLocationData:
+                case (int)FetchRecordByIdOrTextEnum.GetLocationData:
                     return await GetLocationDataAsync(record.RecordId);
-                case (int)FetchRecordByIdEnum.GetContactData:
+                case (int)FetchRecordByIdOrTextEnum.GetContactData:
                     return await GetContactDataAsync(record.RecordId);
+                case (int)FetchRecordByIdOrTextEnum.GetSiteDetailBySiteCodeData:
+                    return await GetSiteDetailsDataAsync(record);
+                case (int)FetchRecordByIdOrTextEnum.GetSiteDetailBySiteNameData:
+                    return await GetSiteDetailsDataAsync(record);
+                case (int)FetchRecordByIdOrTextEnum.GetSiteDetailBySiteCategoryData:
+                    return await GetSiteDetailsDataAsync(record);
+                case (int)FetchRecordByIdOrTextEnum.GetSiteDetailByBranchNumberData:
+                    return await GetSiteDetailsDataAsync(record);
                 default:
                     throw new Exception("Invalid Record Type");
             }
@@ -209,11 +223,11 @@ namespace Spider_QAMS.Repositories.Domain
 
                 SqlParameter[] sqlParameters = new SqlParameter[]
                 {
-                    new SqlParameter("@TextCriteria", SqlDbType.Int) { Value = FetchRecordByIdEnum.GetSettingsData },
+                    new SqlParameter("@TextCriteria", SqlDbType.Int) { Value = FetchRecordByIdOrTextEnum.GetSettingsData },
                     new SqlParameter("@InputInt", SqlDbType.Int) { Value = CurrentUserId },
                     new SqlParameter("@RowsAffected", SqlDbType.Int) { Direction = ParameterDirection.Output }
                 };
-                List<DataTable> dataTables = SqlDBHelper.ExecuteParameterizedNonQuery(SP_uspFetchRecordById, CommandType.StoredProcedure, sqlParameters);
+                List<DataTable> dataTables = SqlDBHelper.ExecuteParameterizedNonQuery(SP_FetchRecordByIdOrText, CommandType.StoredProcedure, sqlParameters);
                 if (dataTables.Count > 0)
                 {
                     DataTable dataTab = dataTables[0];
@@ -312,11 +326,11 @@ namespace Spider_QAMS.Repositories.Domain
                 int NumberOfRowsAffected = -1;
                 SqlParameter[] sqlParameters = new SqlParameter[]
                 {
-                    new SqlParameter("@TextCriteria", SqlDbType.Int) { Value = FetchRecordByIdEnum.GetSettingsData },
+                    new SqlParameter("@TextCriteria", SqlDbType.Int) { Value = FetchRecordByIdOrTextEnum.GetSettingsData },
                     new SqlParameter("@InputInt", SqlDbType.Int) { Value = CurrentUserId },
                     new SqlParameter("@RowsAffected", SqlDbType.Int) { Direction = ParameterDirection.Output }
                 };
-                List<DataTable> dataTables = SqlDBHelper.ExecuteParameterizedNonQuery(SP_uspFetchRecordById, CommandType.StoredProcedure, sqlParameters);
+                List<DataTable> dataTables = SqlDBHelper.ExecuteParameterizedNonQuery(SP_FetchRecordByIdOrText, CommandType.StoredProcedure, sqlParameters);
                 if (dataTables.Count > 0)
                 {
                     DataTable dataTab = dataTables[0];
@@ -823,11 +837,11 @@ namespace Spider_QAMS.Repositories.Domain
             {
                 SqlParameter[] sqlParameters = new SqlParameter[]
                 {
-                    new SqlParameter("@TextCriteria", SqlDbType.Int) { Value = FetchRecordByIdEnum.GetCurrentUserDetails },
+                    new SqlParameter("@TextCriteria", SqlDbType.Int) { Value = FetchRecordByIdOrTextEnum.GetCurrentUserDetails },
                     new SqlParameter("@InputInt", SqlDbType.Int) { Value = newUserId },
                     new SqlParameter("@RowsAffected", SqlDbType.Int) { Direction = ParameterDirection.Output }
                 };
-                List<DataTable> dataTables = SqlDBHelper.ExecuteParameterizedNonQuery(SP_uspFetchRecordById, CommandType.StoredProcedure, sqlParameters);
+                List<DataTable> dataTables = SqlDBHelper.ExecuteParameterizedNonQuery(SP_FetchRecordByIdOrText, CommandType.StoredProcedure, sqlParameters);
                 if (dataTables.Count > 0)
                 {
                     DataTable dataTable = dataTables[0];
@@ -884,11 +898,11 @@ namespace Spider_QAMS.Repositories.Domain
             {
                 SqlParameter[] sqlParameters = new SqlParameter[]
                 {
-                    new SqlParameter("@TextCriteria", SqlDbType.Int) { Value = FetchRecordByIdEnum.GetCurrentUserProfile },
+                    new SqlParameter("@TextCriteria", SqlDbType.Int) { Value = FetchRecordByIdOrTextEnum.GetCurrentUserProfile },
                     new SqlParameter("@InputInt", SqlDbType.Int) { Value = CurrentUserId },
                     new SqlParameter("@RowsAffected", SqlDbType.Int) { Direction = ParameterDirection.Output }
                 };
-                List<DataTable> dataTables = SqlDBHelper.ExecuteParameterizedNonQuery(SP_uspFetchRecordById, CommandType.StoredProcedure, sqlParameters);
+                List<DataTable> dataTables = SqlDBHelper.ExecuteParameterizedNonQuery(SP_FetchRecordByIdOrText, CommandType.StoredProcedure, sqlParameters);
                 if (dataTables.Count > 0)
                 {
                     DataTable dataTable = dataTables[0];
@@ -932,11 +946,11 @@ namespace Spider_QAMS.Repositories.Domain
             {
                 SqlParameter[] sqlParameters = new SqlParameter[]
                 {
-                    new SqlParameter("@TextCriteria", SqlDbType.Int) { Value = FetchRecordByIdEnum.GetCurrentUserPages },
+                    new SqlParameter("@TextCriteria", SqlDbType.Int) { Value = FetchRecordByIdOrTextEnum.GetCurrentUserPages },
                     new SqlParameter("@InputInt", SqlDbType.Int) { Value = CurrentUserId },
                     new SqlParameter("@RowsAffected", SqlDbType.Int) { Direction = ParameterDirection.Output }
                 };
-                List<DataTable> dataTables = SqlDBHelper.ExecuteParameterizedNonQuery(SP_uspFetchRecordById, CommandType.StoredProcedure, sqlParameters);
+                List<DataTable> dataTables = SqlDBHelper.ExecuteParameterizedNonQuery(SP_FetchRecordByIdOrText, CommandType.StoredProcedure, sqlParameters);
                 if (dataTables.Count > 0)
                 {
                     DataTable dataTable = dataTables[0];
@@ -983,11 +997,11 @@ namespace Spider_QAMS.Repositories.Domain
             {
                 SqlParameter[] sqlParameters = new SqlParameter[]
                 {
-                    new SqlParameter("@TextCriteria", SqlDbType.Int) { Value = FetchRecordByIdEnum.GetCurrentUserCategories },
+                    new SqlParameter("@TextCriteria", SqlDbType.Int) { Value = FetchRecordByIdOrTextEnum.GetCurrentUserCategories },
                     new SqlParameter("@InputInt", SqlDbType.Int) { Value = CurrentUserId },
                     new SqlParameter("@RowsAffected", SqlDbType.Int) { Direction = ParameterDirection.Output }
                 };
-                List<DataTable> dataTables = SqlDBHelper.ExecuteParameterizedNonQuery(SP_uspFetchRecordById, CommandType.StoredProcedure, sqlParameters);
+                List<DataTable> dataTables = SqlDBHelper.ExecuteParameterizedNonQuery(SP_FetchRecordByIdOrText, CommandType.StoredProcedure, sqlParameters);
                 if (dataTables.Count > 0)
                 {
                     DataTable dataTable = dataTables[0];
@@ -1035,11 +1049,11 @@ namespace Spider_QAMS.Repositories.Domain
             {
                 SqlParameter[] sqlParameters = new SqlParameter[]
                 {
-                    new SqlParameter("@TextCriteria", SqlDbType.Int) { Value = FetchRecordByIdEnum.GetSettingsData },
+                    new SqlParameter("@TextCriteria", SqlDbType.Int) { Value = FetchRecordByIdOrTextEnum.GetSettingsData },
                     new SqlParameter("@InputInt", SqlDbType.Int) { Value = CurrentUserId },
                     new SqlParameter("@RowsAffected", SqlDbType.Int) { Direction = ParameterDirection.Output }
                 };
-                List<DataTable> dataTables = SqlDBHelper.ExecuteParameterizedNonQuery(SP_uspFetchRecordById, CommandType.StoredProcedure, sqlParameters);
+                List<DataTable> dataTables = SqlDBHelper.ExecuteParameterizedNonQuery(SP_FetchRecordByIdOrText, CommandType.StoredProcedure, sqlParameters);
                 if (dataTables.Count > 0)
                 {
                     DataTable dataTable = dataTables[0];
@@ -1086,11 +1100,11 @@ namespace Spider_QAMS.Repositories.Domain
             {
                 SqlParameter[] sqlParameters = new SqlParameter[]
                 {
-                    new SqlParameter("@TextCriteria", SqlDbType.Int) { Value = FetchRecordByIdEnum.GetProfileData },
+                    new SqlParameter("@TextCriteria", SqlDbType.Int) { Value = FetchRecordByIdOrTextEnum.GetProfileData },
                     new SqlParameter("@InputInt", SqlDbType.Int) { Value = newUserId },
                     new SqlParameter("@RowsAffected", SqlDbType.Int) { Direction = ParameterDirection.Output }
                 };
-                List<DataTable> dataTables = SqlDBHelper.ExecuteParameterizedNonQuery(SP_uspFetchRecordById, CommandType.StoredProcedure, sqlParameters);
+                List<DataTable> dataTables = SqlDBHelper.ExecuteParameterizedNonQuery(SP_FetchRecordByIdOrText, CommandType.StoredProcedure, sqlParameters);
                 if (dataTables.Count > 0)
                 {
                     DataTable dataTable = dataTables[0];
@@ -1132,11 +1146,11 @@ namespace Spider_QAMS.Repositories.Domain
             {
                 SqlParameter[] sqlParameters = new SqlParameter[]
                 {
-                    new SqlParameter("@TextCriteria", SqlDbType.Int) { Value = FetchRecordByIdEnum.GetCategoryData },
+                    new SqlParameter("@TextCriteria", SqlDbType.Int) { Value = FetchRecordByIdOrTextEnum.GetCategoryData },
                     new SqlParameter("@InputInt", SqlDbType.Int) { Value = newUserId },
                     new SqlParameter("@RowsAffected", SqlDbType.Int) { Direction = ParameterDirection.Output }
                 };
-                List<DataTable> dataTables = SqlDBHelper.ExecuteParameterizedNonQuery(SP_uspFetchRecordById, CommandType.StoredProcedure, sqlParameters);
+                List<DataTable> dataTables = SqlDBHelper.ExecuteParameterizedNonQuery(SP_FetchRecordByIdOrText, CommandType.StoredProcedure, sqlParameters);
                 if (dataTables.Count > 0)
                 {
                     DataTable dataTable = dataTables[0];
@@ -1179,11 +1193,11 @@ namespace Spider_QAMS.Repositories.Domain
             {
                 SqlParameter[] sqlParameters = new SqlParameter[]
                 {
-                    new SqlParameter("@TextCriteria", SqlDbType.Int) { Value = FetchRecordByIdEnum.GetRegionData },
+                    new SqlParameter("@TextCriteria", SqlDbType.Int) { Value = FetchRecordByIdOrTextEnum.GetRegionData },
                     new SqlParameter("@InputInt", SqlDbType.Int) { Value = newUserId },
                     new SqlParameter("@RowsAffected", SqlDbType.Int) { Direction = ParameterDirection.Output }
                 };
-                List<DataTable> dataTables = SqlDBHelper.ExecuteParameterizedNonQuery(SP_uspFetchRecordById, CommandType.StoredProcedure, sqlParameters);
+                List<DataTable> dataTables = SqlDBHelper.ExecuteParameterizedNonQuery(SP_FetchRecordByIdOrText, CommandType.StoredProcedure, sqlParameters);
                 if (dataTables.Count > 0)
                 {
                     DataTable dataTable = dataTables[0];
@@ -1225,11 +1239,11 @@ namespace Spider_QAMS.Repositories.Domain
             {
                 SqlParameter[] sqlParameters = new SqlParameter[]
                 {
-                    new SqlParameter("@TextCriteria", SqlDbType.Int) { Value = FetchRecordByIdEnum.GetCityData },
+                    new SqlParameter("@TextCriteria", SqlDbType.Int) { Value = FetchRecordByIdOrTextEnum.GetCityData },
                     new SqlParameter("@InputInt", SqlDbType.Int) { Value = newUserId },
                     new SqlParameter("@RowsAffected", SqlDbType.Int) { Direction = ParameterDirection.Output }
                 };
-                List<DataTable> dataTables = SqlDBHelper.ExecuteParameterizedNonQuery(SP_uspFetchRecordById, CommandType.StoredProcedure, sqlParameters);
+                List<DataTable> dataTables = SqlDBHelper.ExecuteParameterizedNonQuery(SP_FetchRecordByIdOrText, CommandType.StoredProcedure, sqlParameters);
                 if (dataTables.Count > 0)
                 {
                     DataTable dataTable = dataTables[0];
@@ -1276,11 +1290,11 @@ namespace Spider_QAMS.Repositories.Domain
             {
                 SqlParameter[] sqlParameters = new SqlParameter[]
                 {
-                    new SqlParameter("@TextCriteria", SqlDbType.Int) { Value = FetchRecordByIdEnum.GetLocationData },
+                    new SqlParameter("@TextCriteria", SqlDbType.Int) { Value = FetchRecordByIdOrTextEnum.GetLocationData },
                     new SqlParameter("@InputInt", SqlDbType.Int) { Value = newUserId },
                     new SqlParameter("@RowsAffected", SqlDbType.Int) { Direction = ParameterDirection.Output }
                 };
-                List<DataTable> dataTables = SqlDBHelper.ExecuteParameterizedNonQuery(SP_uspFetchRecordById, CommandType.StoredProcedure, sqlParameters);
+                List<DataTable> dataTables = SqlDBHelper.ExecuteParameterizedNonQuery(SP_FetchRecordByIdOrText, CommandType.StoredProcedure, sqlParameters);
                 if (dataTables.Count > 0)
                 {
                     DataTable dataTable = dataTables[0];
@@ -1340,11 +1354,11 @@ namespace Spider_QAMS.Repositories.Domain
             {
                 SqlParameter[] sqlParameters = new SqlParameter[]
                 {
-                    new SqlParameter("@TextCriteria", SqlDbType.Int) { Value = FetchRecordByIdEnum.GetContactData },
+                    new SqlParameter("@TextCriteria", SqlDbType.Int) { Value = FetchRecordByIdOrTextEnum.GetContactData },
                     new SqlParameter("@InputInt", SqlDbType.Int) { Value = newUserId },
                     new SqlParameter("@RowsAffected", SqlDbType.Int) { Direction = ParameterDirection.Output }
                 };
-                List<DataTable> dataTables = SqlDBHelper.ExecuteParameterizedNonQuery(SP_uspFetchRecordById, CommandType.StoredProcedure, sqlParameters);
+                List<DataTable> dataTables = SqlDBHelper.ExecuteParameterizedNonQuery(SP_FetchRecordByIdOrText, CommandType.StoredProcedure, sqlParameters);
                 if (dataTables.Count > 0)
                 {
                     DataTable dataTable = dataTables[0];
@@ -1389,6 +1403,178 @@ namespace Spider_QAMS.Repositories.Domain
                 throw new Exception("Error in Getting Settings.", ex);
             }
             return contact;
+        }
+        public async Task<List<SiteDetail>> GetSiteDetailsDataAsync(Record record)
+        {
+            List<SiteDetail> sites = new List<SiteDetail>();
+            try
+            {
+                SqlParameter[] sqlParameters = new SqlParameter[]
+                {
+                    new SqlParameter("@TextCriteria", SqlDbType.Int) { Value = record.RecordType != 0 ? record.RecordType : DBNull.Value  },
+                    new SqlParameter("@InputInt", SqlDbType.Int) { Value = record.RecordId != 0 ? record.RecordId : DBNull.Value },
+                    new SqlParameter("@InputText", SqlDbType.VarChar, 100) { Value = record.RecordText != string.Empty ? record.RecordText : DBNull.Value },
+                    new SqlParameter("@RowsAffected", SqlDbType.Int) { Direction = ParameterDirection.Output }
+                };
+                List<DataTable> dataTables = SqlDBHelper.ExecuteParameterizedNonQuery(SP_FetchRecordByIdOrText, CommandType.StoredProcedure, sqlParameters);
+                if (dataTables.Count > 0)
+                {
+                    DataTable dataTable1 = dataTables[0];
+                    if (dataTable1.Rows.Count > 0)
+                    {
+                        foreach (DataRow dataRow in dataTable1.Rows)
+                        {
+                            var site = new SiteDetail
+                            {
+                                SiteID = Convert.ToInt64(dataRow["SiteID"]),
+                                SiteCode = GetString(dataRow["SiteCode"]),
+                                SiteName = GetString(dataRow["SiteName"]),
+                                SiteCategory = GetString(dataRow["SiteCategory"]),
+                                SponsorID = GetNullableInt(dataRow["SponsorID"]) ?? 0,
+                                RegionID = GetNullableInt(dataRow["RegionID"]) ?? 0,
+                                CityID = GetNullableInt(dataRow["CityID"]) ?? 0,
+                                LocationID = GetNullableInt(dataRow["LocationID"]) ?? 0,
+                                ContactID = GetNullableInt(dataRow["ContactID"]) ?? 0,
+                                SiteTypeID = GetNullableInt(dataRow["SiteTypeID"]) ?? 0,
+                                GPSLong = GetString(dataRow["GPSLong"]),
+                                GPSLatt = GetString(dataRow["GPSLatt"]),
+                                VisitUserID = GetNullableInt(dataRow["VisitUserID"]),
+                                VisitedDate = GetNullableDateTime(dataRow["VisitedDate"]),
+                                ApprovedUserID = GetNullableInt(dataRow["ApprovedUserID"]),
+                                ApprovalDate = GetNullableDateTime(dataRow["ApprovalDate"]),
+                                VisitStatusID = GetNullableInt(dataRow["VisitStatusID"]),
+                                IsActive = GetBoolean(dataRow["IsActive"]),
+                                BranchNo = GetString(dataRow["BranchNo"]),
+                                BranchTypeId = GetNullableInt(dataRow["BranchTypeId"]),
+                                AtmClass = GetString(dataRow["AtmClass"]),
+
+                                // Contact Information
+                                ContactInformation = new SiteContactInformation
+                                {
+                                    SiteID = GetNullableLong(dataRow["SiteID"]) ?? 0,
+                                    BranchTelephoneNumber = GetString(dataRow["BranchTelephoneNumber"]),
+                                    BranchFaxNumber = GetString(dataRow["BranchFaxNumber"]),
+                                    EmailAddress = GetString(dataRow["EmailAddress"])
+                                },
+
+                                // Geographical Details
+                                GeographicalDetails = new GeographicalDetails
+                                {
+                                    SiteID = GetNullableLong(dataRow["SiteID"]) ?? 0,
+                                    NearestLandmark = GetString(dataRow["NearestLandmark"]),
+                                    NumberOfKmNearestCity = GetString(dataRow["NumberOfKmNearestCity"]),
+                                    BranchConstructionType = GetString(dataRow["BranchConstructionType"]),
+                                    BranchIsLocatedAt = GetString(dataRow["BranchIsLocatedAt"]),
+                                    HowToReachThere = GetString(dataRow["HowToReachThere"]),
+                                    SiteIsOnServiceRoad = GetBoolean(dataRow["SiteIsOnServiceRoad"]),
+                                    HowToGetThere = GetString(dataRow["HowToGetThere"])
+                                },
+
+                                // Branch Facilities
+                                BranchFacilities = new SiteBranchFacilities
+                                {
+                                    SiteID = GetNullableLong(dataRow["SiteID"]) ?? 0,
+                                    Parking = GetBoolean(dataRow["Parking"]),
+                                    Landscape = GetBoolean(dataRow["Landscape"]),
+                                    Elevator = GetBoolean(dataRow["Elevator"]),
+                                    VIPSection = GetBoolean(dataRow["VIPSection"]),
+                                    SafeBox = GetBoolean(dataRow["SafeBox"]),
+                                    ICAP = GetBoolean(dataRow["ICAP"])
+                                },
+
+                                // Data Center Information
+                                DataCenter = new SiteDataCenter
+                                {
+                                    SiteID = GetNullableLong(dataRow["SiteID"]) ?? 0,
+                                    UPSBrand = GetString(dataRow["UPSBrand"]),
+                                    UPSCapacity = GetString(dataRow["UPSCapacity"]),
+                                    PABXBrand = GetString(dataRow["PABXBrand"]),
+                                    StabilizerBrand = GetString(dataRow["StabilizerBrand"]),
+                                    StabilizerCapacity = GetString(dataRow["StabilizerCapacity"]),
+                                    SecurityAccessSystemBrand = GetString(dataRow["SecurityAccessSystemBrand"])
+                                },
+
+                                // SignBoard Type
+                                SignBoard = new SignBoardType
+                                {
+                                    SiteID = GetNullableLong(dataRow["SiteID"]) ?? 0,
+                                    Cylinder = GetBoolean(dataRow["Cylinder"]),
+                                    StraightOrTotem = GetBoolean(dataRow["StraightOrTotem"])
+                                },
+
+                                // Miscellaneous Site Information
+                                MiscSiteInfo = new SiteMiscInformation
+                                {
+                                    SiteID = GetNullableLong(dataRow["SiteID"]) ?? 0,
+                                    TypeOfATMLocation = GetString(dataRow["TypeOfATMLocation"]),
+                                    NoOfExternalCameras = GetNullableInt(dataRow["NoOfExternalCameras"]),
+                                    NoOfInternalCameras = GetNullableInt(dataRow["NoOfInternalCameras"]),
+                                    TrackingSystem = GetString(dataRow["TrackingSystem"])
+                                },
+
+                                // Miscellaneous Branch Information
+                                MiscBranchInfo = new BranchMiscInformation
+                                {
+                                    SiteID = GetNullableLong(dataRow["SiteID"]) ?? 0,
+                                    NoOfCleaners = GetNullableInt(dataRow["Noofcleaners"]),
+                                    FrequencyOfDailyMailingService = GetNullableInt(dataRow["Frequencyofdailymailingservice"]),
+                                    ElectricSupply = GetString(dataRow["ElectricSupply"]),
+                                    WaterSupply = GetString(dataRow["WaterSupply"]),
+                                    BranchOpenDate = GetNullableDateTime(dataRow["BranchOpenDate"]),
+                                    TellersCounter = GetNullableInt(dataRow["TellersCounter"]),
+                                    NoOfSalesManagerOffices = GetNullableInt(dataRow["NoofSalesmanageroffices"]),
+                                    ExistVIPSection = GetBoolean(dataRow["ExistVIPsection"]),
+                                    ContractStartDate = GetNullableDateTime(dataRow["ContractStartDate"]),
+                                    NoOfRenovationRetouchTime = GetNullableInt(dataRow["NoofRenovationRetouchtime"]),
+                                    LeasedOwBuilding = GetBoolean(dataRow["LeasedOwbuilding"]),
+                                    NoOfTeaBoys = GetNullableInt(dataRow["Noofteaboys"]),
+                                    FrequencyOfMonthlyCleaningService = GetNullableInt(dataRow["Frequencyofmonthlycleaningservice"]),
+                                    DrainSewerage = GetString(dataRow["DrainSewerage"]),
+                                    CentralAC = GetBoolean(dataRow["CentralAC"]),
+                                    SplitAC = GetBoolean(dataRow["SplitAC"]),
+                                    WindowAC = GetBoolean(dataRow["WindowAC"]),
+                                    CashCounterType = GetNullableInt(dataRow["Cashcountertype"]),
+                                    NoOfTellerCounters = GetNullableInt(dataRow["NoofTellerCounters"]),
+                                    NoOfAffluentRelationshipManagerOffices = GetNullableInt(dataRow["Noofaffluentrelationshipmanageroffices"]),
+                                    SeperateVIPSection = GetBoolean(dataRow["SeperateVIPsection"]),
+                                    ContractEndDate = GetNullableDateTime(dataRow["ContractEndDate"]),
+                                    RenovationRetouchDate = GetNullableDateTime(dataRow["RenovationRetouchDate"]),
+                                    NoOfTCRMachines = GetNullableInt(dataRow["NoofTCRmachines"]),
+                                    NoOfTotem = GetNullableInt(dataRow["NoOfTotem"])
+                                }
+                            };
+                            sites.Add(site);
+                        }
+                    }
+                    DataTable dataTable2 = dataTables[1];
+                    if (dataTable2.Rows.Count > 0)
+                    {
+                        foreach (DataRow dataRow in dataTable2.Rows)
+                        { 
+                            
+                        }
+                    }
+                    else
+                    {
+                        return null;
+                    }
+                }
+                else
+                {
+                    return null;
+                }
+            }
+            catch (SqlException sqlEx)
+            {
+                // Log or handle SQL exceptions
+                throw new Exception("Error executing SQL command.", sqlEx);
+            }
+            catch (Exception ex)
+            {
+                // Log or handle other exceptions
+                throw new Exception("Error in Getting Settings.", ex);
+            }
+            return sites;
         }
 
         public async Task<List<ProfileUserAPIVM>> GetAllUsersDataAsync()
@@ -2177,6 +2363,168 @@ namespace Spider_QAMS.Repositories.Domain
                 throw new Exception("Error in Getting All Visit Status List.", ex);
             }
             return sitePicCategories;
+        }
+        public async Task<List<SiteDetail>> GetAllSiteDetailsAsync()
+        {
+            List<SiteDetail> sites = new List<SiteDetail>();
+            try
+            {
+                SqlParameter[] sqlParameters = new SqlParameter[]
+                {
+                    new SqlParameter("@TextCriteria", SqlDbType.Int) { Value = GetTableData.GetAllSiteDetails },
+                    new SqlParameter("@RowsAffected", SqlDbType.Int) { Direction = ParameterDirection.Output }
+                };
+                List<DataTable> dataTables = SqlDBHelper.ExecuteParameterizedNonQuery(SP_GetTableAllData, CommandType.StoredProcedure, sqlParameters);
+                if (dataTables.Count > 0)
+                {
+                    DataTable dataTable = dataTables[0];
+                    if (dataTable.Rows.Count > 0)
+                    {
+                        foreach (DataRow dataRow in dataTable.Rows)
+                        {
+                            SiteDetail site = new SiteDetail
+                            {
+                                SiteID = Convert.ToInt64(dataRow["SiteID"]),
+                                SiteCode = GetString(dataRow["SiteCode"]),
+                                SiteName = GetString(dataRow["SiteName"]),
+                                SiteCategory = GetString(dataRow["SiteCategory"]),
+                                SponsorID = GetNullableInt(dataRow["SponsorID"]) ?? 0,
+                                RegionID = GetNullableInt(dataRow["RegionID"]) ?? 0,
+                                CityID = GetNullableInt(dataRow["CityID"]) ?? 0,
+                                LocationID = GetNullableInt(dataRow["LocationID"]) ?? 0,
+                                ContactID = GetNullableInt(dataRow["ContactID"]) ?? 0,
+                                SiteTypeID = GetNullableInt(dataRow["SiteTypeID"]) ?? 0,
+                                GPSLong = GetString(dataRow["GPSLong"]),
+                                GPSLatt = GetString(dataRow["GPSLatt"]),
+                                VisitUserID = GetNullableInt(dataRow["VisitUserID"]),
+                                VisitedDate = GetNullableDateTime(dataRow["VisitedDate"]),
+                                ApprovedUserID = GetNullableInt(dataRow["ApprovedUserID"]),
+                                ApprovalDate = GetNullableDateTime(dataRow["ApprovalDate"]),
+                                VisitStatusID = GetNullableInt(dataRow["VisitStatusID"]),
+                                IsActive = GetBoolean(dataRow["IsActive"]),
+                                BranchNo = GetString(dataRow["BranchNo"]),
+                                BranchTypeId = GetNullableInt(dataRow["BranchTypeId"]),
+                                AtmClass = GetString(dataRow["AtmClass"]),
+
+                                // Contact Information
+                                ContactInformation = new SiteContactInformation
+                                {
+                                    SiteID = GetNullableLong(dataRow["SiteID"]) ?? 0,
+                                    BranchTelephoneNumber = GetString(dataRow["BranchTelephoneNumber"]),
+                                    BranchFaxNumber = GetString(dataRow["BranchFaxNumber"]),
+                                    EmailAddress = GetString(dataRow["EmailAddress"])
+                                },
+
+                                // Geographical Details
+                                GeographicalDetails = new GeographicalDetails
+                                {
+                                    SiteID = GetNullableLong(dataRow["SiteID"]) ?? 0,
+                                    NearestLandmark = GetString(dataRow["NearestLandmark"]),
+                                    NumberOfKmNearestCity = GetString(dataRow["NumberOfKmNearestCity"]),
+                                    BranchConstructionType = GetString(dataRow["BranchConstructionType"]),
+                                    BranchIsLocatedAt = GetString(dataRow["BranchIsLocatedAt"]),
+                                    HowToReachThere = GetString(dataRow["HowToReachThere"]),
+                                    SiteIsOnServiceRoad = GetBoolean(dataRow["SiteIsOnServiceRoad"]),
+                                    HowToGetThere = GetString(dataRow["HowToGetThere"])
+                                },
+
+                                // Branch Facilities
+                                BranchFacilities = new SiteBranchFacilities
+                                {
+                                    SiteID = GetNullableLong(dataRow["SiteID"]) ?? 0,
+                                    Parking = GetBoolean(dataRow["Parking"]),
+                                    Landscape = GetBoolean(dataRow["Landscape"]),
+                                    Elevator = GetBoolean(dataRow["Elevator"]),
+                                    VIPSection = GetBoolean(dataRow["VIPSection"]),
+                                    SafeBox = GetBoolean(dataRow["SafeBox"]),
+                                    ICAP = GetBoolean(dataRow["ICAP"])
+                                },
+
+                                // Data Center Information
+                                DataCenter = new SiteDataCenter
+                                {
+                                    SiteID = GetNullableLong(dataRow["SiteID"]) ?? 0,
+                                    UPSBrand = GetString(dataRow["UPSBrand"]),
+                                    UPSCapacity = GetString(dataRow["UPSCapacity"]),
+                                    PABXBrand = GetString(dataRow["PABXBrand"]),
+                                    StabilizerBrand = GetString(dataRow["StabilizerBrand"]),
+                                    StabilizerCapacity = GetString(dataRow["StabilizerCapacity"]),
+                                    SecurityAccessSystemBrand = GetString(dataRow["SecurityAccessSystemBrand"])
+                                },
+
+                                // SignBoard Type
+                                SignBoard = new SignBoardType
+                                {
+                                    SiteID = GetNullableLong(dataRow["SiteID"]) ?? 0,
+                                    Cylinder = GetBoolean(dataRow["Cylinder"]),
+                                    StraightOrTotem = GetBoolean(dataRow["StraightOrTotem"])
+                                },
+
+                                // Miscellaneous Site Information
+                                MiscSiteInfo = new SiteMiscInformation
+                                {
+                                    SiteID = GetNullableLong(dataRow["SiteID"]) ?? 0,
+                                    TypeOfATMLocation = GetString(dataRow["TypeOfATMLocation"]),
+                                    NoOfExternalCameras = GetNullableInt(dataRow["NoOfExternalCameras"]),
+                                    NoOfInternalCameras = GetNullableInt(dataRow["NoOfInternalCameras"]),
+                                    TrackingSystem = GetString(dataRow["TrackingSystem"])
+                                },
+
+                                // Miscellaneous Branch Information
+                                MiscBranchInfo = new BranchMiscInformation
+                                {
+                                    SiteID = GetNullableLong(dataRow["SiteID"]) ?? 0,
+                                    NoOfCleaners = GetNullableInt(dataRow["Noofcleaners"]),
+                                    FrequencyOfDailyMailingService = GetNullableInt(dataRow["Frequencyofdailymailingservice"]),
+                                    ElectricSupply = GetString(dataRow["ElectricSupply"]),
+                                    WaterSupply = GetString(dataRow["WaterSupply"]),
+                                    BranchOpenDate = GetNullableDateTime(dataRow["BranchOpenDate"]),
+                                    TellersCounter = GetNullableInt(dataRow["TellersCounter"]),
+                                    NoOfSalesManagerOffices = GetNullableInt(dataRow["NoofSalesmanageroffices"]),
+                                    ExistVIPSection = GetBoolean(dataRow["ExistVIPsection"]),
+                                    ContractStartDate = GetNullableDateTime(dataRow["ContractStartDate"]),
+                                    NoOfRenovationRetouchTime = GetNullableInt(dataRow["NoofRenovationRetouchtime"]),
+                                    LeasedOwBuilding = GetBoolean(dataRow["LeasedOwbuilding"]),
+                                    NoOfTeaBoys = GetNullableInt(dataRow["Noofteaboys"]),
+                                    FrequencyOfMonthlyCleaningService = GetNullableInt(dataRow["Frequencyofmonthlycleaningservice"]),
+                                    DrainSewerage = GetString(dataRow["DrainSewerage"]),
+                                    CentralAC = GetBoolean(dataRow["CentralAC"]),
+                                    SplitAC = GetBoolean(dataRow["SplitAC"]),
+                                    WindowAC = GetBoolean(dataRow["WindowAC"]),
+                                    CashCounterType = GetNullableInt(dataRow["Cashcountertype"]),
+                                    NoOfTellerCounters = GetNullableInt(dataRow["NoofTellerCounters"]),
+                                    NoOfAffluentRelationshipManagerOffices = GetNullableInt(dataRow["Noofaffluentrelationshipmanageroffices"]),
+                                    SeperateVIPSection = GetBoolean(dataRow["SeperateVIPsection"]),
+                                    ContractEndDate = GetNullableDateTime(dataRow["ContractEndDate"]),
+                                    RenovationRetouchDate = GetNullableDateTime(dataRow["RenovationRetouchDate"]),
+                                    NoOfTCRMachines = GetNullableInt(dataRow["NoofTCRmachines"]),
+                                    NoOfTotem = GetNullableInt(dataRow["NoOfTotem"])
+                                }
+                            };
+                            sites.Add(site);
+                        }
+                    }
+                    else
+                    {
+                        return null;
+                    }
+                }
+                else
+                {
+                    return null;
+                }
+            }
+            catch (SqlException sqlEx)
+            {
+                // Log or handle SQL exceptions
+                throw new Exception("Error executing SQL command.", sqlEx);
+            }
+            catch (Exception ex)
+            {
+                // Log or handle other exceptions
+                throw new Exception("Error in Getting All Visit Status List.", ex);
+            }
+            return sites;
         }
     }
 }

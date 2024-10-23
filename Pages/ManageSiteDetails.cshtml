@@ -1,0 +1,705 @@
+﻿@page
+@model Spider_QAMS.Pages.ManageSiteDetailsModel
+@{
+    ViewData["Title"] = "Manage Site Details";
+    TempData["NavigationalPageName"] = "Manage Sites";
+}
+
+<head>
+    <link rel="stylesheet" href="~/plugins/leaflet/leaflet.css" asp-append-version="true" />
+</head>
+
+<div style="display:flex; flex-direction:column; justify-content:center; align-items:center;">
+    <!-- Title and Action Buttons -->
+    <div class="row pt-1 mb-3" style="width:100%;">
+        <div class="col text-start">
+            <h4 class="rb-header">Manage Sites</h4>
+        </div>
+        <div class="col text-end">
+            <button class="btn create-btn" onclick="showCreateForm()" style="background: linear-gradient(to bottom, #ffffff, #e0e0e0); color: #71797E;">
+                <i class="fas fa-plus-circle"></i>
+                &nbsp;Create New Site
+            </button>
+        </div>
+    </div>
+
+    <div id="jsGrid"></div>
+
+    <!-- Search Site Form (Hidden Initially) -->
+    <div id="searchFormDiv" class="form-control border-2 mb-4 card" style="display:flex; justify-content:space-around; height:auto; width:75rem;">
+        <div class="row pb-1 pt-2">
+            <div style="color:#17a2b8; text-align:center; font-size:1.7rem;">Update Existing Sites</div>
+            <div>
+                <hr />
+            </div>
+        </div>
+        <div class="card">
+            <div class="card-header">
+                <div class="card-title fw-bold">Sites Search Box</div>
+                <div class="card-tools">
+                    <button type="button" class="btn btn-tool" data-card-widget="collapse">
+                        <i class="fas fa-minus"></i>
+                    </button>
+                    <button type="button" class="btn btn-tool" data-card-widget="remove">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+            </div>
+            <div class="card-body">
+                <!-- Search Section -->
+                <div class="mb-3 form-group">
+                    <label for="searchCriteria" class="form-label">
+                        Search By
+                    </label>
+                    <select id="searchCriteria" class="form-select striped-select" style="width:100%">
+                        @foreach (var option in Model.SearchCriteriaOptions)
+                        {
+                            <option value="@option.Value">@option.Text</option>
+                        }
+                    </select>
+                </div>
+
+                <div class="mb-3">
+                    <label for="searchInput" class="form-label">
+                        Search
+                    </label>
+                    <div class="input-group">
+                        <input type="text"
+                               id="searchInput"
+                               class="form-control border-end-0"
+                               placeholder="Enter search term" />
+                        <button id="searchButtonIcon"
+                                class="btn btn-outline-secondary border-start-0"
+                                type="button">
+                            <i class="fa fa-search"></i>
+                        </button>
+                    </div>
+
+                    <div style="display:flex; justify-content:center; gap:10px;">
+                        <button id="searchButton" class="btn mt-2" style=" width:140px; background-color:#17a2b8;color:white">Search</button>
+                        <button id="clearButton" class="btn btn-secondary mt-2" style=" width:180px;">Clear</button>
+                    </div>
+                </div>
+
+                <div id="resultsCount" class="mb-3" style=" display:none;"></div>
+                <div id="searchResults" class="mb-3 overflow-auto" style="font-size:0.7rem; display:none; max-height: 300px;">
+                    <!-- Search results will be displayed here -->
+                </div>
+                <div style="display: flex; justify-content: center;">
+                    <button id="selectButton" class="btn btn-success mt-2" style=" display:none; width: 60%">Select</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Edit Site Form (Hidden Initially) -->
+    <div id="editFormDiv" style="display:none; flex-direction: column; align-items: center; min-height: 20vh;">
+        <form method="post" enctype="multipart/form-data" asp-page-handler="Update">
+        <div id="updateSiteDetailsSection" class="pt-4 pb-2 mt-3" style="display:none;">
+            <div class="form-control border-2 mb-2" style="display:flex; justify-content:space-around; height:auto; width:75rem;flex-direction:column;">
+                <div class="row pb-1 pt-2">
+                    <div style="color:#17a2b8; text-align:center; font-size:1.7rem; font-weight:500">SITE DETAILS</div>
+                    <div>
+                        <hr />
+                    </div>
+                </div>
+
+                <div class="card card-primary">
+                    <div class="card-header" style="background-color: #9C9C9C;">
+                        <div class="card-title fw-bold">Site Details</div>
+                        <div class="card-tools">
+                            <button type="button" class="btn btn-tool" data-card-widget="collapse">
+                                <i class="fas fa-minus"></i>
+                            </button>
+                            <button type="button" class="btn btn-tool" data-card-widget="remove">
+                                <i class="fas fa-times"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="row" style="display: flex; justify-content: space-between; align-items:flex-end;">
+                                <!-- First Column -->
+                                <div style="flex: 1; padding: 10px;">
+                                    <div class="mb-3">
+                                        <label asp-for="SiteDetailVM.SiteCode" class="form-label"></label>
+                                        <input type="text" asp-for="SiteDetailVM.SiteCode" placeholder="Site Code" class="form-control" />
+                                        <span asp-validation-for="SiteDetailVM.SiteCode" class="text-danger fw-bold"></span>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label asp-for="SiteDetailVM.SiteName" class="form-label"></label>
+                                        <input type="text" asp-for="SiteDetailVM.SiteName" placeholder="Site Name" class="form-control" />
+                                        <span asp-validation-for="SiteDetailVM.SiteName" class="text-danger fw-bold"></span>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label asp-for="SiteDetailVM.SiteCategory" class="form-label"></label>
+                                        <input type="text" asp-for="SiteDetailVM.SiteCategory" placeholder="Site Category" class="form-control" id="siteCategorySelect" />
+                                        <span asp-validation-for="SiteDetailVM.SiteCategory" class="text-danger fw-bold"></span>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label asp-for="SiteDetailVM.SponsorID" class="form-label"></label>
+                                        <select asp-for="SiteDetailVM.SponsorID" class="form-select" id="sponsorSelect">
+                                            <option value="" disabled selected>Select Sponsor</option>
+                                            <!-- Populate options here -->
+                                        </select>
+                                        <span asp-validation-for="SiteDetailVM.SponsorID" class="text-danger fw-bold"></span>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label asp-for="SiteDetailVM.ContactID" class="form-label"></label>
+                                        <select asp-for="SiteDetailVM.ContactID" class="form-select" id="contactSelect">
+                                            <option value="" disabled selected>Select Contact</option>
+                                        </select>
+                                        <span asp-validation-for="SiteDetailVM.ContactID" class="text-danger fw-bold"></span>
+                                    </div>
+                                </div>
+
+                                <!-- Second Column -->
+                                <div style="flex: 1; padding: 10px;">
+                                    <div class="mb-3">
+                                        <label asp-for="SiteDetailVM.RegionID" class="form-label"></label>
+                                        <select asp-for="SiteDetailVM.RegionID" class="form-select" id="regionSelect">
+                                            <option value="" disabled selected>Select Region</option>
+                                            <!-- Populate options here -->
+                                        </select>
+                                        <span asp-validation-for="SiteDetailVM.RegionID" class="text-danger fw-bold"></span>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label asp-for="SiteDetailVM.CityID" class="form-label"></label>
+                                        <select asp-for="SiteDetailVM.CityID" class="form-select" id="citySelect">
+                                            <option value="" disabled selected>Select City</option>
+                                            <!-- Populate options here -->
+                                        </select>
+                                        <span asp-validation-for="SiteDetailVM.CityID" class="text-danger fw-bold"></span>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label asp-for="SiteDetailVM.LocationID" class="form-label"></label>
+                                        <select asp-for="SiteDetailVM.LocationID" class="form-select" id="locationSelect">
+                                            <option value="" disabled selected>Select Location</option>
+                                            <!-- Populate options here -->
+                                        </select>
+                                        <span asp-validation-for="SiteDetailVM.LocationID" class="text-danger fw-bold"></span>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label asp-for="SiteDetailVM.GPSLong" class="form-label"></label>
+                                        <input type="text" asp-for="SiteDetailVM.GPSLong" placeholder="GPS Longitude" class="form-control" />
+                                        <span asp-validation-for="SiteDetailVM.GPSLong" class="text-danger fw-bold"></span>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label asp-for="SiteDetailVM.GPSLatt" class="form-label"></label>
+                                        <input type="text" asp-for="SiteDetailVM.GPSLatt" placeholder="GPS Latitude" class="form-control" />
+                                        <span asp-validation-for="SiteDetailVM.GPSLatt" class="text-danger fw-bold"></span>
+                                    </div>
+                                </div>
+
+                                <!-- Third Column -->
+                                <div style="flex: 1; padding: 10px;">
+                                    <!-- Map View -->
+                                    <div id="mapContainer" style="position: relative; width: 100%; height: 150px; border: 1px solid #ccc; margin-bottom: 15px;">
+                                        <!-- Map Button in the Bottom Left Corner -->
+                                        <div id="enlargeMapBtn"
+                                             style="position: absolute; bottom: 10px; left: 10px; background-color: rgba(255, 255, 255, 0.8);
+                   border: none; padding: 10px; border-radius: 50%; cursor: pointer;"
+                                             title="Enlarge Map">
+                                            <i class="fas fa-expand-arrows-alt" style="font-size: 18px;"></i>
+                                        </div>
+                                        <!-- Placeholder for the map -->
+                                        <p style="text-align: center; line-height: 150px;">Map will be here</p>
+                                    </div>
+
+                                    <!-- Full Screen Map Model-->
+                                    <div class="modal fade" id="mapModel" tabindex="-1" aria-labelledby="mapModalLabel" aria-hidden="true">
+                                        <div class="modal-dialog modal-lg modal-dialog-centered">
+                                            <div class="modal-content">
+                                                <div class="m-2">
+                                                    <div class="modal-header">
+                                                        <h5 class="modal-title" id="mapModalLabel">Full-Screen Map View</h5>
+                                                        <span class="btn-close" data-bs-dismiss="modal" aria-label="Close" id="cancelButton"></span>
+                                                    </div>
+                                                </div>
+                                                <div class="m-2">
+                                                    <div class="modal-body" id="fullMapContainer" style="width: 100%; height: 500px;">
+                                                        <!-- Full-size map will render here -->
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="mb-3">
+                                        <label asp-for="SiteDetailVM.SiteTypeID" class="form-label"></label>
+                                        <select asp-for="SiteDetailVM.SiteTypeID" class="form-select" id="siteTypeSelect">
+                                            <option value="" disabled selected>Select Site Type</option>
+                                            <!-- Populate options here -->
+                                        </select>
+                                        <span asp-validation-for="SiteDetailVM.SiteTypeID" class="text-danger fw-bold"></span>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label asp-for="SiteDetailVM.BranchNo" class="form-label"></label>
+                                        <input type="text" asp-for="SiteDetailVM.BranchNo" placeholder="Branch No" class="form-control" />
+                                        <span asp-validation-for="SiteDetailVM.BranchNo" class="text-danger fw-bold"></span>
+                                    </div>
+                                    <div class="mb-3" id="branchTypeDiv">
+                                        <label asp-for="SiteDetailVM.BranchTypeId" class="form-label" for="branchTypeSelect"></label>
+                                        <select asp-for="SiteDetailVM.BranchTypeId" class="form-select" id="branchTypeSelect">
+                                            <option value="" disabled selected>Select Branch Type</option>
+                                            <!-- Populate options here -->
+                                        </select>
+                                        <span asp-validation-for="SiteDetailVM.BranchTypeId" class="text-danger fw-bold"></span>
+                                    </div>
+
+                                    <div class="mb-3">
+                                        <label asp-for="SiteDetailVM.AtmClass" class="form-label"></label>
+                                        <select asp-for="SiteDetailVM.AtmClass" class="form-select" id="atmClassSelect">
+                                            <option value="" disabled selected>Select ATM Class</option>
+                                            @foreach (var clas in Model.ATMClass)
+                                            {
+                                                <option value="@clas">Class @clas</option>
+                                            }
+                                        </select>
+                                        <span asp-validation-for="SiteDetailVM.AtmClass" class="text-danger fw-bold"></span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card card-primary card-tabs">
+                    <div class="card-header p-0 pt-1" style="background-color: #9C9C9C;">
+                        <ul class="nav nav-tabs fw-bolder" id="custom-tabs-one-tab" role="tablist" style="background-color: #9C9C9C;">
+                            <li class="nav-item">
+                                <a class="nav-link active" href="#uploadPics" data-toggle="tab" role="tab" aria-controls="uploadPics" aria-selected="true">Upload Pictures</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" href="#contactInformation" data-toggle="tab" role="tab" aria-controls="contactInformation" aria-selected="false">Contact Information</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" href="#geographicalDetails" data-toggle="tab" role="tab" aria-controls="geographicalDetails" aria-selected="false">Geographical Details</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" href="#branchFacilities" data-toggle="tab" role="tab" aria-controls="branchFacilities" aria-selected="false">Branch Facilities</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" href="#dataCenter" data-toggle="tab" role="tab" aria-controls="dataCenter" aria-selected="false">Data Center</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" href="#signBoard" data-toggle="tab" role="tab" aria-controls="signBoard" aria-selected="false">Sign Board</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" href="#miscellaneous" data-toggle="tab" role="tab" aria-controls="miscellaneous" aria-selected="false">Miscellaneous</a>
+                            </li>
+
+                            <li class="nav-item ml-auto py-1 pr-2">
+                                <button type="button" class="btn btn-tool" data-card-widget="collapse">
+                                    <i class="fas fa-minus"></i>
+                                </button>
+                                <button type="button" class="btn btn-tool" data-card-widget="remove">
+                                    <i class="fas fa-times"></i>
+                                </button>
+                            </li>
+                        </ul>
+                    </div>
+                    <div class="card-body">
+                        <div class="tab-content" id="custom-tabs-one-tabContent">
+                            <!-- Upload Pictures Tab -->
+                            <div class="tab-pane fade show active" id="uploadPics" role="tabpanel" aria-labelledby="custom-tabs-one-home-tab">
+                                <div class="row" style="display: flex; justify-content: space-between; align-items:flex-end;">
+                                    <!-- Picture Category Dropdown -->
+                                    <div class="col-md-4">
+                                        <label for="sitePicCategory" class="form-label">Picture Category</label>
+                                        <select id="sitePicCategory" class="form-select" required>
+                                            <option value="" disabled selected>--Select Category--</option>
+                                            @foreach (var category in Model.SitePicCategories)
+                                            {
+                                                <!-- Store both the PicCatID and Description -->
+                                                <option value="@category.PicCatID" data-description="@category.Description">@category.Description</option>
+                                            }
+                                        </select>
+                                    </div>
+
+                                    <div class="col-md-4">
+                                        <button type="button" id="addImages" class="btn btn-primary">Add Images</button>
+                                    </div>
+                                    <!-- Validation message span -->
+                                    <span id="categoryValidation" class="text-danger fw-bold" style="display:none;"></span>
+                                </div>
+                                <hr />
+                                <div class="row" id="uploadedImagesContainer">
+                                    <!-- Dynamically loaded images and description fields will appear here -->
+                                </div>
+                            </div>
+
+                            <!-- Hidden form input to handle images -->
+                            @* Handle the uploaded images in a hidden input to bind with the backend *@
+                            <div id="hiddenImageInputs"></div>
+
+                            <!-- Contact Information Tab -->
+                            <div class="tab-pane fade" id="contactInformation" role="tabpanel" aria-labelledby="custom-tabs-one-profile-tab">
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <label asp-for="SiteDetailVM.SiteContactInformation.BranchTelephoneNumber" class="form-label"></label>
+                                            <input type="text" asp-for="SiteDetailVM.SiteContactInformation.BranchTelephoneNumber" class="form-control" placeholder="Branch Telephone Number" />
+                                            <span asp-validation-for="SiteDetailVM.SiteContactInformation.BranchTelephoneNumber" class="text-danger fw-bold"></span>
+                                        </div>
+                                        <div class="mb-3">
+                                            <label asp-for="SiteDetailVM.SiteContactInformation.BranchFaxNumber" class="form-label"></label>
+                                            <input type="text" asp-for="SiteDetailVM.SiteContactInformation.BranchFaxNumber" class="form-control" placeholder="Branch Fax Number" />
+                                            <span asp-validation-for="SiteDetailVM.SiteContactInformation.BranchFaxNumber" class="text-danger fw-bold"></span>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <label asp-for="SiteDetailVM.SiteContactInformation.EmailAddress" class="form-label"></label>
+                                            <input type="email" asp-for="SiteDetailVM.SiteContactInformation.EmailAddress" class="form-control" placeholder="Email Address" />
+                                            <span asp-validation-for="SiteDetailVM.SiteContactInformation.EmailAddress" class="text-danger fw-bold"></span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Geographical Details Tab -->
+                            <div class="tab-pane fade" id="geographicalDetails" role="tabpanel" aria-labelledby="custom-tabs-one-messages-tab">
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <label asp-for="SiteDetailVM.GeographicalDetails.NearestLandmark" class="form-label"></label>
+                                            <input type="text" asp-for="SiteDetailVM.GeographicalDetails.NearestLandmark" class="form-control" placeholder="Nearest Landmark" />
+                                            <span asp-validation-for="SiteDetailVM.GeographicalDetails.NearestLandmark" class="text-danger fw-bold"></span>
+                                        </div>
+                                        <div class="mb-3">
+                                            <label asp-for="SiteDetailVM.GeographicalDetails.NumberOfKmNearestCity" class="form-label"></label>
+                                            <input type="text" asp-for="SiteDetailVM.GeographicalDetails.NumberOfKmNearestCity" class="form-control" placeholder="Km to Nearest City" />
+                                            <span asp-validation-for="SiteDetailVM.GeographicalDetails.NumberOfKmNearestCity" class="text-danger fw-bold"></span>
+                                        </div>
+                                        <div class="mb-3">
+                                            <label asp-for="SiteDetailVM.GeographicalDetails.BranchConstructionType" class="form-label"></label>
+                                            <input type="text" asp-for="SiteDetailVM.GeographicalDetails.BranchConstructionType" class="form-control" placeholder="Branch Construction Type" />
+                                            <span asp-validation-for="SiteDetailVM.GeographicalDetails.BranchConstructionType" class="text-danger fw-bold"></span>
+                                        </div>
+                                        <div class="mb-3 form-check">
+                                            <label asp-for="SiteDetailVM.GeographicalDetails.SiteIsOnServiceRoad" class="form-check-label"></label>
+                                            <input type="checkbox" asp-for="SiteDetailVM.GeographicalDetails.SiteIsOnServiceRoad" class="mx-2 form-check-input" style="position:relative;" />
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <label asp-for="SiteDetailVM.GeographicalDetails.BranchIsLocatedAt" class="form-label"></label>
+                                            <input type="text" asp-for="SiteDetailVM.GeographicalDetails.BranchIsLocatedAt" class="form-control" placeholder="Branch Is Located At" />
+                                            <span asp-validation-for="SiteDetailVM.GeographicalDetails.BranchIsLocatedAt" class="text-danger fw-bold"></span>
+                                        </div>
+                                        <div class="mb-3">
+                                            <label asp-for="SiteDetailVM.GeographicalDetails.HowToReachThere" class="form-label"></label>
+                                            <textarea asp-for="SiteDetailVM.GeographicalDetails.HowToReachThere" class="form-control" placeholder="How To Reach There"></textarea>
+                                            <span asp-validation-for="SiteDetailVM.GeographicalDetails.HowToReachThere" class="text-danger fw-bold"></span>
+                                        </div>
+                                        <div class="mb-3">
+                                            <label asp-for="SiteDetailVM.GeographicalDetails.HowToGetThere" class="form-label"></label>
+                                            <textarea asp-for="SiteDetailVM.GeographicalDetails.HowToGetThere" class="form-control" placeholder="How To Get There"></textarea>
+                                            <span asp-validation-for="SiteDetailVM.GeographicalDetails.HowToGetThere" class="text-danger fw-bold"></span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Branch Facilities Tab -->
+                            <div class="tab-pane fade" id="branchFacilities" role="tabpanel" aria-labelledby="custom-tabs-one-settings-tab">
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="mb-3 form-check">
+                                            <label asp-for="SiteDetailVM.SiteBranchFacilities.Parking" class="form-check-label">Parking Available</label>
+                                            <input type="checkbox" asp-for="SiteDetailVM.SiteBranchFacilities.Parking" class="mx-2 form-check-input" style="position:relative;" />
+                                        </div>
+                                        <div class="mb-3 form-check">
+                                            <label asp-for="SiteDetailVM.SiteBranchFacilities.Landscape" class="form-check-label">Landscape Available</label>
+                                            <input type="checkbox" asp-for="SiteDetailVM.SiteBranchFacilities.Landscape" class="mx-2 form-check-input" style="position:relative;" />
+                                        </div>
+                                        <div class="mb-3 form-check">
+                                            <label asp-for="SiteDetailVM.SiteBranchFacilities.Elevator" class="form-check-label">Elevator Available</label>
+                                            <input type="checkbox" asp-for="SiteDetailVM.SiteBranchFacilities.Elevator" class="mx-2 form-check-input" style="position:relative;" />
+                                        </div>
+                                        <div class="mb-3 form-check">
+                                            <label asp-for="SiteDetailVM.SiteBranchFacilities.VIPSection" class="form-check-label">VIP Section Available</label>
+                                            <input type="checkbox" asp-for="SiteDetailVM.SiteBranchFacilities.VIPSection" class="mx-2 form-check-input" style="position:relative;" />
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="mb-3 form-check">
+                                            <label asp-for="SiteDetailVM.SiteBranchFacilities.SafeBox" class="form-check-label">Safe Box Available</label>
+                                            <input type="checkbox" asp-for="SiteDetailVM.SiteBranchFacilities.SafeBox" class="mx-2 form-check-input" style="position:relative;" />
+                                        </div>
+                                        <div class="mb-3 form-check">
+                                            <label asp-for="SiteDetailVM.SiteBranchFacilities.ICAP" class="form-check-label">ICAP Available</label>
+                                            <input type="checkbox" asp-for="SiteDetailVM.SiteBranchFacilities.ICAP" class="mx-2 form-check-input" style="position:relative;" />
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Data Center Tab -->
+                            <div class="tab-pane fade" id="dataCenter" role="tabpanel" aria-labelledby="custom-tabs-one-settings-tab">
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <label asp-for="SiteDetailVM.SiteDataCenter.UPSBrand" class="form-label"></label>
+                                            <input type="text" asp-for="SiteDetailVM.SiteDataCenter.UPSBrand" class="form-control" placeholder="UPS Brand" />
+                                            <span asp-validation-for="SiteDetailVM.SiteDataCenter.UPSBrand" class="text-danger fw-bold"></span>
+                                        </div>
+                                        <div class="mb-3">
+                                            <label asp-for="SiteDetailVM.SiteDataCenter.UPSCapacity" class="form-label"></label>
+                                            <input type="text" asp-for="SiteDetailVM.SiteDataCenter.UPSCapacity" class="form-control" placeholder="UPS Capacity" />
+                                            <span asp-validation-for="SiteDetailVM.SiteDataCenter.UPSCapacity" class="text-danger fw-bold"></span>
+                                        </div>
+                                        <div class="mb-3">
+                                            <label asp-for="SiteDetailVM.SiteDataCenter.PABXBrand" class="form-label"></label>
+                                            <input type="text" asp-for="SiteDetailVM.SiteDataCenter.PABXBrand" class="form-control" placeholder="PABX Brand" />
+                                            <span asp-validation-for="SiteDetailVM.SiteDataCenter.PABXBrand" class="text-danger fw-bold"></span>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <label asp-for="SiteDetailVM.SiteDataCenter.StabilizerBrand" class="form-label"></label>
+                                            <input type="text" asp-for="SiteDetailVM.SiteDataCenter.StabilizerBrand" class="form-control" placeholder="Stabilizer Brand" />
+                                            <span asp-validation-for="SiteDetailVM.SiteDataCenter.StabilizerBrand" class="text-danger fw-bold"></span>
+                                        </div>
+                                        <div class="mb-3">
+                                            <label asp-for="SiteDetailVM.SiteDataCenter.StabilizerCapacity" class="form-label"></label>
+                                            <input type="text" asp-for="SiteDetailVM.SiteDataCenter.StabilizerCapacity" class="form-control" placeholder="Stabilizer Capacity" />
+                                            <span asp-validation-for="SiteDetailVM.SiteDataCenter.StabilizerCapacity" class="text-danger fw-bold"></span>
+                                        </div>
+                                        <div class="mb-3">
+                                            <label asp-for="SiteDetailVM.SiteDataCenter.SecurityAccessSystemBrand" class="form-label"></label>
+                                            <input type="text" asp-for="SiteDetailVM.SiteDataCenter.SecurityAccessSystemBrand" class="form-control" placeholder="Security Access System Brand" />
+                                            <span asp-validation-for="SiteDetailVM.SiteDataCenter.SecurityAccessSystemBrand" class="text-danger fw-bold"></span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Sign Board Tab -->
+                            <div class="tab-pane fade" id="signBoard" role="tabpanel" aria-labelledby="custom-tabs-one-settings-tab">
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <h5 class="mx-2 mb-3">Type Of Sign Board</h5>
+                                        <div class="mb-3 form-check">
+                                            <label asp-for="SiteDetailVM.SignBoardType.Cylinder" class="form-check-label">Cylinder</label>
+                                            <input type="checkbox" asp-for="SiteDetailVM.SignBoardType.Cylinder" class="mx-1 form-check-input" style="position:relative;" />
+                                        </div>
+                                        <div class="mb-3 form-check">
+                                            <label asp-for="SiteDetailVM.SignBoardType.StraightOrTotem" class="form-check-label">Straight or Totem</label>
+                                            <input type="checkbox" asp-for="SiteDetailVM.SignBoardType.StraightOrTotem" class="mx-1 form-check-input" style="position:relative;" />
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Miscellaneous Tab -->
+                            <div class="tab-pane fade" id="miscellaneous" role="tabpanel" aria-labelledby="custom-tabs-one-settings-tab">
+                                <h5 class="mb-3 text-center text-decoration-underline">Site Miscellaneous Information</h5>
+                                <div class="row">
+                                    <!-- First Column -->
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <label asp-for="SiteDetailVM.SiteMiscInformation.TypeOfATMLocation" class="form-label"></label>
+                                            <input type="text" asp-for="SiteDetailVM.SiteMiscInformation.TypeOfATMLocation" class="form-control" placeholder="Type Of ATM Location" />
+                                            <span asp-validation-for="SiteDetailVM.SiteMiscInformation.TypeOfATMLocation" class="text-danger fw-bold"></span>
+                                        </div>
+                                        <div class="mb-3">
+                                            <label asp-for="SiteDetailVM.SiteMiscInformation.TrackingSystem" class="form-label"></label>
+                                            <input type="text" asp-for="SiteDetailVM.SiteMiscInformation.TrackingSystem" class="form-control" placeholder="Tracking System" />
+                                            <span asp-validation-for="SiteDetailVM.SiteMiscInformation.TrackingSystem" class="text-danger fw-bold"></span>
+                                        </div>
+                                    </div>
+
+                                    <!-- Second Column -->
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <label asp-for="SiteDetailVM.SiteMiscInformation.NoOfExternalCameras" class="form-label"></label>
+                                            <input type="number" asp-for="SiteDetailVM.SiteMiscInformation.NoOfExternalCameras" class="form-control" placeholder="Number of External Cameras" />
+                                            <span asp-validation-for="SiteDetailVM.SiteMiscInformation.NoOfExternalCameras" class="text-danger fw-bold"></span>
+                                        </div>
+                                        <div class="mb-3">
+                                            <label asp-for="SiteDetailVM.SiteMiscInformation.NoOfInternalCameras" class="form-label"></label>
+                                            <input type="number" asp-for="SiteDetailVM.SiteMiscInformation.NoOfInternalCameras" class="form-control" placeholder="Number of Internal Cameras" />
+                                            <span asp-validation-for="SiteDetailVM.SiteMiscInformation.NoOfInternalCameras" class="text-danger fw-bold"></span>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <hr />
+                                <h5 class="mb-3 text-center text-decoration-underline">Branch Miscellaneous Information</h5>
+                                <div class="row">
+                                    <!-- First Column -->
+                                    <div class="col-md-4">
+                                        <div class="mb-3">
+                                            <label asp-for="SiteDetailVM.BranchMiscInformation.NoOfCleaners" class="form-label"></label>
+                                            <input type="number" asp-for="SiteDetailVM.BranchMiscInformation.NoOfCleaners" class="form-control" placeholder="Number of Cleaners" />
+                                            <span asp-validation-for="SiteDetailVM.BranchMiscInformation.NoOfCleaners" class="text-danger fw-bold"></span>
+                                        </div>
+                                        <div class="mb-3">
+                                            <label asp-for="SiteDetailVM.BranchMiscInformation.FrequencyOfDailyMailingService" class="form-label"></label>
+                                            <input type="number" asp-for="SiteDetailVM.BranchMiscInformation.FrequencyOfDailyMailingService" class="form-control" placeholder="Daily Mailing Service Frequency" />
+                                            <span asp-validation-for="SiteDetailVM.BranchMiscInformation.FrequencyOfDailyMailingService" class="text-danger fw-bold"></span>
+                                        </div>
+                                        <div class="mb-3">
+                                            <label asp-for="SiteDetailVM.BranchMiscInformation.ElectricSupply" class="form-label"></label>
+                                            <input type="text" asp-for="SiteDetailVM.BranchMiscInformation.ElectricSupply" class="form-control" placeholder="Electric Supply" />
+                                            <span asp-validation-for="SiteDetailVM.BranchMiscInformation.ElectricSupply" class="text-danger fw-bold"></span>
+                                        </div>
+                                        <div class="mb-3">
+                                            <label asp-for="SiteDetailVM.BranchMiscInformation.WaterSupply" class="form-label"></label>
+                                            <input type="text" asp-for="SiteDetailVM.BranchMiscInformation.WaterSupply" class="form-control" placeholder="Water Supply" />
+                                            <span asp-validation-for="SiteDetailVM.BranchMiscInformation.WaterSupply" class="text-danger fw-bold"></span>
+                                        </div>
+                                        <div class="mb-3">
+                                            <label asp-for="SiteDetailVM.BranchMiscInformation.BranchOpenDate" class="form-label"></label>
+                                            <input type="date" asp-for="SiteDetailVM.BranchMiscInformation.BranchOpenDate" class="form-control" />
+                                            <span asp-validation-for="SiteDetailVM.BranchMiscInformation.BranchOpenDate" class="text-danger fw-bold"></span>
+                                        </div>
+                                        <div class="mb-3">
+                                            <label asp-for="SiteDetailVM.BranchMiscInformation.NoOfTellerCounters" class="form-label"></label>
+                                            <input type="number" asp-for="SiteDetailVM.BranchMiscInformation.NoOfTellerCounters" class="form-control" placeholder="Number of Teller Counters" />
+                                            <span asp-validation-for="SiteDetailVM.BranchMiscInformation.NoOfTellerCounters" class="text-danger fw-bold"></span>
+                                        </div>
+                                        <div class="mb-3">
+                                            <label asp-for="SiteDetailVM.BranchMiscInformation.NoOfTCRMachines" class="form-label"></label>
+                                            <input type="number" asp-for="SiteDetailVM.BranchMiscInformation.NoOfTCRMachines" class="form-control" placeholder="Number of TCR Machines" />
+                                            <span asp-validation-for="SiteDetailVM.BranchMiscInformation.NoOfTCRMachines" class="text-danger fw-bold"></span>
+                                        </div>
+                                        <div class="mb-3">
+                                            <label asp-for="SiteDetailVM.BranchMiscInformation.NoOfTotem" class="form-label"></label>
+                                            <input type="number" asp-for="SiteDetailVM.BranchMiscInformation.NoOfTotem" class="form-control" placeholder="Number of Totem" />
+                                            <span asp-validation-for="SiteDetailVM.BranchMiscInformation.NoOfTotem" class="text-danger fw-bold"></span>
+                                        </div>
+                                    </div>
+
+                                    <!-- Second Column -->
+                                    <div class="col-md-4">
+                                        <div class="mb-3">
+                                            <label asp-for="SiteDetailVM.BranchMiscInformation.NoOfSalesManagerOffices" class="form-label"></label>
+                                            <input type="number" asp-for="SiteDetailVM.BranchMiscInformation.NoOfSalesManagerOffices" class="form-control" placeholder="Number of Sales Manager Offices" />
+                                            <span asp-validation-for="SiteDetailVM.BranchMiscInformation.NoOfSalesManagerOffices" class="text-danger fw-bold"></span>
+                                        </div>
+                                        <div class="mb-3">
+                                            <label asp-for="SiteDetailVM.BranchMiscInformation.ContractStartDate" class="form-label"></label>
+                                            <input type="date" asp-for="SiteDetailVM.BranchMiscInformation.ContractStartDate" class="form-control" />
+                                            <span asp-validation-for="SiteDetailVM.BranchMiscInformation.ContractStartDate" class="text-danger fw-bold"></span>
+                                        </div>
+                                        <div class="mb-3">
+                                            <label asp-for="SiteDetailVM.BranchMiscInformation.ContractEndDate" class="form-label"></label>
+                                            <input type="date" asp-for="SiteDetailVM.BranchMiscInformation.ContractEndDate" class="form-control" />
+                                            <span asp-validation-for="SiteDetailVM.BranchMiscInformation.ContractEndDate" class="text-danger fw-bold"></span>
+                                        </div>
+                                        <div class="mb-3">
+                                            <label asp-for="SiteDetailVM.BranchMiscInformation.RenovationRetouchDate" class="form-label"></label>
+                                            <input type="date" asp-for="SiteDetailVM.BranchMiscInformation.RenovationRetouchDate" class="form-control" />
+                                            <span asp-validation-for="SiteDetailVM.BranchMiscInformation.RenovationRetouchDate" class="text-danger fw-bold"></span>
+                                        </div>
+                                        <div class="mb-3">
+                                            <label asp-for="SiteDetailVM.BranchMiscInformation.NoOfRenovationRetouchTime" class="form-label"></label>
+                                            <input type="number" asp-for="SiteDetailVM.BranchMiscInformation.NoOfRenovationRetouchTime" class="form-control" placeholder="Number of Renovation Retouch Time" />
+                                            <span asp-validation-for="SiteDetailVM.BranchMiscInformation.NoOfRenovationRetouchTime" class="text-danger fw-bold"></span>
+                                        </div>
+                                        <div class="mb-3">
+                                            <label asp-for="SiteDetailVM.BranchMiscInformation.NoOfTeaBoys" class="form-label"></label>
+                                            <input type="number" asp-for="SiteDetailVM.BranchMiscInformation.NoOfTeaBoys" class="form-control" placeholder="Number of Tea Boys" />
+                                            <span asp-validation-for="SiteDetailVM.BranchMiscInformation.NoOfTeaBoys" class="text-danger fw-bold"></span>
+                                        </div>
+                                        <div class="mb-3">
+                                            <label asp-for="SiteDetailVM.BranchMiscInformation.FrequencyOfMonthlyCleaningService" class="form-label"></label>
+                                            <input type="number" asp-for="SiteDetailVM.BranchMiscInformation.FrequencyOfMonthlyCleaningService" class="form-control" placeholder="Monthly Cleaning Service Frequency" />
+                                            <span asp-validation-for="SiteDetailVM.BranchMiscInformation.FrequencyOfMonthlyCleaningService" class="text-danger fw-bold"></span>
+                                        </div>
+                                    </div>
+
+                                    <!-- Third Column -->
+                                    <div class="col-md-4">
+                                        <div class="mb-3">
+                                            <label asp-for="SiteDetailVM.BranchMiscInformation.DrainSewerage" class="form-label"></label>
+                                            <input type="text" asp-for="SiteDetailVM.BranchMiscInformation.DrainSewerage" class="form-control" placeholder="Drain/Sewerage" />
+                                            <span asp-validation-for="SiteDetailVM.BranchMiscInformation.DrainSewerage" class="text-danger fw-bold"></span>
+                                        </div>
+                                        <div class="mb-3">
+                                            <label asp-for="SiteDetailVM.BranchMiscInformation.CashCounterType" class="form-label"></label>
+                                            <input type="number" asp-for="SiteDetailVM.BranchMiscInformation.CashCounterType" class="form-control" placeholder="Cash Counter Type" />
+                                            <span asp-validation-for="SiteDetailVM.BranchMiscInformation.CashCounterType" class="text-danger fw-bold"></span>
+                                        </div>
+                                        <div class="mb-3">
+                                            <label asp-for="SiteDetailVM.BranchMiscInformation.TellersCounter" class="form-label"></label>
+                                            <input type="number" asp-for="SiteDetailVM.BranchMiscInformation.TellersCounter" class="form-control" placeholder="Teller Counters" />
+                                            <span asp-validation-for="SiteDetailVM.BranchMiscInformation.TellersCounter" class="text-danger fw-bold"></span>
+                                        </div>
+                                        <div class="mb-3">
+                                            <label asp-for="SiteDetailVM.BranchMiscInformation.NoOfAffluentRelationshipManagerOffices" class="form-label"></label>
+                                            <input type="number" asp-for="SiteDetailVM.BranchMiscInformation.NoOfAffluentRelationshipManagerOffices" class="form-control" placeholder="Number of Affluent Relationship Manager Offices" />
+                                            <span asp-validation-for="SiteDetailVM.BranchMiscInformation.NoOfAffluentRelationshipManagerOffices" class="text-danger fw-bold"></span>
+                                        </div>
+                                        <div class="mb-3 form-check">
+                                            <label asp-for="SiteDetailVM.BranchMiscInformation.LeasedOwBuilding" class="form-check-label"></label>
+                                            <input type="checkbox" asp-for="SiteDetailVM.BranchMiscInformation.LeasedOwBuilding" class="mx-2 form-check-input" style="position:relative;" />
+                                        </div>
+                                        <div class="mb-3 form-check">
+                                            <label asp-for="SiteDetailVM.BranchMiscInformation.CentralAC" class="form-check-label"></label>
+                                            <input type="checkbox" asp-for="SiteDetailVM.BranchMiscInformation.CentralAC" class="mx-2 form-check-input" style="position:relative;" />
+                                        </div>
+                                        <div class="mb-3 form-check">
+                                            <label asp-for="SiteDetailVM.BranchMiscInformation.SplitAC" class="form-check-label"></label>
+                                            <input type="checkbox" asp-for="SiteDetailVM.BranchMiscInformation.SplitAC" class="mx-2 form-check-input" style="position:relative;" />
+                                        </div>
+                                        <div class="mb-3 form-check">
+                                            <label asp-for="SiteDetailVM.BranchMiscInformation.WindowAC" class="form-check-label"></label>
+                                            <input type="checkbox" asp-for="SiteDetailVM.BranchMiscInformation.WindowAC" class="mx-2 form-check-input" style="position:relative;" />
+                                        </div>
+                                        <div class="mb-3 form-check">
+                                            <label asp-for="SiteDetailVM.BranchMiscInformation.ExistVIPSection" class="form-check-label"></label>
+                                            <input type="checkbox" asp-for="SiteDetailVM.BranchMiscInformation.ExistVIPSection" class="mx-2 form-check-input" style="position:relative;" />
+                                        </div>
+                                        <div class="mb-3 form-check">
+                                            <label asp-for="SiteDetailVM.BranchMiscInformation.SeparateVIPSection" class="form-check-label"></label>
+                                            <input type="checkbox" asp-for="SiteDetailVM.BranchMiscInformation.SeparateVIPSection" class="mx-2 form-check-input" style="position:relative;" />
+                                            <span asp-validation-for="SiteDetailVM.BranchMiscInformation.SeparateVIPSection" class="text-danger fw-bold"></span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div style="display: flex; justify-content: center; margin-top: 20px;">
+                    <button type="submit" class="btn create-btn">Create Site</button>
+                </div>
+            </div>
+        </div>
+    </form>
+    </div>
+
+    <!-- Delete Site Form (Hidden Initially) -->
+    <div id="deleteFormDiv" style="display:none; flex-direction: column; align-items: center; min-height: 20vh;">
+        <form method="post" asp-page-handler="Delete">
+        </form>
+    </div>
+</div>
+
+@section scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script src="~/plugins/leaflet/leaflet.js"></script>
+    <script src="./plugins/jsgrid/jsgrid.min.js"></script>
+    <script>
+        var siteDetailsDataJson = null;
+        var sitesJson = null;
+        @if (Model.SiteDetailVM != null)
+        {
+            <text>
+                siteDetailsDataJson = @Html.Raw(Json.Serialize(Model.SiteDetailVM));
+            </text>
+        }
+        @if (Model.Sites != null && Model.Sites.Count > 0)
+        {
+            <text>
+                sitesJson = @Html.Raw(Json.Serialize(Model.Sites));
+            </text>
+        }
+    </script>
+    <script src="~/js/manage-site-details.js" asp-append-version="true"></script>
+}

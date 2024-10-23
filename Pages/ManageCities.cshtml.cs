@@ -106,7 +106,7 @@ namespace Spider_QAMS.Pages
                 var client = _clientFactory.CreateClient();
                 client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", JWTCookieHelper.GetJWTCookie(HttpContext));
                 var apiUrl = $"{_configuration["ApiBaseUrl"]}/Navigation/FetchRecord";
-                var requestBody = new Record { RecordId = CityViewModel.CityId, RecordType = (int)FetchRecordByIdEnum.GetCityData };
+                var requestBody = new Record { RecordId = CityViewModel.CityId, RecordType = (int)FetchRecordByIdOrTextEnum.GetCityData };
                 var jsonContent = JsonSerializer.Serialize(requestBody);
                 var httpContent = new StringContent(jsonContent, Encoding.UTF8, "application/json");
                 var response = await client.PostAsync(apiUrl, httpContent);

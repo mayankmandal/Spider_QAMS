@@ -9,13 +9,13 @@ using System.Text;
 
 namespace Spider_QAMS.Pages
 {
-    public class CreateSiteDetailsModel : PageModel
+    public class ManageSiteDetailsModel : PageModel
     {
         private readonly IConfiguration _configuration;
         private readonly IHttpClientFactory _clientFactory;
         private readonly IWebHostEnvironment _webHostEnvironment;
         private SiteDetail _siteDetail;
-        public CreateSiteDetailsModel(IConfiguration configuration, IHttpClientFactory httpClientFactory, IWebHostEnvironment webHostEnvironment)
+        public ManageSiteDetailsModel(IConfiguration configuration, IHttpClientFactory httpClientFactory, IWebHostEnvironment webHostEnvironment)
         {
             _configuration = configuration;
             _clientFactory = httpClientFactory;
@@ -25,11 +25,13 @@ namespace Spider_QAMS.Pages
         public IList<SponsorGroup> SponsorsList { get; set; }
         public IList<VisitStatusModel> VisitStatuses { get; set; }
         public IList<SitePicCategory> SitePicCategories { get; set; }
-        public IList<string> ATMClass {  get; set; }
+        public List<TextValueOption> SearchCriteriaOptions { get; private set; }
+        public IList<string> ATMClass { get; set; }
         [BindProperty]
         public SiteDetailVM SiteDetailVM { get; set; }
         [BindProperty]
         public List<SitePicCategoryVMAssociation> SitePicCategoryList { get; set; }
+        public List<SiteDetail> Sites { get; set; }
         public async Task<IActionResult> OnGetAsync()
         {
             await LoadDropdownDataAsync();
@@ -38,21 +40,19 @@ namespace Spider_QAMS.Pages
         // API call to load dropdown data
         private async Task LoadDropdownDataAsync()
         {
+            SearchCriteriaOptions = SiteDetailsSearchCriteriaOptions.Options;
+
             var client = _clientFactory.CreateClient();
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", JWTCookieHelper.GetJWTCookie(HttpContext));
+
+            var responseSites = await client.GetStringAsync($"{_configuration["ApiBaseUrl"]}/Navigation/GetAllSiteDetails");
+            Sites = string.IsNullOrEmpty(responseSites) ? new List<SiteDetail>() : JsonSerializer.Deserialize<List<SiteDetail>>(responseSites, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
 
             var responseATMClasses = await client.GetStringAsync($"{_configuration["ApiBaseUrl"]}/Navigation/GetAllATMClasses");
             ATMClass = string.IsNullOrEmpty(responseATMClasses) ? new List<string>() : JsonSerializer.Deserialize<List<string>>(responseATMClasses, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
 
             var responsePicCategories = await client.GetStringAsync($"{_configuration["ApiBaseUrl"]}/Navigation/GetAllPicCategories");
             SitePicCategories = string.IsNullOrEmpty(responsePicCategories) ? new List<SitePicCategory>() : JsonSerializer.Deserialize<List<SitePicCategory>>(responsePicCategories, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
-
-            SitePicCategoryList = SitePicCategories.Select(category => new SitePicCategoryVMAssociation
-            {
-                PicCatID = category.PicCatID,
-                Description = category.Description,
-                Images = new List<SitePicturesAssociation>()
-            }).ToList();
 
             var responseVisitStatuses = await client.GetStringAsync($"{_configuration["ApiBaseUrl"]}/Navigation/GetAllVisitStatuses");
             VisitStatuses = string.IsNullOrEmpty(responseVisitStatuses) ? new List<VisitStatusModel>() : JsonSerializer.Deserialize<List<VisitStatusModel>>(responseVisitStatuses, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
@@ -221,7 +221,7 @@ namespace Spider_QAMS.Pages
                         TrackingSystem = SiteDetailVM.SiteMiscInformation?.TrackingSystem ?? string.Empty,
                     },
                     // Initialize SitePicturesLst from SitePicCategoryList
-                    SitePicturesLst = SitePicCategoryList.SelectMany(category => 
+                    SitePicturesLst = SitePicCategoryList.SelectMany(category =>
                     category.Images.Select(image => new SitePictures
                     {
                         SitePicID = image.SitePicID,
@@ -272,7 +272,7 @@ namespace Spider_QAMS.Pages
                             string categoryFolder = Path.Combine(_webHostEnvironment.WebRootPath, _configuration["SiteDetailImgPath"], category.Description);
 
                             // Create the folder if it doesn't exist
-                            if(!Directory.Exists(categoryFolder))
+                            if (!Directory.Exists(categoryFolder))
                             {
                                 Directory.CreateDirectory(categoryFolder);
                             }
@@ -283,7 +283,7 @@ namespace Spider_QAMS.Pages
                                 {
                                     // Fetching the unique generated file name using SiteCode, SiteTypeId, SiteId, and PicName
                                     var sitePicture = createdSite.SitePicturesLst.Where(si => si.PicPath.Contains(image.PicPath)).FirstOrDefault();
-                                    if(sitePicture != null)
+                                    if (sitePicture != null)
                                     {
                                         // Build the complete file path using category folder and unique file name
                                         filePath = Path.Combine(categoryFolder, sitePicture.PicPath);

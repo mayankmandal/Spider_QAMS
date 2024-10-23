@@ -181,3 +181,33 @@ button, a.btn {
     margin-top: 10px;
     height: auto;
 }
+
+#searchResults {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.search-result-item {
+    border: 1px solid #ccc;
+    padding: 10px;
+    margin: 5px;
+    flex: 0 1 45%; /* Adjusting for two-column layout */
+    cursor: pointer;
+}
+
+.search-result-item.selected {
+    background-color: #e0f7fa; /* Highlight color */
+    border-color: #007bff;
+}
+
+.jsgrid-grid-body tr:nth-child(even) {
+    background-color: #C3C4C7; /* Alternate row colors */
+}
+
+.jsgrid-header-cell {
+    font-weight: bold;
+    background-color: #5E6873 !important;
+    color: white !important;
+    text-align: center;
+}

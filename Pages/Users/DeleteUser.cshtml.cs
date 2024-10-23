@@ -48,7 +48,7 @@ namespace Spider_QAMS.Pages.Users
             var client = _clientFactory.CreateClient();
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", JWTCookieHelper.GetJWTCookie(HttpContext));
             var apiUrl = $"{_configuration["ApiBaseUrl"]}/Navigation/FetchRecord";
-            var requestBody = new Record { RecordId = Convert.ToInt32(userId), RecordType = (int)FetchRecordByIdEnum.GetCurrentUserDetails };
+            var requestBody = new Record { RecordId = Convert.ToInt32(userId), RecordType = (int)FetchRecordByIdOrTextEnum.GetCurrentUserDetails };
             var jsonContent = JsonSerializer.Serialize(requestBody);
             var httpContent = new StringContent(jsonContent, Encoding.UTF8, "application/json");
             var response = await client.PostAsync(apiUrl, httpContent);

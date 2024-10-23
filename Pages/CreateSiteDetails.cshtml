@@ -13,7 +13,7 @@
     <form method="post" enctype="multipart/form-data" id="createSiteForm">
         <div class="form-control border-2 mb-2" style="display:flex; justify-content:space-around; height:auto; width:75rem;flex-direction:column;">
             <div class="row pb-1 pt-2">
-                <div style="color:#17a2b8; text-align:center; font-size:1.7rem; font-weight:500">CREATE SITE DETAILS</div>
+                <div style="color:#17a2b8; text-align:center; font-size:1.7rem; font-weight:500">CREATE NEW SITE</div>
                 <div>
                     <hr />
                 </div>
@@ -215,7 +215,7 @@
                     <div class="tab-content" id="custom-tabs-one-tabContent">
                         <!-- Upload Pictures Tab -->
                         <div class="tab-pane fade show active" id="uploadPics" role="tabpanel" aria-labelledby="custom-tabs-one-home-tab">
-                            <div class="row" style="display: flex; justify-content: space-between; align-items:flex-end;">
+                            <div class="row" style="display: flex; justify-content: space-between; align-items: flex-end;">
                                 <!-- Picture Category Dropdown -->
                                 <div class="col-md-4">
                                     <label for="sitePicCategory" class="form-label">Picture Category</label>
@@ -223,8 +223,9 @@
                                         <option value="" disabled selected>--Select Category--</option>
                                         @foreach (var category in Model.SitePicCategories)
                                         {
-                                            <!-- Store both the PicCatID and Description -->
-                                            <option value="@category.PicCatID" data-description="@category.Description">@category.Description</option>
+                                            <option value="@category.PicCatID" data-description="@category.Description">
+                                                @category.Description
+                                            </option>
                                         }
                                     </select>
                                 </div>
@@ -232,18 +233,17 @@
                                 <div class="col-md-4">
                                     <button type="button" id="addImages" class="btn btn-primary">Add Images</button>
                                 </div>
-                                <!-- Validation message span -->
+
                                 <span id="categoryValidation" class="text-danger fw-bold" style="display:none;"></span>
                             </div>
+
                             <hr />
-                            <div class="row" id="uploadedImagesContainer">
-                                <!-- Dynamically loaded images and description fields will appear here -->
+
+                            <div id="uploadedImagesContainer" class="row">
+                                <!-- Dynamic content will be appended here -->
                             </div>
                         </div>
 
-                        <!-- Hidden form input to handle images -->
-                        @* Handle the uploaded images in a hidden input to bind with the backend *@
-                        <div id="hiddenImageInputs"></div>
 
                         <!-- Contact Information Tab -->
                         <div class="tab-pane fade" id="contactInformation" role="tabpanel" aria-labelledby="custom-tabs-one-profile-tab">

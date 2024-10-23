@@ -274,77 +274,80 @@ $(document).ready(function () {
         const selectedDescription = categorySelect.find(':selected').data('description');
         const container = $('#uploadedImagesContainer');
         const validationMessage = $('#categoryValidation');
-        let categoryIndex = container.children().length; // Using the index based on existing categories
+        const existingCategoryDiv = container.find(`.category-${selectedCategory}`);
 
         validationMessage.hide();
 
         if (selectedCategory) {
-            const existingCategoryDiv = container.find(`.category-${selectedCategory}`);
+            // Prevent adding duplicate categories
             if (existingCategoryDiv.length > 0) {
                 validationMessage.text(`Images for ${selectedDescription} already added.`).show();
-            } else {
-                if (container.find(`.category-${selectedCategory}`).length < 10) {
-                    const uploadDiv = $(`
-                        <div class="mb-3 category-${selectedCategory}">
-                            <label class="form-label">Upload Image for Category ${selectedDescription}</label>
-                            <input type="hidden" name="SitePicCategoryList[${categoryIndex}].PicCatID" value="${selectedCategory}" />
-                            <input type="hidden" name="SitePicCategoryList[${categoryIndex}].Description" value="${selectedDescription}" />
-                            <input type="file" name="SitePicCategoryList[${categoryIndex}].Images[0].PicPathFile" class="form-control upload-image" accept="image/*" multiple />
-                            <div class="image-preview mt-3"></div>
-                            <div class="image-descriptions mt-2"></div>
-                        </div>
-                        `);
-
-                    container.append(uploadDiv);
-
-                    // Handle image file selection
-                    uploadDiv.find('.upload-image').on('change', function () {
-                        const files = $(this).prop('files');
-                        const previewContainer = $(this).siblings('.image-preview');
-                        const descriptionsContainer = $(this).siblings('.image-descriptions');
-                        previewContainer.empty();
-                        descriptionsContainer.empty();
-
-                        if (files.length > 0) {
-                            for (let i = 0; i < files.length; i++) {
-                                const file = files[i];
-                                const reader = new FileReader();
-
-                                reader.onload = function (e) {
-                                    const imgPreview = `
-                    <div class="uploaded-image-container d-flex align-items-center mb-3">
-                        <span class="me-2">${i + 1}.</span>
-                        <img src="${e.target.result}" class="img-thumbnail" style="max-width: 150px; margin-right: 20px;" />
-                        <div style="flex-grow: 1;">
-                            <label class="form-label">Description for ${file.name}</label>
-                            <input type="text" name="SitePicCategoryList[${categoryIndex}].Images[${i}].Description" class="form-control" placeholder="Add description" />
-                            <input type="hidden" name="SitePicCategoryList[${categoryIndex}].Images[${i}].PicPath" value="${file.name}" />
-                            <button type="button" class="btn btn-danger btn-sm remove-individual-image mt-2">Remove Image</button>
-                        </div>
-                    </div>
-                `;
-                                    previewContainer.append(imgPreview);
-                                    // Remove individual image
-                                    previewContainer.find('.remove-individual-image').last().on('click', function () {
-                                        $(this).closest('.uploaded-image-container').remove();
-                                    });
-                                };
-                                reader.readAsDataURL(file);
-                            }
-                        }
-                    });
-
-                    // Remove all images for the category
-                    const removeCategoryButton = $(`<button type="button" class="btn btn-danger mt-3 remove-category">Remove All Images for ${selectedDescription}</button>`);
-                    uploadDiv.append(removeCategoryButton);
-
-                    removeCategoryButton.on('click', function () {
-                        uploadDiv.remove();
-                    });
-                }
+                return;
             }
+
+            // Create a new category section
+            const categoryIndex = container.children().length;
+            const uploadDiv = $(`
+            <div class="mb-3 category-${selectedCategory}">
+                <h5>${selectedDescription}</h5>
+                <input type="hidden" name="SitePicCategoryList[${categoryIndex}].PicCatID" value="${selectedCategory}" />
+                <input type="hidden" name="SitePicCategoryList[${categoryIndex}].Description" value="${selectedDescription}" />
+                <input type="file" name="SitePicCategoryList[${categoryIndex}].Images[0].PicPathFile"
+                    class="form-control upload-image" accept="image/*" multiple />
+                <div class="image-preview mt-3"></div>
+                <button type="button" class="btn btn-danger mt-2 remove-category">Remove ${selectedDescription}</button>
+            </div>
+        `);
+
+            container.append(uploadDiv);
+
+            // Handle image selection and preview
+            uploadDiv.find('.upload-image').on('change', function () {
+                const files = $(this).prop('files');
+                const previewContainer = $(this).siblings('.image-preview');
+                const categoryImagesIndex = $(this).closest('.category-${selectedCategory}').index();
+
+                previewContainer.empty();
+
+                for (let i = 0; i < files.length; i++) {
+                    const file = files[i];
+                    const reader = new FileReader();
+
+                    reader.onload = function (e) {
+                        const imgPreview = `
+                        <div class="uploaded-image-container d-flex align-items-center mb-3">
+                            <span class="me-2">${i + 1}.</span>
+                            <img src="${e.target.result}" class="img-thumbnail" style="max-width: 150px; margin-right: 20px;" />
+                            <div style="flex-grow: 1;">
+                                <label class="form-label">Description for ${file.name}</label>
+                                <input type="text" name="SitePicCategoryList[${categoryIndex}].Images[${i}].Description"
+                                    class="form-control" placeholder="Add description" />
+                                <input type="hidden" name="SitePicCategoryList[${categoryIndex}].Images[${i}].PicPath"
+                                    value="${file.name}" />
+                                <button type="button" class="btn btn-danger btn-sm remove-individual-image mt-2">
+                                    Remove Image
+                                </button>
+                            </div>
+                        </div>
+                    `;
+                        previewContainer.append(imgPreview);
+
+                        // Handle individual image removal
+                        previewContainer.find('.remove-individual-image').last().on('click', function () {
+                            $(this).closest('.uploaded-image-container').remove();
+                        });
+                    };
+                    reader.readAsDataURL(file);
+                }
+            });
+
+            // Handle category removal
+            uploadDiv.find('.remove-category').on('click', function () {
+                uploadDiv.remove();
+            });
         } else {
             validationMessage.text('Please select a category first.').show();
         }
     });
+
 });

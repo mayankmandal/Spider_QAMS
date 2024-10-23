@@ -26,7 +26,7 @@ namespace Spider_QAMS.Utilities
         public const string SP_CheckUniqueness = "dbo.uspCheckUniqueness";
         public const string SP_GetUserData = "dbo.uspGetUserData";
         public const string SP_GetTableAllData = "dbo.uspGetTableAllData";
-        public const string SP_uspFetchRecordById = "dbo.uspFetchRecordById";
+        public const string SP_FetchRecordByIdOrText = "dbo.uspFetchRecordByIdOrText";
 
         public const string SP_DeleteEntityRecord = "dbo.uspDeleteEntityRecord";
         public const string SP_UpdateEntityRecord = "dbo.uspUpdateEntityRecord";
@@ -71,39 +71,74 @@ namespace Spider_QAMS.Utilities
             GetUserRoles = 3,       // Fetch user roles by ID
         }
 
-        public enum FetchRecordByIdEnum
+        public enum FetchRecordByIdOrTextEnum
         {
             None = 0,
-            GetCurrentUserDetails = 1,      // Fetch user data
-            GetCurrentUserProfile = 2,      // Fetch user's profile
-            GetCurrentUserPages = 3,        // Fetch user pages list
-            GetCurrentUserCategories = 4,   // Fetch user categories list
-            GetSettingsData = 5,            // Fetch settings data
-            GetProfileData = 6,             // Fetch profile data
-            GetCategoryData = 7,            // Fetch category data
-            GetRegionData = 8,              // Fetch region data
-            GetCityData = 9,                // Fetch city data
-            GetLocationData = 10,           // Fetch location data
-            GetContactData = 11,           // Fetch location data
+            GetCurrentUserDetails = 1,                   // Fetch user data
+            GetCurrentUserProfile = 2,                   // Fetch user's profile
+            GetCurrentUserPages = 3,                     // Fetch user pages list
+            GetCurrentUserCategories = 4,                // Fetch user categories list
+            GetSettingsData = 5,                         // Fetch settings data
+            GetProfileData = 6,                          // Fetch profile data
+            GetCategoryData = 7,                         // Fetch category data
+            GetRegionData = 8,                           // Fetch region data
+            GetCityData = 9,                             // Fetch city data
+            GetLocationData = 10,                        // Fetch location data
+            GetContactData = 11,                         // Fetch contact data
+            GetSiteDetailBySiteCodeData = 12,            // Fetch site detail by site code data
+            GetSiteDetailBySiteNameData = 13,            // Fetch site detail by site name data
+            GetSiteDetailBySiteCategoryData = 14,        // Fetch site detail by site category data
+            GetSiteDetailByBranchNumberData = 15,        // Fetch site detail by branch number data
+        }
+
+        public static class SiteDetailsSearchCriteriaOptions
+        {
+            public static readonly List<TextValueOption> Options = new()
+            {
+                new TextValueOption
+                {
+                    Value = (int)FetchRecordByIdOrTextEnum.GetSiteDetailBySiteCodeData,
+                    Text = "Site Code"
+                },
+                new TextValueOption
+                {
+                    Value = (int)FetchRecordByIdOrTextEnum.GetSiteDetailBySiteNameData,
+                    Text = "Site Name"
+                },
+                new TextValueOption
+                {
+                    Value = (int)FetchRecordByIdOrTextEnum.GetSiteDetailBySiteCategoryData,
+                    Text = "Site Category"
+                },
+                new TextValueOption
+                {
+                    Value = (int)FetchRecordByIdOrTextEnum.GetSiteDetailByBranchNumberData,
+                    Text = "Branch Number"
+                },
+            };
         }
 
         public static class FetchRecordTypeMapper
         {
-            private static readonly Dictionary<FetchRecordByIdEnum, Type> TypeMappings = new()
+            private static readonly Dictionary<FetchRecordByIdOrTextEnum, Type> TypeMappings = new()
             {
-                { FetchRecordByIdEnum.GetCurrentUserDetails, typeof(ProfileUserAPIVM) },
-                { FetchRecordByIdEnum.GetCurrentUserProfile, typeof(ProfileSite) },
-                { FetchRecordByIdEnum.GetCurrentUserPages, typeof(List<PageSiteVM>) },
-                { FetchRecordByIdEnum.GetCurrentUserCategories, typeof(List<CategoriesSetDTO>) },
-                { FetchRecordByIdEnum.GetSettingsData, typeof(ProfileUserAPIVM) },
-                { FetchRecordByIdEnum.GetProfileData, typeof(ProfileSite) },
-                { FetchRecordByIdEnum.GetCategoryData, typeof(PageCategory) },
-                { FetchRecordByIdEnum.GetRegionData, typeof(Region) },
-                { FetchRecordByIdEnum.GetCityData, typeof(City) },
-                { FetchRecordByIdEnum.GetLocationData, typeof(SiteLocation) },
-                { FetchRecordByIdEnum.GetContactData, typeof(Contact) }
+                { FetchRecordByIdOrTextEnum.GetCurrentUserDetails, typeof(ProfileUserAPIVM) },
+                { FetchRecordByIdOrTextEnum.GetCurrentUserProfile, typeof(ProfileSite) },
+                { FetchRecordByIdOrTextEnum.GetCurrentUserPages, typeof(List<PageSiteVM>) },
+                { FetchRecordByIdOrTextEnum.GetCurrentUserCategories, typeof(List<CategoriesSetDTO>) },
+                { FetchRecordByIdOrTextEnum.GetSettingsData, typeof(ProfileUserAPIVM) },
+                { FetchRecordByIdOrTextEnum.GetProfileData, typeof(ProfileSite) },
+                { FetchRecordByIdOrTextEnum.GetCategoryData, typeof(PageCategory) },
+                { FetchRecordByIdOrTextEnum.GetRegionData, typeof(Region) },
+                { FetchRecordByIdOrTextEnum.GetCityData, typeof(City) },
+                { FetchRecordByIdOrTextEnum.GetLocationData, typeof(SiteLocation) },
+                { FetchRecordByIdOrTextEnum.GetContactData, typeof(Contact) },
+                { FetchRecordByIdOrTextEnum.GetSiteDetailBySiteCodeData, typeof(List<SiteDetail>) },
+                { FetchRecordByIdOrTextEnum.GetSiteDetailBySiteNameData, typeof(List<SiteDetail>) },
+                { FetchRecordByIdOrTextEnum.GetSiteDetailBySiteCategoryData, typeof(List<SiteDetail>) },
+                { FetchRecordByIdOrTextEnum.GetSiteDetailByBranchNumberData, typeof(List<SiteDetail>) },
             };
-            public static Type GetTypeByEnum(FetchRecordByIdEnum recordType)
+            public static Type GetTypeByEnum(FetchRecordByIdOrTextEnum recordType)
             {
                 if(TypeMappings.TryGetValue(recordType, out var type))
                 {
@@ -131,6 +166,7 @@ namespace Spider_QAMS.Utilities
             GetAllVisitStatuses = 13,       // Fetch all visit statuses
             GetAllATMClasses = 14,          // Fetch all atm classes
             GetAllPicCategories = 15,       // Fetch all picture categories
+            GetAllSiteDetails = 16,         // Fetch all site details
         }
 
         public enum TableNameCheckUniqueness

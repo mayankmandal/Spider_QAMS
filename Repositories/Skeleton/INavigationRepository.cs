@@ -40,7 +40,7 @@ namespace Spider_QAMS.Repositories.Skeleton
         Task<City> GetCityDataAsync(int newUserId);
         Task<SiteLocation> GetLocationDataAsync(int newUserId);
         Task<Contact> GetContactDataAsync(int newUserId);
-        
+        Task<List<SiteDetail>> GetSiteDetailsDataAsync(Record record);
 
         Task<List<ProfileUserAPIVM>> GetAllUsersDataAsync();
         Task<List<ProfileSite>> GetAllProfilesAsync();
@@ -57,5 +57,6 @@ namespace Spider_QAMS.Repositories.Skeleton
         Task<List<VisitStatusModel>> GetAllVisitStatusesAsync();
         Task<List<string>> GetAllATMClassesAsync();
         Task<List<SitePicCategory>> GetAllPicCategoriesAsync();
+        Task<List<SiteDetail>> GetAllSiteDetailsAsync();
     }
 }

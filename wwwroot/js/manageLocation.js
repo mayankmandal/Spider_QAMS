@@ -90,15 +90,15 @@ $("#jsGrid").jsGrid({
             align: "center",
             itemTemplate: function (_, item) {
                 var editButton = $("<button>")
-                    .addClass("custom-button")
-                    .text("Edit")
+                    .addClass("btn btn-primary btn-sm")
+                    .html('<i class="fas fa-edit"></i> Edit')
                     .on("click", function () {
                         alert("Edit location: " + item.locationId);
                         // Implement your edit logic here
                     });
                 var deleteButton = $("<button>")
-                    .addClass("custom-button delete")
-                    .text("Delete")
+                    .addClass("btn btn-danger btn-sm")
+                    .html('<i class="fas fa-trash-alt"></i> Delete')
                     .on("click", function () {
                         var index = locationsData.indexOf(item);
                         if (index > -1) {

@@ -578,9 +578,14 @@
                 </div>
             </div>
 
-            <div style="display: flex; justify-content: center; margin-top: 20px;">
-                <button type="submit" class="btn create-btn">Create Site</button>
+            <!-- Buttons for form submission -->
+            <div style="display: flex; justify-content: center; align-items: center; margin-top: 20px;">
+                <div class="row" style="width: 100%; max-width: 600px; display: flex; justify-content: space-around;">
+                    <button type="submit" class="btn create-btn">Create Site</button>
+                    <a asp-page="/ManageSiteDetails" type="button" class="btn btn-secondary">Back to All Sites</a>
+                </div>
             </div>
+
         </div>
     </form>
 </div>

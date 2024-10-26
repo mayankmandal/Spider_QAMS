@@ -6,7 +6,7 @@
 }
 
 <div style="display:flex; flex-direction:column; justify-content:center; align-items:center; min-height:20vh;">
-    <form id="deleteProfileForm" method="post" enctype="multipart/form-data">
+    <form id="deleteUserForm" method="post" enctype="multipart/form-data">
         <div class="container form-control border-2 mb-2" style="display:flex; justify-content:space-around; height:auto; flex-direction:column; width: 45rem;">
             <div class="row pb-1 pt-2">
                 <div style="color:#dc3545; text-align:center; font-size:1.7rem; font-weight:500">DELETE USER</div>
@@ -173,7 +173,7 @@
             e.preventDefault();
             if (confirm("Are you sure you want to delete this user?")) {
                 // Trigger form submission to delete the user
-                document.getElementById('deleteProfileForm').submit();
+                document.getElementById('deleteUserForm').submit();
             }
         });
     </script>

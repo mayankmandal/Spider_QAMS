@@ -85,37 +85,7 @@ namespace Spider_QAMS.Utilities
             GetCityData = 9,                             // Fetch city data
             GetLocationData = 10,                        // Fetch location data
             GetContactData = 11,                         // Fetch contact data
-            GetSiteDetailBySiteCodeData = 12,            // Fetch site detail by site code data
-            GetSiteDetailBySiteNameData = 13,            // Fetch site detail by site name data
-            GetSiteDetailBySiteCategoryData = 14,        // Fetch site detail by site category data
-            GetSiteDetailByBranchNumberData = 15,        // Fetch site detail by branch number data
-        }
-
-        public static class SiteDetailsSearchCriteriaOptions
-        {
-            public static readonly List<TextValueOption> Options = new()
-            {
-                new TextValueOption
-                {
-                    Value = (int)FetchRecordByIdOrTextEnum.GetSiteDetailBySiteCodeData,
-                    Text = "Site Code"
-                },
-                new TextValueOption
-                {
-                    Value = (int)FetchRecordByIdOrTextEnum.GetSiteDetailBySiteNameData,
-                    Text = "Site Name"
-                },
-                new TextValueOption
-                {
-                    Value = (int)FetchRecordByIdOrTextEnum.GetSiteDetailBySiteCategoryData,
-                    Text = "Site Category"
-                },
-                new TextValueOption
-                {
-                    Value = (int)FetchRecordByIdOrTextEnum.GetSiteDetailByBranchNumberData,
-                    Text = "Branch Number"
-                },
-            };
+            GetSiteDetail = 12,                          // Fetch site detail data
         }
 
         public static class FetchRecordTypeMapper
@@ -133,10 +103,7 @@ namespace Spider_QAMS.Utilities
                 { FetchRecordByIdOrTextEnum.GetCityData, typeof(City) },
                 { FetchRecordByIdOrTextEnum.GetLocationData, typeof(SiteLocation) },
                 { FetchRecordByIdOrTextEnum.GetContactData, typeof(Contact) },
-                { FetchRecordByIdOrTextEnum.GetSiteDetailBySiteCodeData, typeof(List<SiteDetail>) },
-                { FetchRecordByIdOrTextEnum.GetSiteDetailBySiteNameData, typeof(List<SiteDetail>) },
-                { FetchRecordByIdOrTextEnum.GetSiteDetailBySiteCategoryData, typeof(List<SiteDetail>) },
-                { FetchRecordByIdOrTextEnum.GetSiteDetailByBranchNumberData, typeof(List<SiteDetail>) },
+                { FetchRecordByIdOrTextEnum.GetSiteDetail, typeof(SiteDetail) },
             };
             public static Type GetTypeByEnum(FetchRecordByIdOrTextEnum recordType)
             {
@@ -190,6 +157,7 @@ namespace Spider_QAMS.Utilities
             public static string Location = "Location";
             public static string Sponsor = "Sponsor";
             public static string Contact = "Contact";
+            public static string SiteDetail = "SiteDetail";
         }
 
         public static class TableNameClassForUniqueness

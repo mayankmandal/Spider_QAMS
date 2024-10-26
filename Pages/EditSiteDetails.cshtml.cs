@@ -9,13 +9,13 @@ using System.Text;
 
 namespace Spider_QAMS.Pages
 {
-    public class CreateSiteDetailsModel : PageModel
+    public class EditSiteDetailsModel : PageModel
     {
         private readonly IConfiguration _configuration;
         private readonly IHttpClientFactory _clientFactory;
         private readonly IWebHostEnvironment _webHostEnvironment;
         private SiteDetail _siteDetail;
-        public CreateSiteDetailsModel(IConfiguration configuration, IHttpClientFactory httpClientFactory, IWebHostEnvironment webHostEnvironment)
+        public EditSiteDetailsModel(IConfiguration configuration, IHttpClientFactory httpClientFactory, IWebHostEnvironment webHostEnvironment)
         {
             _configuration = configuration;
             _clientFactory = httpClientFactory;
@@ -25,15 +25,170 @@ namespace Spider_QAMS.Pages
         public IList<SponsorGroup> SponsorsList { get; set; }
         public IList<VisitStatusModel> VisitStatuses { get; set; }
         public IList<SitePicCategory> SitePicCategories { get; set; }
-        public IList<string> ATMClass {  get; set; }
+        public IList<string> ATMClass { get; set; }
         [BindProperty]
         public SiteDetailVM SiteDetailVM { get; set; }
         [BindProperty]
         public List<SitePicCategoryVMAssociation> SitePicCategoryList { get; set; }
-        public async Task<IActionResult> OnGetAsync()
+        public async Task<IActionResult> OnGetAsync(string siteId)
         {
+            if (string.IsNullOrEmpty(siteId))
+            {
+                return RedirectToPage("/Error");
+            }
+            await LoadSiteDetailsDataAsync(siteId);
             await LoadDropdownDataAsync();
             return Page();
+        }
+
+        private async Task LoadSiteDetailsDataAsync(string SiteId)
+        {
+            var client = _clientFactory.CreateClient();
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", JWTCookieHelper.GetJWTCookie(HttpContext));
+            var apiUrl = $"{_configuration["ApiBaseUrl"]}/Navigation/FetchRecord";
+            var requestBody = new Record { RecordId = Convert.ToInt32(SiteId), RecordType = (int)FetchRecordByIdOrTextEnum.GetSiteDetail };
+            var jsonContent = JsonSerializer.Serialize(requestBody);
+            var httpContent = new StringContent(jsonContent, Encoding.UTF8, "application/json");
+            var response = await client.PostAsync(apiUrl, httpContent);
+
+            if (response.IsSuccessStatusCode)
+            {
+                var responseContent = await response.Content.ReadAsStringAsync();
+                _siteDetail = JsonSerializer.Deserialize<SiteDetail>(responseContent, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+
+                SiteDetailVM = new SiteDetailVM()
+                {
+                    SiteID = _siteDetail.SiteID,
+                    SiteCode = _siteDetail.SiteCode ?? string.Empty,
+                    SiteName = _siteDetail.SiteName ?? string.Empty,
+                    SiteCategory = _siteDetail.SiteCategory ?? string.Empty,
+                    SponsorID = _siteDetail.SponsorID,
+                    RegionID = _siteDetail.RegionID,
+                    CityID = _siteDetail.CityID,
+                    LocationID = _siteDetail.LocationID,
+                    ContactID = _siteDetail.ContactID,
+                    SiteTypeID = _siteDetail.SiteTypeID,
+                    GPSLong = _siteDetail.GPSLong ?? string.Empty,
+                    GPSLatt = _siteDetail.GPSLatt ?? string.Empty,
+                    VisitUserID = _siteDetail.VisitUserID,
+                    VisitedDate = _siteDetail.VisitedDate,
+                    ApprovedUserID = _siteDetail.ApprovedUserID,
+                    ApprovalDate = _siteDetail.ApprovalDate,
+                    VisitStatusID = _siteDetail.VisitStatusID,
+                    IsActive = _siteDetail.IsActive,
+                    BranchNo = _siteDetail.BranchNo ?? string.Empty,
+                    BranchTypeId = _siteDetail.BranchTypeId,
+                    AtmClass = _siteDetail.AtmClass ?? string.Empty,
+
+                    // Populate Site Pictures List for rendering
+                    SitePicturesLst = _siteDetail.SitePicturesLst?.Select(p => new SitePicturesVM
+                    {
+                        SitePicID = p.SitePicID,
+                        Description = p.Description ?? string.Empty,
+                        PicPath = Path.Combine(
+                            _configuration["BaseUrl"],
+                            _configuration["SiteDetailImgPath"],
+                            p.SitePicCategoryData.Description,
+                            p.PicPath) ?? string.Empty,
+                        SitePicCategoryVMData = new SitePicCategoryVM
+                        {
+                            PicCatID = p.SitePicCategoryData?.PicCatID,
+                            Description = p.SitePicCategoryData?.Description ?? string.Empty
+                        }
+                    }).ToList(),
+
+                    // Populate Contact Information
+                    SiteContactInformation = new SiteContactInformationVM
+                    {
+                        BranchTelephoneNumber = _siteDetail.ContactInformation?.BranchTelephoneNumber ?? string.Empty,
+                        BranchFaxNumber = _siteDetail.ContactInformation?.BranchFaxNumber ?? string.Empty,
+                        EmailAddress = _siteDetail.ContactInformation?.EmailAddress ?? string.Empty
+                    },
+
+                    // Populate Geographical Details
+                    GeographicalDetails = new GeographicalDetailsVM
+                    {
+                        NearestLandmark = _siteDetail.GeographicalDetails?.NearestLandmark ?? string.Empty,
+                        NumberOfKmNearestCity = _siteDetail.GeographicalDetails?.NumberOfKmNearestCity ?? string.Empty,
+                        BranchConstructionType = _siteDetail.GeographicalDetails?.BranchConstructionType ?? string.Empty,
+                        BranchIsLocatedAt = _siteDetail.GeographicalDetails?.BranchIsLocatedAt ?? string.Empty,
+                        HowToReachThere = _siteDetail.GeographicalDetails?.HowToReachThere ?? string.Empty,
+                        SiteIsOnServiceRoad = _siteDetail.GeographicalDetails?.SiteIsOnServiceRoad ?? false,
+                        HowToGetThere = _siteDetail.GeographicalDetails?.HowToGetThere ?? string.Empty
+                    },
+
+                    // Populate Branch Facilities
+                    SiteBranchFacilities = new SiteBranchFacilitiesVM
+                    {
+                        Parking = _siteDetail.BranchFacilities?.Parking ?? false,
+                        Landscape = _siteDetail.BranchFacilities?.Landscape ?? false,
+                        Elevator = _siteDetail.BranchFacilities?.Elevator ?? false,
+                        VIPSection = _siteDetail.BranchFacilities?.VIPSection ?? false,
+                        SafeBox = _siteDetail.BranchFacilities?.SafeBox ?? false,
+                        ICAP = _siteDetail.BranchFacilities?.ICAP ?? false
+                    },
+
+                    // Populate Data Center Information
+                    SiteDataCenter = new SiteDataCenterVM
+                    {
+                        UPSBrand = _siteDetail.DataCenter?.UPSBrand ?? string.Empty,
+                        UPSCapacity = _siteDetail.DataCenter?.UPSCapacity ?? string.Empty,
+                        PABXBrand = _siteDetail.DataCenter?.PABXBrand ?? string.Empty,
+                        StabilizerBrand = _siteDetail.DataCenter?.StabilizerBrand ?? string.Empty,
+                        StabilizerCapacity = _siteDetail.DataCenter?.StabilizerCapacity ?? string.Empty,
+                        SecurityAccessSystemBrand = _siteDetail.DataCenter?.SecurityAccessSystemBrand ?? string.Empty
+                    },
+
+                    // Populate Sign Board Type
+                    SignBoardType = new SignBoardTypeVM
+                    {
+                        Cylinder = _siteDetail.SignBoard?.Cylinder ?? false,
+                        StraightOrTotem = _siteDetail.SignBoard?.StraightOrTotem ?? false
+                    },
+
+                    // Populate Miscellaneous Information
+                    SiteMiscInformation = new SiteMiscInformationVM
+                    {
+                        TypeOfATMLocation = _siteDetail.MiscSiteInfo?.TypeOfATMLocation ?? string.Empty,
+                        NoOfExternalCameras = _siteDetail.MiscSiteInfo?.NoOfExternalCameras,
+                        NoOfInternalCameras = _siteDetail.MiscSiteInfo?.NoOfInternalCameras,
+                        TrackingSystem = _siteDetail.MiscSiteInfo?.TrackingSystem ?? string.Empty
+                    },
+                    // Populate Branch Miscellaneous Information
+                    BranchMiscInformation = new BranchMiscInformationVM
+                    {
+                        NoOfCleaners = _siteDetail.MiscBranchInfo?.NoOfCleaners,
+                        FrequencyOfDailyMailingService = _siteDetail.MiscBranchInfo?.FrequencyOfDailyMailingService,
+                        ElectricSupply = _siteDetail.MiscBranchInfo?.ElectricSupply ?? string.Empty,
+                        WaterSupply = _siteDetail.MiscBranchInfo?.WaterSupply ?? string.Empty,
+                        BranchOpenDate = _siteDetail.MiscBranchInfo?.BranchOpenDate,
+                        TellersCounter = _siteDetail.MiscBranchInfo?.TellersCounter,
+                        NoOfSalesManagerOffices = _siteDetail.MiscBranchInfo?.NoOfSalesManagerOffices,
+                        ExistVIPSection = _siteDetail.MiscBranchInfo?.ExistVIPSection ?? false,
+                        ContractStartDate = _siteDetail.MiscBranchInfo?.ContractStartDate,
+                        NoOfRenovationRetouchTime = _siteDetail.MiscBranchInfo?.NoOfRenovationRetouchTime,
+                        LeasedOwBuilding = _siteDetail.MiscBranchInfo?.LeasedOwBuilding ?? false,
+                        NoOfTeaBoys = _siteDetail.MiscBranchInfo?.NoOfTeaBoys,
+                        FrequencyOfMonthlyCleaningService = _siteDetail.MiscBranchInfo?.FrequencyOfMonthlyCleaningService,
+                        DrainSewerage = _siteDetail.MiscBranchInfo?.DrainSewerage ?? string.Empty,
+                        CentralAC = _siteDetail.MiscBranchInfo?.CentralAC ?? false,
+                        SplitAC = _siteDetail.MiscBranchInfo?.SplitAC ?? false,
+                        WindowAC = _siteDetail.MiscBranchInfo?.WindowAC ?? false,
+                        CashCounterType = _siteDetail.MiscBranchInfo?.CashCounterType,
+                        NoOfTellerCounters = _siteDetail.MiscBranchInfo?.NoOfTellerCounters,
+                        NoOfAffluentRelationshipManagerOffices = _siteDetail.MiscBranchInfo?.NoOfAffluentRelationshipManagerOffices,
+                        SeparateVIPSection = _siteDetail.MiscBranchInfo?.SeperateVIPSection ?? false,
+                        ContractEndDate = _siteDetail.MiscBranchInfo?.ContractEndDate,
+                        RenovationRetouchDate = _siteDetail.MiscBranchInfo?.RenovationRetouchDate,
+                        NoOfTCRMachines = _siteDetail.MiscBranchInfo?.NoOfTCRMachines,
+                        NoOfTotem = _siteDetail.MiscBranchInfo?.NoOfTotem
+                    }
+                };
+            }
+            else
+            {
+                throw new Exception($"Error fetching user record: {response.StatusCode} - {response.ReasonPhrase}");
+            }
         }
         // API call to load dropdown data
         private async Task LoadDropdownDataAsync()
@@ -51,8 +206,20 @@ namespace Spider_QAMS.Pages
             {
                 PicCatID = category.PicCatID,
                 Description = category.Description,
-                Images = new List<IFormFile>()
-            }).ToList();
+                Images = new List<IFormFile>(),
+                ImagesPath = _siteDetail.SitePicturesLst?
+                .Where(p => p.SitePicCategoryData?.PicCatID == category.PicCatID)
+                .Select(p => Path.Combine(
+                    _configuration["BaseUrl"],
+                    _configuration["SiteDetailImgPath"],
+                    category.Description,
+                    p.PicPath ?? string.Empty
+                )).ToList() ?? new List<string>(),
+                ImageComments = _siteDetail.SitePicturesLst?
+                    .Where(p => p.SitePicCategoryData?.PicCatID == category.PicCatID)
+                    .Select(p => p.Description ?? string.Empty)
+                    .ToList() ?? new List<string>()
+                }).ToList();
 
             var responseVisitStatuses = await client.GetStringAsync($"{_configuration["ApiBaseUrl"]}/Navigation/GetAllVisitStatuses");
             VisitStatuses = string.IsNullOrEmpty(responseVisitStatuses) ? new List<VisitStatusModel>() : JsonSerializer.Deserialize<List<VisitStatusModel>>(responseVisitStatuses, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
@@ -269,7 +436,7 @@ namespace Spider_QAMS.Pages
                             if (string.IsNullOrWhiteSpace(category.Description))
                                 continue;
 
-                            // Append category description as folder name
+                            // Create the folder path based on category description
                             string categoryFolder = Path.Combine(
                                 _webHostEnvironment.WebRootPath,
                                 _configuration["SiteDetailImgPath"],
@@ -290,7 +457,8 @@ namespace Spider_QAMS.Pages
                                     string uploadedFileName = Path.GetFileName(image.FileName);
 
                                     // Find the matching SitePicture entry based on PicPath containing the uploaded file name
-                                    var sitePicture = createdSite.SitePicturesLst.FirstOrDefault(sp => sp.PicPath.Contains(uploadedFileName));
+                                    var sitePicture = createdSite.SitePicturesLst
+                                        .FirstOrDefault(sp => sp.PicPath.Contains(uploadedFileName));
 
                                     if (sitePicture != null)
                                     {
@@ -302,7 +470,6 @@ namespace Spider_QAMS.Pages
                                         {
                                             await image.CopyToAsync(fileStream);
                                         }
-
                                     }
                                     else
                                     {
@@ -337,7 +504,6 @@ namespace Spider_QAMS.Pages
                 return HandleError(ex, "An unexpected error occurred.");
             }
         }
-
         private IActionResult HandleError(Exception ex, string errorMessage)
         {
             TempData["error"] = $"Error Message - " + errorMessage + ". Error details: " + ex.Message;

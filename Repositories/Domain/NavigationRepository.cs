@@ -42,13 +42,7 @@ namespace Spider_QAMS.Repositories.Domain
                     return await GetLocationDataAsync(record.RecordId);
                 case (int)FetchRecordByIdOrTextEnum.GetContactData:
                     return await GetContactDataAsync(record.RecordId);
-                case (int)FetchRecordByIdOrTextEnum.GetSiteDetailBySiteCodeData:
-                    return await GetSiteDetailsDataAsync(record);
-                case (int)FetchRecordByIdOrTextEnum.GetSiteDetailBySiteNameData:
-                    return await GetSiteDetailsDataAsync(record);
-                case (int)FetchRecordByIdOrTextEnum.GetSiteDetailBySiteCategoryData:
-                    return await GetSiteDetailsDataAsync(record);
-                case (int)FetchRecordByIdOrTextEnum.GetSiteDetailByBranchNumberData:
+                case (int)FetchRecordByIdOrTextEnum.GetSiteDetail:
                     return await GetSiteDetailsDataAsync(record);
                 default:
                     throw new Exception("Invalid Record Type");
@@ -783,7 +777,7 @@ namespace Spider_QAMS.Repositories.Domain
 
                 bool isFailure = SqlDBHelper.ExecuteNonQuery(SP_CreateSiteDetails, CommandType.StoredProcedure, sqlParameters);
 
-                siteDetail.SiteID = (sqlParameters[71].Value != DBNull.Value) ? (long)sqlParameters[71].Value : -1;
+                siteDetail.SiteID = (sqlParameters[73].Value != DBNull.Value) ? (long)sqlParameters[73].Value : -1;
 
                 // Validate if the SiteID is greater than 0
                 if (siteDetail.SiteID <= 0 && !isFailure)
@@ -1404,9 +1398,9 @@ namespace Spider_QAMS.Repositories.Domain
             }
             return contact;
         }
-        public async Task<List<SiteDetail>> GetSiteDetailsDataAsync(Record record)
+        public async Task<SiteDetail> GetSiteDetailsDataAsync(Record record)
         {
-            List<SiteDetail> sites = new List<SiteDetail>();
+            SiteDetail site = new SiteDetail();
             try
             {
                 SqlParameter[] sqlParameters = new SqlParameter[]
@@ -1424,7 +1418,7 @@ namespace Spider_QAMS.Repositories.Domain
                     {
                         foreach (DataRow dataRow in dataTable1.Rows)
                         {
-                            var site = new SiteDetail
+                            site = new SiteDetail
                             {
                                 SiteID = Convert.ToInt64(dataRow["SiteID"]),
                                 SiteCode = GetString(dataRow["SiteCode"]),
@@ -1541,22 +1535,40 @@ namespace Spider_QAMS.Repositories.Domain
                                     RenovationRetouchDate = GetNullableDateTime(dataRow["RenovationRetouchDate"]),
                                     NoOfTCRMachines = GetNullableInt(dataRow["NoofTCRmachines"]),
                                     NoOfTotem = GetNullableInt(dataRow["NoOfTotem"])
-                                }
+                                },
+                                SitePicturesLst = new List<SitePictures>()
                             };
-                            sites.Add(site);
                         }
                     }
                     DataTable dataTable2 = dataTables[1];
                     if (dataTable2.Rows.Count > 0)
                     {
                         foreach (DataRow dataRow in dataTable2.Rows)
-                        { 
-                            
+                        {
+                            // Create a new SitePicCategory object
+                            var sitePicCategory = new SitePicCategory
+                            {
+                                PicCatID = GetNullableInt(dataRow["PicCatID"]) ?? 0, // Default to 0 if null
+                                Description = GetString(dataRow["SitePicCategoryDescription"])
+                            };
+
+                            // Create a new SitePictures object and map properties
+                            var sitePicture = new SitePictures
+                            {
+                                SitePicID = GetNullableInt(dataRow["SitePicID"]) ?? 0, // Default to 0 if null
+                                SiteID = GetNullableLong(dataRow["SiteID"]) ?? 0, // Default to 0 if null
+                                Description = GetString(dataRow["SitePicturesDescription"]),
+                                PicPath = GetString(dataRow["PicPath"]),
+                                SitePicCategoryData = sitePicCategory // Set the category data
+                            };
+
+                            // Add the site picture to the list
+                            site.SitePicturesLst.Add(sitePicture);
                         }
                     }
                     else
                     {
-                        return null;
+                        //
                     }
                 }
                 else
@@ -1574,7 +1586,7 @@ namespace Spider_QAMS.Repositories.Domain
                 // Log or handle other exceptions
                 throw new Exception("Error in Getting Settings.", ex);
             }
-            return sites;
+            return site;
         }
 
         public async Task<List<ProfileUserAPIVM>> GetAllUsersDataAsync()

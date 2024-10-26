@@ -24,8 +24,8 @@ BEGIN
 		
 		DECLARE @NewSiteId BIGINT;
 
-		-- Validate the value of @TextCriteria currently 1 to 17 only
-        IF @TextCriteria NOT BETWEEN 1 AND 17
+		-- Validate the value of @TextCriteria currently 1 to 12 only
+        IF @TextCriteria NOT BETWEEN 1 AND 12
 		BEGIN
 				
 			SELECT -1 AS RowsAffected;
@@ -109,15 +109,10 @@ BEGIN
 			where c.ContactID = @InputInt;
 		END
 
-		-- GetSiteDetailBySiteCodeData
+		-- GetSiteDetail
 		ELSE IF @TextCriteria = 12
 		BEGIN
 
-			-- Assign only the SiteID to @NewSiteId
-			SELECT @NewSiteId = sd.SiteID 
-			FROM SiteDetails sd WITH (NOLOCK) 
-			WHERE sd.SiteCode = @InputText;
-
 			-- Retrieve all the site details using the assigned SiteID
 			SELECT 
 				sd.SiteID, sd.SiteCode, sd.SiteName, sd.SiteCategory, 
@@ -185,7 +180,7 @@ BEGIN
 				LEFT JOIN SiteMiscInformation smi WITH (NOLOCK) ON sd.SiteID = smi.SiteID
 				LEFT JOIN BranchMiscInformation bmi WITH (NOLOCK) ON sd.SiteID = bmi.SiteID
 			WHERE 
-				sd.SiteID = @NewSiteId;
+				sd.SiteID = @InputInt;
 
 			-- Retrieve site pictures using the assigned SiteID
 			SELECT 
@@ -196,275 +191,7 @@ BEGIN
 				SitePictures sp WITH (NOLOCK)
 				LEFT JOIN SitePicCategory spc WITH (NOLOCK) ON sp.PicCatID = spc.PicCatID
 			WHERE 
-				sp.SiteID = @NewSiteId;
-		END
-
-		-- GetSiteDetailBySiteNameData
-		ELSE IF @TextCriteria = 13
-		BEGIN
-
-			-- Assign only the SiteID to @NewSiteId
-			SELECT @NewSiteId = sd.SiteID 
-			FROM SiteDetails sd WITH (NOLOCK) 
-			WHERE sd.SiteName = @InputText;
-
-			-- Retrieve all the site details using the assigned SiteID
-			SELECT 
-				sd.SiteID, sd.SiteCode, sd.SiteName, sd.SiteCategory, 
-				sd.SponsorID, spr.SponsorName, sd.RegionID, rgn.RegionName, 
-				sd.CityID, cty.CityName, sd.LocationID, loc.[Location], 
-				sd.ContactID, ct.[Name] AS ContactName, sd.SiteTypeID, 
-				stype.[Description] AS SiteTypeDescription, sd.GPSLong, 
-				sd.GPSLatt, sd.VisitUserID, sd.VisitedDate, 
-				sd.ApprovedUserID, sd.ApprovalDate, sd.VisitStatusID, 
-				vst.VisitStatus, sd.IsActive, sd.BranchNo, 
-				sd.BranchTypeId, bt.[Description] AS BranchTypeDescription, 
-				sd.AtmClass,
-
-				-- Branch Misc Information
-				bmi.NoOfCleaners, bmi.FrequencyOfDailyMailingService, 
-				bmi.ElectricSupply, bmi.WaterSupply, bmi.BranchOpenDate, 
-				bmi.TellersCounter, bmi.NoOfSalesManagerOffices, 
-				bmi.ExistVIPSection, bmi.ContractStartDate, 
-				bmi.NoOfRenovationRetouchTime, bmi.LeasedOwBuilding, 
-				bmi.NoOfTeaBoys, bmi.FrequencyOfMonthlyCleaningService, 
-				bmi.DrainSewerage, bmi.CentralAC, bmi.SplitAC, 
-				bmi.WindowAC, bmi.CashCounterType, bmi.NoOfTellerCounters, 
-				bmi.NoOfAffluentRelationshipManagerOffices, bmi.SeperateVIPSection, 
-				bmi.ContractEndDate, bmi.RenovationRetouchDate, 
-				bmi.NoOfTCRMachines, bmi.NoOfTotem,
-
-				-- Geographical Details
-				gd.NearestLandmark, gd.NumberOfKmNearestCity, 
-				gd.BranchConstructionType, gd.BranchIsLocatedAt, 
-				gd.HowToReachThere, gd.SiteIsOnServiceRoad, gd.HowToGetThere,
-
-				-- Site Branch Facilities
-				sbf.Parking, sbf.Landscape, sbf.Elevator, 
-				sbf.VIPSection, sbf.SafeBox, sbf.ICAP,
-
-				-- Site Data Center
-				sdc.UPSBrand, sdc.UPSCapacity, sdc.PABXBrand, 
-				sdc.StabilizerBrand, sdc.StabilizerCapacity, 
-				sdc.SecurityAccessSystemBrand,
-
-				-- Sign Board Type
-				sbt.Cylinder, sbt.StraightOrTotem,
-
-				-- Site Contact Information
-				sci.BranchTelephoneNumber, sci.BranchFaxNumber, sci.EmailAddress,
-
-				-- Site Misc Information
-				smi.TypeOfATMLocation, smi.NoOfExternalCameras, 
-				smi.NoOfInternalCameras, smi.TrackingSystem
-			FROM 
-				SiteDetails sd WITH (NOLOCK)
-				LEFT JOIN Sponsor spr WITH (NOLOCK) ON sd.SponsorID = spr.SponsorID
-				LEFT JOIN Region rgn WITH (NOLOCK) ON sd.RegionID = rgn.RegionID
-				LEFT JOIN City cty WITH (NOLOCK) ON sd.CityID = cty.CityID
-				LEFT JOIN [LOCATION] loc WITH (NOLOCK) ON sd.LocationID = loc.LocationID
-				LEFT JOIN Contact ct WITH (NOLOCK) ON sd.ContactID = ct.ContactID
-				LEFT JOIN SiteTypes stype WITH (NOLOCK) ON sd.SiteTypeID = stype.SiteTypeID
-				LEFT JOIN VisitStatus vst WITH (NOLOCK) ON sd.VisitStatusID = vst.VisitStatusID
-				LEFT JOIN BranchType bt WITH (NOLOCK) ON sd.BranchTypeId = bt.BranchTypeId
-				LEFT JOIN SiteContactInformation sci WITH (NOLOCK) ON sd.SiteID = sci.SiteID
-				LEFT JOIN GeographicalDetails gd WITH (NOLOCK) ON sd.SiteID = gd.SiteID
-				LEFT JOIN SiteBranchFacilities sbf WITH (NOLOCK) ON sd.SiteID = sbf.SiteID
-				LEFT JOIN SiteDataCenter sdc WITH (NOLOCK) ON sd.SiteID = sdc.SiteID
-				LEFT JOIN SignBoardType sbt WITH (NOLOCK) ON sd.SiteID = sbt.SiteID
-				LEFT JOIN SiteMiscInformation smi WITH (NOLOCK) ON sd.SiteID = smi.SiteID
-				LEFT JOIN BranchMiscInformation bmi WITH (NOLOCK) ON sd.SiteID = bmi.SiteID
-			WHERE 
-				sd.SiteID = @NewSiteId;
-
-			-- Retrieve site pictures using the assigned SiteID
-			SELECT 
-				sp.SiteID, sp.SitePicID, sp.PicCatID, 
-				spc.[Description] AS SitePicCategoryDescription, 
-				sp.[Description] AS SitePicturesDescription, sp.PicPath
-			FROM 
-				SitePictures sp WITH (NOLOCK)
-				LEFT JOIN SitePicCategory spc WITH (NOLOCK) ON sp.PicCatID = spc.PicCatID
-			WHERE 
-				sp.SiteID = @NewSiteId;
-		END
-
-		-- GetSiteDetailBySiteCategoryData
-		ELSE IF @TextCriteria = 14
-		BEGIN
-			-- Assign only the SiteID to @NewSiteId
-			SELECT @NewSiteId = sd.SiteID 
-			FROM SiteDetails sd WITH (NOLOCK) 
-			WHERE sd.SiteCategory = @InputText;
-
-			-- Retrieve all the site details using the assigned SiteID
-			SELECT 
-				sd.SiteID, sd.SiteCode, sd.SiteName, sd.SiteCategory, 
-				sd.SponsorID, spr.SponsorName, sd.RegionID, rgn.RegionName, 
-				sd.CityID, cty.CityName, sd.LocationID, loc.[Location], 
-				sd.ContactID, ct.[Name] AS ContactName, sd.SiteTypeID, 
-				stype.[Description] AS SiteTypeDescription, sd.GPSLong, 
-				sd.GPSLatt, sd.VisitUserID, sd.VisitedDate, 
-				sd.ApprovedUserID, sd.ApprovalDate, sd.VisitStatusID, 
-				vst.VisitStatus, sd.IsActive, sd.BranchNo, 
-				sd.BranchTypeId, bt.[Description] AS BranchTypeDescription, 
-				sd.AtmClass,
-
-				-- Branch Misc Information
-				bmi.NoOfCleaners, bmi.FrequencyOfDailyMailingService, 
-				bmi.ElectricSupply, bmi.WaterSupply, bmi.BranchOpenDate, 
-				bmi.TellersCounter, bmi.NoOfSalesManagerOffices, 
-				bmi.ExistVIPSection, bmi.ContractStartDate, 
-				bmi.NoOfRenovationRetouchTime, bmi.LeasedOwBuilding, 
-				bmi.NoOfTeaBoys, bmi.FrequencyOfMonthlyCleaningService, 
-				bmi.DrainSewerage, bmi.CentralAC, bmi.SplitAC, 
-				bmi.WindowAC, bmi.CashCounterType, bmi.NoOfTellerCounters, 
-				bmi.NoOfAffluentRelationshipManagerOffices, bmi.SeperateVIPSection, 
-				bmi.ContractEndDate, bmi.RenovationRetouchDate, 
-				bmi.NoOfTCRMachines, bmi.NoOfTotem,
-
-				-- Geographical Details
-				gd.NearestLandmark, gd.NumberOfKmNearestCity, 
-				gd.BranchConstructionType, gd.BranchIsLocatedAt, 
-				gd.HowToReachThere, gd.SiteIsOnServiceRoad, gd.HowToGetThere,
-
-				-- Site Branch Facilities
-				sbf.Parking, sbf.Landscape, sbf.Elevator, 
-				sbf.VIPSection, sbf.SafeBox, sbf.ICAP,
-
-				-- Site Data Center
-				sdc.UPSBrand, sdc.UPSCapacity, sdc.PABXBrand, 
-				sdc.StabilizerBrand, sdc.StabilizerCapacity, 
-				sdc.SecurityAccessSystemBrand,
-
-				-- Sign Board Type
-				sbt.Cylinder, sbt.StraightOrTotem,
-
-				-- Site Contact Information
-				sci.BranchTelephoneNumber, sci.BranchFaxNumber, sci.EmailAddress,
-
-				-- Site Misc Information
-				smi.TypeOfATMLocation, smi.NoOfExternalCameras, 
-				smi.NoOfInternalCameras, smi.TrackingSystem
-			FROM 
-				SiteDetails sd WITH (NOLOCK)
-				LEFT JOIN Sponsor spr WITH (NOLOCK) ON sd.SponsorID = spr.SponsorID
-				LEFT JOIN Region rgn WITH (NOLOCK) ON sd.RegionID = rgn.RegionID
-				LEFT JOIN City cty WITH (NOLOCK) ON sd.CityID = cty.CityID
-				LEFT JOIN [LOCATION] loc WITH (NOLOCK) ON sd.LocationID = loc.LocationID
-				LEFT JOIN Contact ct WITH (NOLOCK) ON sd.ContactID = ct.ContactID
-				LEFT JOIN SiteTypes stype WITH (NOLOCK) ON sd.SiteTypeID = stype.SiteTypeID
-				LEFT JOIN VisitStatus vst WITH (NOLOCK) ON sd.VisitStatusID = vst.VisitStatusID
-				LEFT JOIN BranchType bt WITH (NOLOCK) ON sd.BranchTypeId = bt.BranchTypeId
-				LEFT JOIN SiteContactInformation sci WITH (NOLOCK) ON sd.SiteID = sci.SiteID
-				LEFT JOIN GeographicalDetails gd WITH (NOLOCK) ON sd.SiteID = gd.SiteID
-				LEFT JOIN SiteBranchFacilities sbf WITH (NOLOCK) ON sd.SiteID = sbf.SiteID
-				LEFT JOIN SiteDataCenter sdc WITH (NOLOCK) ON sd.SiteID = sdc.SiteID
-				LEFT JOIN SignBoardType sbt WITH (NOLOCK) ON sd.SiteID = sbt.SiteID
-				LEFT JOIN SiteMiscInformation smi WITH (NOLOCK) ON sd.SiteID = smi.SiteID
-				LEFT JOIN BranchMiscInformation bmi WITH (NOLOCK) ON sd.SiteID = bmi.SiteID
-			WHERE 
-				sd.SiteID = @NewSiteId;
-
-			-- Retrieve site pictures using the assigned SiteID
-			SELECT 
-				sp.SiteID, sp.SitePicID, sp.PicCatID, 
-				spc.[Description] AS SitePicCategoryDescription, 
-				sp.[Description] AS SitePicturesDescription, sp.PicPath
-			FROM 
-				SitePictures sp WITH (NOLOCK)
-				LEFT JOIN SitePicCategory spc WITH (NOLOCK) ON sp.PicCatID = spc.PicCatID
-			WHERE 
-				sp.SiteID = @NewSiteId;
-		END
-
-		-- GetSiteDetailByBranchNumberData
-		ELSE IF @TextCriteria = 15
-		BEGIN
-			-- Assign only the SiteID to @NewSiteId
-			SELECT @NewSiteId = sd.SiteID 
-			FROM SiteDetails sd WITH (NOLOCK) 
-			WHERE sd.BranchNo = @InputText;
-
-			-- Retrieve all the site details using the assigned SiteID
-			SELECT 
-				sd.SiteID, sd.SiteCode, sd.SiteName, sd.SiteCategory, 
-				sd.SponsorID, spr.SponsorName, sd.RegionID, rgn.RegionName, 
-				sd.CityID, cty.CityName, sd.LocationID, loc.[Location], 
-				sd.ContactID, ct.[Name] AS ContactName, sd.SiteTypeID, 
-				stype.[Description] AS SiteTypeDescription, sd.GPSLong, 
-				sd.GPSLatt, sd.VisitUserID, sd.VisitedDate, 
-				sd.ApprovedUserID, sd.ApprovalDate, sd.VisitStatusID, 
-				vst.VisitStatus, sd.IsActive, sd.BranchNo, 
-				sd.BranchTypeId, bt.[Description] AS BranchTypeDescription, 
-				sd.AtmClass,
-
-				-- Branch Misc Information
-				bmi.NoOfCleaners, bmi.FrequencyOfDailyMailingService, 
-				bmi.ElectricSupply, bmi.WaterSupply, bmi.BranchOpenDate, 
-				bmi.TellersCounter, bmi.NoOfSalesManagerOffices, 
-				bmi.ExistVIPSection, bmi.ContractStartDate, 
-				bmi.NoOfRenovationRetouchTime, bmi.LeasedOwBuilding, 
-				bmi.NoOfTeaBoys, bmi.FrequencyOfMonthlyCleaningService, 
-				bmi.DrainSewerage, bmi.CentralAC, bmi.SplitAC, 
-				bmi.WindowAC, bmi.CashCounterType, bmi.NoOfTellerCounters, 
-				bmi.NoOfAffluentRelationshipManagerOffices, bmi.SeperateVIPSection, 
-				bmi.ContractEndDate, bmi.RenovationRetouchDate, 
-				bmi.NoOfTCRMachines, bmi.NoOfTotem,
-
-				-- Geographical Details
-				gd.NearestLandmark, gd.NumberOfKmNearestCity, 
-				gd.BranchConstructionType, gd.BranchIsLocatedAt, 
-				gd.HowToReachThere, gd.SiteIsOnServiceRoad, gd.HowToGetThere,
-
-				-- Site Branch Facilities
-				sbf.Parking, sbf.Landscape, sbf.Elevator, 
-				sbf.VIPSection, sbf.SafeBox, sbf.ICAP,
-
-				-- Site Data Center
-				sdc.UPSBrand, sdc.UPSCapacity, sdc.PABXBrand, 
-				sdc.StabilizerBrand, sdc.StabilizerCapacity, 
-				sdc.SecurityAccessSystemBrand,
-
-				-- Sign Board Type
-				sbt.Cylinder, sbt.StraightOrTotem,
-
-				-- Site Contact Information
-				sci.BranchTelephoneNumber, sci.BranchFaxNumber, sci.EmailAddress,
-
-				-- Site Misc Information
-				smi.TypeOfATMLocation, smi.NoOfExternalCameras, 
-				smi.NoOfInternalCameras, smi.TrackingSystem
-			FROM 
-				SiteDetails sd WITH (NOLOCK)
-				LEFT JOIN Sponsor spr WITH (NOLOCK) ON sd.SponsorID = spr.SponsorID
-				LEFT JOIN Region rgn WITH (NOLOCK) ON sd.RegionID = rgn.RegionID
-				LEFT JOIN City cty WITH (NOLOCK) ON sd.CityID = cty.CityID
-				LEFT JOIN [LOCATION] loc WITH (NOLOCK) ON sd.LocationID = loc.LocationID
-				LEFT JOIN Contact ct WITH (NOLOCK) ON sd.ContactID = ct.ContactID
-				LEFT JOIN SiteTypes stype WITH (NOLOCK) ON sd.SiteTypeID = stype.SiteTypeID
-				LEFT JOIN VisitStatus vst WITH (NOLOCK) ON sd.VisitStatusID = vst.VisitStatusID
-				LEFT JOIN BranchType bt WITH (NOLOCK) ON sd.BranchTypeId = bt.BranchTypeId
-				LEFT JOIN SiteContactInformation sci WITH (NOLOCK) ON sd.SiteID = sci.SiteID
-				LEFT JOIN GeographicalDetails gd WITH (NOLOCK) ON sd.SiteID = gd.SiteID
-				LEFT JOIN SiteBranchFacilities sbf WITH (NOLOCK) ON sd.SiteID = sbf.SiteID
-				LEFT JOIN SiteDataCenter sdc WITH (NOLOCK) ON sd.SiteID = sdc.SiteID
-				LEFT JOIN SignBoardType sbt WITH (NOLOCK) ON sd.SiteID = sbt.SiteID
-				LEFT JOIN SiteMiscInformation smi WITH (NOLOCK) ON sd.SiteID = smi.SiteID
-				LEFT JOIN BranchMiscInformation bmi WITH (NOLOCK) ON sd.SiteID = bmi.SiteID
-			WHERE 
-				sd.SiteID = @NewSiteId;
-
-			-- Retrieve site pictures using the assigned SiteID
-			SELECT 
-				sp.SiteID, sp.SitePicID, sp.PicCatID, 
-				spc.[Description] AS SitePicCategoryDescription, 
-				sp.[Description] AS SitePicturesDescription, sp.PicPath
-			FROM 
-				SitePictures sp WITH (NOLOCK)
-				LEFT JOIN SitePicCategory spc WITH (NOLOCK) ON sp.PicCatID = spc.PicCatID
-			WHERE 
-				sp.SiteID = @NewSiteId;
+				sp.SiteID = @InputInt;
 		END
 
 		-- Capture number of rows affected

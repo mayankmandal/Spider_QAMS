@@ -25,21 +25,27 @@ namespace Spider_QAMS.Models.ViewModels
 
         [DisplayName("Sponsor ID")]
         public int SponsorID { get; set; }
+        public string? SponsorName { get; set; } = string.Empty;
 
         [DisplayName("Region ID")]
         public int RegionID { get; set; }
+        public string? RegionName { get; set; } = string.Empty;
 
         [DisplayName("City ID")]
         public int CityID { get; set; }
+        public string? CityName { get; set; } = string.Empty;
 
         [DisplayName("Location ID")]
         public int LocationID { get; set; }
+        public string? LocationName { get; set; } = string.Empty;
 
         [DisplayName("Contact ID")]
         public int ContactID { get; set; }
+        public string? ContactName { get; set; } = string.Empty;
 
         [DisplayName("Site Type ID")]
         public int SiteTypeID { get; set; }
+        public string? SiteTypeDescription { get; set; } = string.Empty;
 
         [DisplayName("GPS Longitude")]
         [CheckUniquenessinDB("GPSLong", "GPSLatt")]
@@ -72,6 +78,7 @@ namespace Spider_QAMS.Models.ViewModels
 
         [DisplayName("Branch Type")]
         public int? BranchTypeId { get; set; }
+        public string? BranchTypeDescription { get; set; } = string.Empty;
 
         [DisplayName("ATM Class")]
         public string? AtmClass { get; set; }

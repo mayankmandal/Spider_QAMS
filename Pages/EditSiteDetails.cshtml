@@ -58,15 +58,28 @@
                                         <div class="mb-3">
                                             <label asp-for="SiteDetailVM.SponsorID" class="form-label"></label>
                                             <select asp-for="SiteDetailVM.SponsorID" class="form-select" id="sponsorSelect">
-                                                <option value="" disabled>Select Sponsor</option>
-                                                <!-- Populate options here -->
+                                                @if (!string.IsNullOrEmpty(Model.SiteDetailVM.SponsorName))
+                                                {
+                                                    <option value="@Model.SiteDetailVM.SponsorID">@Model.SiteDetailVM.SponsorName</option>
+                                                }
+                                                else
+                                                {
+                                                    <option value="" disabled>Select Sponsor</option>
+                                                }
                                             </select>
                                             <span asp-validation-for="SiteDetailVM.SponsorID" class="text-danger fw-bold"></span>
                                         </div>
                                         <div class="mb-3">
                                             <label asp-for="SiteDetailVM.ContactID" class="form-label"></label>
                                             <select asp-for="SiteDetailVM.ContactID" class="form-select" id="contactSelect">
-                                                <option value="" disabled>Select Contact</option>
+                                                @if (!string.IsNullOrEmpty(Model.SiteDetailVM.ContactName))
+                                                {
+                                                    <option value="@Model.SiteDetailVM.ContactID">@Model.SiteDetailVM.ContactName</option>
+                                                }
+                                                else
+                                                {
+                                                    <option value="" disabled>Select Contact</option>
+                                                }
                                             </select>
                                             <span asp-validation-for="SiteDetailVM.ContactID" class="text-danger fw-bold"></span>
                                         </div>
@@ -77,24 +90,42 @@
                                         <div class="mb-3">
                                             <label asp-for="SiteDetailVM.RegionID" class="form-label"></label>
                                             <select asp-for="SiteDetailVM.RegionID" class="form-select" id="regionSelect">
-                                                <option value="" disabled>Select Region</option>
-                                                <!-- Populate options here -->
+                                                @if (!string.IsNullOrEmpty(Model.SiteDetailVM.RegionName))
+                                                {
+                                                    <option value="@Model.SiteDetailVM.RegionID">@Model.SiteDetailVM.RegionName</option>
+                                                }
+                                                else
+                                                {
+                                                    <option value="" disabled>Select Region</option>
+                                                }
                                             </select>
                                             <span asp-validation-for="SiteDetailVM.RegionID" class="text-danger fw-bold"></span>
                                         </div>
                                         <div class="mb-3">
                                             <label asp-for="SiteDetailVM.CityID" class="form-label"></label>
                                             <select asp-for="SiteDetailVM.CityID" class="form-select" id="citySelect">
-                                                <option value="" disabled>Select City</option>
-                                                <!-- Populate options here -->
+                                                @if (!string.IsNullOrEmpty(Model.SiteDetailVM.CityName))
+                                                {
+                                                    <option value="@Model.SiteDetailVM.CityID">@Model.SiteDetailVM.CityName</option>
+                                                }
+                                                else
+                                                {
+                                                    <option value="" disabled>Select City</option>
+                                                }
                                             </select>
                                             <span asp-validation-for="SiteDetailVM.CityID" class="text-danger fw-bold"></span>
                                         </div>
                                         <div class="mb-3">
                                             <label asp-for="SiteDetailVM.LocationID" class="form-label"></label>
                                             <select asp-for="SiteDetailVM.LocationID" class="form-select" id="locationSelect">
-                                                <option value="" disabled>Select Location</option>
-                                                <!-- Populate options here -->
+                                                @if (!string.IsNullOrEmpty(Model.SiteDetailVM.LocationName))
+                                                {
+                                                    <option value="@Model.SiteDetailVM.LocationID">@Model.SiteDetailVM.LocationName</option>
+                                                }
+                                                else
+                                                {
+                                                    <option value="" disabled>Select Location</option>
+                                                }
                                             </select>
                                             <span asp-validation-for="SiteDetailVM.LocationID" class="text-danger fw-bold"></span>
                                         </div>
@@ -147,8 +178,14 @@
                                         <div class="mb-3">
                                             <label asp-for="SiteDetailVM.SiteTypeID" class="form-label"></label>
                                             <select asp-for="SiteDetailVM.SiteTypeID" class="form-select" id="siteTypeSelect">
-                                                <option value="" disabled>Select Site Type</option>
-                                                <!-- Populate options here -->
+                                                @if (!string.IsNullOrEmpty(Model.SiteDetailVM.SiteTypeDescription))
+                                                {
+                                                    <option value="@Model.SiteDetailVM.SiteTypeID">@Model.SiteDetailVM.SiteTypeDescription</option>
+                                                }
+                                                else
+                                                {
+                                                    <option value="" disabled>Select Site Type</option>
+                                                }
                                             </select>
                                             <span asp-validation-for="SiteDetailVM.SiteTypeID" class="text-danger fw-bold"></span>
                                         </div>
@@ -160,8 +197,14 @@
                                         <div class="mb-3" id="branchTypeDiv">
                                             <label asp-for="SiteDetailVM.BranchTypeId" class="form-label" for="branchTypeSelect"></label>
                                             <select asp-for="SiteDetailVM.BranchTypeId" class="form-select" id="branchTypeSelect">
-                                                <option value="" disabled>Select Branch Type</option>
-                                                <!-- Populate options here -->
+                                                @if (!string.IsNullOrEmpty(Model.SiteDetailVM.BranchTypeDescription))
+                                                {
+                                                    <option value="@Model.SiteDetailVM.BranchTypeId">@Model.SiteDetailVM.BranchTypeDescription</option>
+                                                }
+                                                else
+                                                {
+                                                    <option value="" disabled>Select Branch Type</option>
+                                                }
                                             </select>
                                             <span asp-validation-for="SiteDetailVM.BranchTypeId" class="text-danger fw-bold"></span>
                                         </div>
@@ -225,7 +268,7 @@
                                     <div id="uploadedImagesContainer" class="row">
                                         @foreach (var category in Model.SitePicCategoryList)
                                         {
-                                            if(category.ImagesPath.Count <= 0)
+                                            if (category.ImagesPath.Count <= 0)
                                             {
                                                 continue;
                                             }
@@ -244,9 +287,9 @@
                                                             <img src="@picture" class="img-thumbnail" style="max-width: 150px; margin-right: 20px;" />
                                                             <div style="flex-grow: 1;">
                                                                 <label class="form-label">Description for @category.Description</label>
-                                                                <input type="text" name="SitePicCategoryList[@category.PicCatID].ImageComments[@i]" 
-                                                                       class="form-control" 
-                                                                       value="@category.ImageComments[i]" 
+                                                                <input type="text" name="SitePicCategoryList[@category.PicCatID].ImageComments[@i]"
+                                                                       class="form-control"
+                                                                       value="@category.ImageComments[i]"
                                                                        placeholder="Add description" />
                                                                 <button type="button" class="btn btn-danger btn-sm remove-individual-image mt-2">
                                                                     Remove Image
@@ -260,7 +303,7 @@
                                         }
                                     </div>
                                 </div>
-                                
+
                                 <!-- Contact Information Tab -->
                                 <div class="tab-pane fade" id="contactInformation" role="tabpanel" aria-labelledby="custom-tabs-one-profile-tab">
                                     <div class="row">
@@ -612,9 +655,9 @@
 @section scripts {
     <partial name="_ValidationScriptsPartial" />
     <script src="~/plugins/leaflet/leaflet.js"></script>
-    
     <script>
         const groupedData = @Html.Raw(Json.Serialize(Model.SponsorsList));
+        const ImagesData = @Html.Raw(Json.Serialize(Model.SitePicCategoryList));
     </script>
     <script src="~/js/edit-site-details.js" asp-append-version="true"></script>
 }

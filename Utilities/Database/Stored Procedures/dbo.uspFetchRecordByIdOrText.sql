@@ -113,11 +113,11 @@ BEGIN
 		ELSE IF @TextCriteria = 12
 		BEGIN
 
-			-- Retrieve all the site details using the assigned SiteID
+			-- Retrieve the site details using the assigned SiteID
 			SELECT 
 				sd.SiteID, sd.SiteCode, sd.SiteName, sd.SiteCategory, 
 				sd.SponsorID, spr.SponsorName, sd.RegionID, rgn.RegionName, 
-				sd.CityID, cty.CityName, sd.LocationID, loc.[Location], 
+				sd.CityID, cty.CityName, sd.LocationID, loc.[Location] AS LocationName, 
 				sd.ContactID, ct.[Name] AS ContactName, sd.SiteTypeID, 
 				stype.[Description] AS SiteTypeDescription, sd.GPSLong, 
 				sd.GPSLatt, sd.VisitUserID, sd.VisitedDate, 

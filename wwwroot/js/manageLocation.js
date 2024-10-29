@@ -93,8 +93,7 @@ $("#jsGrid").jsGrid({
                     .addClass("btn btn-primary btn-sm")
                     .html('<i class="fas fa-edit"></i> Edit')
                     .on("click", function () {
-                        alert("Edit location: " + item.locationId);
-                        // Implement your edit logic here
+                        showEditForm(item.locationId, item.location, item.streetName, item.cityId, item.regionId, item.branchName, item.districtName, item.sponsorId);
                     });
                 var deleteButton = $("<button>")
                     .addClass("btn btn-danger btn-sm")
@@ -104,7 +103,7 @@ $("#jsGrid").jsGrid({
                         if (index > -1) {
                             locationsData.splice(index, 1);
                             $("#jsGrid").jsGrid("loadData");
-                            alert("Deleted location: " + item.locationId);
+                            showDeleteForm(item.locationId, item.location, item.streetName, item.cityId, item.regionId, item.regionName, item.branchName, item.districtName, item.cityId, item.cityName, item.sponsorId, item.sponsorName);
                         }
                     });
 

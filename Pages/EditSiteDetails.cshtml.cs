@@ -63,11 +63,17 @@ namespace Spider_QAMS.Pages
                     SiteName = _siteDetail.SiteName ?? string.Empty,
                     SiteCategory = _siteDetail.SiteCategory ?? string.Empty,
                     SponsorID = _siteDetail.SponsorID,
+                    SponsorName = _siteDetail.SponsorName ?? string.Empty,
                     RegionID = _siteDetail.RegionID,
+                    RegionName = _siteDetail.RegionName ?? string.Empty,
                     CityID = _siteDetail.CityID,
+                    CityName = _siteDetail.CityName ?? string.Empty,
                     LocationID = _siteDetail.LocationID,
+                    LocationName = _siteDetail.LocationName ?? string.Empty,
                     ContactID = _siteDetail.ContactID,
+                    ContactName = _siteDetail.ContactName ?? string.Empty,
                     SiteTypeID = _siteDetail.SiteTypeID,
+                    SiteTypeDescription = _siteDetail.SiteTypeDescription ?? string.Empty,
                     GPSLong = _siteDetail.GPSLong ?? string.Empty,
                     GPSLatt = _siteDetail.GPSLatt ?? string.Empty,
                     VisitUserID = _siteDetail.VisitUserID,
@@ -78,6 +84,7 @@ namespace Spider_QAMS.Pages
                     IsActive = _siteDetail.IsActive,
                     BranchNo = _siteDetail.BranchNo ?? string.Empty,
                     BranchTypeId = _siteDetail.BranchTypeId,
+                    BranchTypeDescription = _siteDetail.BranchTypeDescription ?? string.Empty,
                     AtmClass = _siteDetail.AtmClass ?? string.Empty,
 
                     // Populate Site Pictures List for rendering
@@ -219,7 +226,7 @@ namespace Spider_QAMS.Pages
                     .Where(p => p.SitePicCategoryData?.PicCatID == category.PicCatID)
                     .Select(p => p.Description ?? string.Empty)
                     .ToList() ?? new List<string>()
-                }).ToList();
+            }).ToList();
 
             var responseVisitStatuses = await client.GetStringAsync($"{_configuration["ApiBaseUrl"]}/Navigation/GetAllVisitStatuses");
             VisitStatuses = string.IsNullOrEmpty(responseVisitStatuses) ? new List<VisitStatusModel>() : JsonSerializer.Deserialize<List<VisitStatusModel>>(responseVisitStatuses, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
@@ -416,7 +423,7 @@ namespace Spider_QAMS.Pages
 
                 var client = _clientFactory.CreateClient();
                 client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", JWTCookieHelper.GetJWTCookie(HttpContext));
-                var apiUrl = $"{_configuration["ApiBaseUrl"]}/Navigation/CreateSiteDetails";
+                var apiUrl = $"{_configuration["ApiBaseUrl"]}/Navigation/UpdateSiteDetails";
                 var jsonContent = JsonSerializer.Serialize(_siteDetail);
                 var httpContent = new StringContent(jsonContent, Encoding.UTF8, "application/json");
                 HttpResponseMessage response = await client.PostAsync(apiUrl, httpContent);

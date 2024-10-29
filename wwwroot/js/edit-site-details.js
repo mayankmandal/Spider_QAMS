@@ -1,6 +1,13 @@
 ﻿// Initialize terminalMap globally if it's not already defined
 let terminalMap; // Declare terminalMap
 let terminalMarkerGroup; // Declare terminalMarkerGroup
+let selectedSponsorId = 0;
+let selectedRegionId = 0;
+let selectedCityId = 0;
+let selectedLocationId = 0;
+let selectedContactId = 0;
+let selectedSiteTypeId = 0;
+let selectedBranchTypeId = 0;
 
 // Modify your createLeafletMap function to accept a dynamic map container
 function createLeafletMap(terminalData, containerId = 'mapContainer') {
@@ -113,21 +120,6 @@ function renderLargeMapInModal(longitude, latitude) {
     });
 }
 
-function prepareFormSubmission() {
-    // Get the selected profile ID
-    var selectedProfileId = $('#profileSelect option:selected').attr('data-profileid');
-
-    // Set the hidden fields with ProfileId and ProfileName
-    $('#profileIdHidden').val(selectedProfileId);     // Set ProfileName to selected profile id
-}
-
-function handleResultOnError(item) {
-    // Populate form with selected user data
-    $('#ProfileUsersData_UserId').val(item.UserId);
-    // Load user image
-    $('#loadedProfilePicture').attr('src', item.Userimgpath);
-}
-
 $(document).ready(function () {
     // Select the longitude and latitude input fields
     const gpsLongInput = $('input[id="SiteDetailVM_GPSLong"]');
@@ -150,161 +142,131 @@ $(document).ready(function () {
 
     checkAndRenderMap();
 
-    // Assuming your cancel button has an id of "cancelButton"
-    $('#cancelButton').on('click', function () {
-        $('#mapModel').modal('hide'); // Hides the modal
-    });
+    selectedSponsorId = $('#sponsorSelect').val() || null;
+    selectedRegionId = $('#regionSelect').val() || null;
+    selectedCityId = $('#citySelect').val() || null;
+    selectedLocationId = $('#locationSelect').val() || null;
+    selectedContactId = $('#contactSelect').val() || null;
+    selectedSiteTypeId = $('#siteTypeSelect').val() || null;
+    selectedBranchTypeId = $('#branchTypeSelect').val() || null;
 
-    // Populate Sponsor Dropdown
-    function populateSponsorDropdown() {
-        const sponsorSelect = $('#sponsorSelect');
-        sponsorSelect.empty().append('<option disabled selected>Select Sponsor</option>');
-        groupedData.forEach(sponsor => {
-            sponsorSelect.append(new Option(sponsor.sponsorName, sponsor.sponsorId));
-        });
+
+    // Populate Sponsor Dropdown and trigger change event to load dependent data
+    populateSponsorDropdown();
+    if (selectedSponsorId) $('#sponsorSelect').val(selectedSponsorId).change();
+});
+
+// Assuming your cancel button has an id of "cancelButton"
+$('#cancelButton').on('click', function () {
+    $('#mapModel').modal('hide'); // Hides the modal
+});
+// Populate Sponsor Dropdown
+function populateSponsorDropdown() {
+    const sponsorSelect = $('#sponsorSelect');
+    sponsorSelect.empty().append('<option disabled selected>Select Sponsor</option>');
+    groupedData.forEach(sponsor => {
+        sponsorSelect.append(new Option(sponsor.sponsorName, sponsor.sponsorId));
+    });
+}
+
+// Populate Regions, SiteType, and Contacts based on selected Sponsor
+$('#sponsorSelect').change(function () {
+    selectedSponsorId = $(this).val();
+    const sponsorData = groupedData.find(s => s.sponsorId == selectedSponsorId);
+
+    if (sponsorData) {
+        populateDropdown('#regionSelect', sponsorData.regions, 'regionName', 'regionId', selectedRegionId);
+        populateDropdown('#siteTypeSelect', sponsorData.siteTypes, 'siteTypeDescription', 'siteTypeId', selectedSiteTypeId);
+        populateDropdown('#contactSelect', sponsorData.contactsList, contactFormatter, 'contactId', selectedContactId);
     }
 
-    // Populate Regions, SiteType, and Contacts based on selected Sponsor
-    $('#sponsorSelect').change(function () {
-        // Initially hide the Branch Type dropdown
+    if (!selectedRegionId) resetDropdown('#citySelect', 'Select City');
+    if (!selectedCityId) resetDropdown('#locationSelect', 'Select Location');
+    resetDropdown('#branchTypeSelect', 'Select Branch Type');
+});
+
+// Populate Cities based on selected Region
+$('#regionSelect').change(function () {
+    selectedRegionId = $(this).val();
+    const sponsorData = groupedData.find(s => s.sponsorId == selectedSponsorId);
+    const cities = sponsorData?.regions.find(r => r.regionId == selectedRegionId)?.cities || [];
+
+    populateDropdown('#citySelect', cities, 'cityName', 'cityId', selectedCityId);
+    if (!selectedCityId) resetDropdown('#locationSelect', 'Select Location');
+});
+
+// Populate Locations based on selected City
+$('#citySelect').change(function () {
+    selectedCityId = $(this).val();
+    const sponsorData = groupedData.find(s => s.sponsorId == selectedSponsorId);
+    const locations = sponsorData?.regions
+        .find(r => r.regionId == selectedRegionId)?.cities
+        .find(c => c.cityId == selectedCityId)?.locations || [];
+
+    populateDropdown('#locationSelect', locations, locationFormatter, 'locationId', selectedLocationId);
+});
+
+// Populate Branch Type based on selected Site Type
+$('#siteTypeSelect').change(function () {
+    selectedSiteTypeId = $(this).val();
+    const sponsorData = groupedData.find(s => s.sponsorId == selectedSponsorId);
+    const siteType = sponsorData?.siteTypes.find(st => st.siteTypeId == selectedSiteTypeId);
+
+    if (siteType && siteType.branchTypes.length) {
+        $('#branchTypeDiv').show();
+        populateDropdown('#branchTypeSelect', siteType.branchTypes, 'description', 'branchTypeId', selectedBranchTypeId);
+    } else {
         $('#branchTypeDiv').hide();
+        resetDropdown('#branchTypeSelect', 'Select Branch Type');
+    }
+});
 
-        const selectedSponsorId = $(this).val();
-        const sponsorData = groupedData.find(s => s.sponsorId == selectedSponsorId);
-        const regions = sponsorData.regions; // regions exists in sponsorData
-        const siteTypes = sponsorData.siteTypes; // siteTypes exists in sponsorData
-        const contacts = sponsorData.contactsList; // contacts exists in sponsorData
-
-        // Populate Region Dropdown
-        const regionSelect = $('#regionSelect');
-        regionSelect.empty().append('<option disabled selected>Select Region</option>');
-        regions.forEach(region => {
-            regionSelect.append(new Option(region.regionName, region.regionId));
-        });
-
-        // Reset City and Location Dropdowns
-        const citySelect = $('#citySelect');
-        citySelect.empty().append('<option disabled selected>Select City</option>');
-
-        const locationSelect = $('#locationSelect');
-        locationSelect.empty().append('<option disabled selected>Select Location</option>');
-
-        // Populate SiteType Dropdown
-        const siteTypeSelect = $('#siteTypeSelect');
-        siteTypeSelect.empty().append('<option disabled selected>Select Site Type</option>');
-        siteTypes.forEach(siteType => {
-            siteTypeSelect.append(new Option(siteType.siteTypeDescription, siteType.siteTypeId));
-        })
-
-        // Populate Contact Dropdown
-        const contactSelect = $('#contactSelect');
-        contactSelect.empty().append('<option disabled selected>Select Contact</option>');;
-        contacts.forEach(contact => {
-            contactSelect.append(new Option(`${contact.name} (${contact.designation}) - ${contact.branchName}`, contact.contactId));
-        });
-
-        // Reset Branch Type
-        const branchTypeSelect = $('#branchTypeSelect');
-        branchTypeSelect.empty().append('<option disabled selected>Select Branch Type</option>');
+// Helper to Populate Dropdown with selected value if available
+function populateDropdown(selector, items, labelKey, valueKey, selectedValue = null) {
+    const dropdown = $(selector);
+    dropdown.empty().append('<option disabled selected>Select</option>');
+    items.forEach(item => {
+        const label = typeof labelKey === 'function' ? labelKey(item) : item[labelKey];
+        const option = new Option(label, item[valueKey]);
+        if (item[valueKey] == selectedValue) option.selected = true;
+        dropdown.append(option);
     });
+}
 
-    // Populate Cities based on selected Region
-    $('#regionSelect').change(function () {
-        const selectedSponsorId = $('#sponsorSelect').val();
-        const selectedRegionId = $(this).val();
+// Reset Dropdown
+function resetDropdown(selector, placeholder) {
+    $(selector).empty().append(`<option disabled selected>${placeholder}</option>`);
+}
 
-        const cities = groupedData.find(s => s.sponsorId == selectedSponsorId)
-            .regions.find(r => r.regionId == selectedRegionId).cities;
+// Formatter for Contact Options
+function contactFormatter(contact) {
+    return `${contact.name} (${contact.designation}) - ${contact.branchName}`;
+}
 
-        const citySelect = $('#citySelect');
-        citySelect.empty().append('<option disabled selected>Select City</option>');
+// Formatter for Location Options
+function locationFormatter(location) {
+    return `${location.streetName}, ${location.location}, ${location.districtName} - ${location.branchName}`;
+}
+// Handle category removal
+$('.remove-category').on('click', function () {
+    $(this).closest('.mb-4').remove();
+});
 
-        const locationSelect = $('#locationSelect');
-        locationSelect.empty().append('<option disabled selected>Select Location</option>');
+// Handle image preview removal
+$('.remove-individual-image').on('click', function () {
+    $(this).closest('.uploaded-image-container').remove();
+});
 
-        cities.forEach(city => {
-            citySelect.append(new Option(city.cityName, city.cityId));
-        });
-    });
+// Image upload preview functionality
+$('.upload-image').on('change', function () {
+    const files = $(this).prop('files');
+    const previewContainer = $(this).siblings('.image-preview');
+    previewContainer.empty();
 
-    // Populate Locations based on selected City
-    $('#citySelect').change(function () {
-        const selectedSponsorId = $('#sponsorSelect').val();
-        const selectedRegionId = $('#regionSelect').val();
-        const selectedCityId = $(this).val();
-
-        const locations = groupedData.find(s => s.sponsorId == selectedSponsorId)
-            .regions.find(r => r.regionId == selectedRegionId)
-            .cities.find(c => c.cityId == selectedCityId).locations;
-
-        const locationSelect = $('#locationSelect');
-        locationSelect.empty().append('<option disabled selected>Select Location</option>');
-
-        locations.forEach(location => {
-            const optionLocationHtml = `
-                <option value="${location.locationId}">
-                    <div class="d-block text-left">
-                        <span class="h5 d-block">${location.streetName}</span> <!-- First line large -->
-                        <span class="small d-block">${location.location}</span> <!-- Second line small -->
-                        <span class="d-block">${location.districtName} - ${location.branchName}</span> <!-- Third line medium -->
-                    </div>
-                </option>
-            `;
-            locationSelect.append(optionLocationHtml);
-        });
-    });
-
-    // Populate BranchType based on selected SiteType
-    $('#siteTypeSelect').change(function () {
-        const selectedSponsorId = $('#sponsorSelect').val();
-        const selectedSiteTypeId = $(this).val();
-
-        // Get the selected site type object
-        const selectedSiteType = groupedData.find(s => s.sponsorId == selectedSponsorId)
-            .siteTypes.find(st => st.siteTypeId == selectedSiteTypeId);
-
-        const branchTypeSelect = $('#branchTypeSelect');
-        const branchTypeDiv = $('#branchTypeDiv');
-        branchTypeSelect.empty().append('<option disabled selected>Select Branch Type</option>');
-
-        if (selectedSiteType && selectedSiteType.branchTypes && selectedSiteType.branchTypes.length > 0) {
-            // If the selected site type has branch types, show and populate the Branch Type dropdown
-            branchTypeDiv.show(); // Show the branch type div
-
-            const branchTypes = selectedSiteType.branchTypes;
-            branchTypes.forEach(branchType => {
-                branchTypeSelect.append(new Option(branchType.description, branchType.branchTypeId));
-            });
-        } else {
-            // If there are no branch types, hide the Branch Type dropdown
-            branchTypeDiv.hide(); // Hide the branch type div
-            branchTypeSelect.empty().append('<option disabled selected>Select Branch Type</option>'); // Reset the dropdown
-        }
-    });
-
-    // Handle category removal
-    $('.remove-category').on('click', function () {
-        $(this).closest('.mb-4').remove();
-    });
-
-    // Initialize the Sponsor dropdown on page load
-    populateSponsorDropdown();
-
-    // Handle image preview removal
-    $('.remove-individual-image').on('click', function () {
-        $(this).closest('.uploaded-image-container').remove();
-    });
-
-    // Image upload preview functionality
-    $('.upload-image').on('change', function () {
-        const files = $(this).prop('files');
-        const previewContainer = $(this).siblings('.image-preview');
-        previewContainer.empty();
-
-        Array.from(files).forEach((file, index) => {
-            const reader = new FileReader();
-            reader.onload = function (e) {
-                const imgPreview = `
+    Array.from(files).forEach((file, index) => {
+        const reader = new FileReader();
+        reader.onload = function (e) {
+            const imgPreview = `
                     <div class="col-md-6 uploaded-image-container d-flex align-items-center mb-3">
                         <span class="me-2">${index + 1}.</span>
                         <img src="${e.target.result}" class="img-thumbnail" style="max-width: 150px; margin-right: 20px;" />
@@ -316,35 +278,35 @@ $(document).ready(function () {
                             </button>
                         </div>
                     </div>`;
-                previewContainer.append(imgPreview);
+            previewContainer.append(imgPreview);
 
-                // Attach event listener for removing individual images
-                previewContainer.find('.remove-individual-image').last().on('click', function () {
-                    $(this).closest('.uploaded-image-container').remove();
-                });
-            };
-            reader.readAsDataURL(file);
-        });
+            // Attach event listener for removing individual images
+            previewContainer.find('.remove-individual-image').last().on('click', function () {
+                $(this).closest('.uploaded-image-container').remove();
+            });
+        };
+        reader.readAsDataURL(file);
     });
+});
 
-    $('#addImages').on('click', function () {
-        const categorySelect = $('#sitePicCategory');
-        const selectedCategory = categorySelect.val();
-        const selectedDescription = categorySelect.find(':selected').data('description');
-        const container = $('#uploadedImagesContainer');
-        const validationMessage = $('#categoryValidation');
-        const existingCategoryDiv = container.find(`.category-${selectedCategory}`);
+$('#addImages').on('click', function () {
+    const categorySelect = $('#sitePicCategory');
+    const selectedCategory = categorySelect.val();
+    const selectedDescription = categorySelect.find(':selected').data('description');
+    const container = $('#uploadedImagesContainer');
+    const validationMessage = $('#categoryValidation');
+    const existingCategoryDiv = container.find(`.category-${selectedCategory}`);
 
-        validationMessage.hide();
+    validationMessage.hide();
 
-        if (selectedCategory) {
-            if (existingCategoryDiv.length > 0) {
-                validationMessage.text(`Images for ${selectedDescription} already added.`).show();
-                return;
-            }
+    if (selectedCategory) {
+        if (existingCategoryDiv.length > 0) {
+            validationMessage.text(`Images for ${selectedDescription} already added.`).show();
+            return;
+        }
 
-            const categoryIndex = container.children().length;
-            const uploadDiv = $(`
+        const categoryIndex = container.children().length;
+        const uploadDiv = $(`
                 <div class="mb-4 category-${selectedCategory}">
                     <h5>${selectedDescription}</h5>
                     <input type="hidden" name="SitePicCategoryList[${categoryIndex}].PicCatID" value="${selectedCategory}" />
@@ -355,17 +317,17 @@ $(document).ready(function () {
                 </div>
             `);
 
-            container.append(uploadDiv);
+        container.append(uploadDiv);
 
-            uploadDiv.find('.upload-image').on('change', function () {
-                const files = $(this).prop('files');
-                const previewContainer = $(this).siblings('.image-preview');
-                previewContainer.empty();
+        uploadDiv.find('.upload-image').on('change', function () {
+            const files = $(this).prop('files');
+            const previewContainer = $(this).siblings('.image-preview');
+            previewContainer.empty();
 
-                Array.from(files).forEach((file, index) => {
-                    const reader = new FileReader();
-                    reader.onload = function (e) {
-                        const imgPreview = `
+            Array.from(files).forEach((file, index) => {
+                const reader = new FileReader();
+                reader.onload = function (e) {
+                    const imgPreview = `
                             <div class="col-md-6 uploaded-image-container d-flex align-items-center mb-3">
                                 <span class="me-2">${index + 1}.</span>
                                 <img src="${e.target.result}" class="img-thumbnail" style="max-width: 150px; margin-right: 20px;" />
@@ -377,22 +339,20 @@ $(document).ready(function () {
                                     </button>
                                 </div>
                             </div>`;
-                        previewContainer.append(imgPreview);
+                    previewContainer.append(imgPreview);
 
-                        previewContainer.find('.remove-individual-image').last().on('click', function () {
-                            $(this).closest('.uploaded-image-container').remove();
-                        });
-                    };
-                    reader.readAsDataURL(file);
-                });
+                    previewContainer.find('.remove-individual-image').last().on('click', function () {
+                        $(this).closest('.uploaded-image-container').remove();
+                    });
+                };
+                reader.readAsDataURL(file);
             });
+        });
 
-            uploadDiv.find('.remove-category').on('click', function () {
-                uploadDiv.remove();
-            });
-        } else {
-            validationMessage.text('Please select a category first.').show();
-        }
-    });
+        uploadDiv.find('.remove-category').on('click', function () {
+            uploadDiv.remove();
+        });
+    } else {
+        validationMessage.text('Please select a category first.').show();
+    }
 });
-

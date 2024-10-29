@@ -28,6 +28,7 @@ namespace Spider_QAMS.Repositories.Skeleton
         Task<bool> CreateContactAsync(Contact contact);
 
         Task<SiteDetail> CreateSiteDetailsAsync(SiteDetail siteDetail);
+        Task<bool> UpdateSiteDetailsAsync(SiteDetail siteDetail);
 
         Task<ProfileUserAPIVM> GetUserRecordAsync(int newUserId);
         Task<ProfileSite> GetCurrentUserProfileAsync(int CurrentUserId);

@@ -405,7 +405,7 @@ namespace Spider_QAMS.Controllers
                 return StatusCode(500, $"Internal Server Error: {ex.Message}");
             }
         }
-        
+
         [HttpPost("UpdateRegion")]
         [ProducesResponseType(typeof(Region), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
@@ -722,6 +722,42 @@ namespace Spider_QAMS.Controllers
                 if (site != null)
                 {
                     return Ok(site);
+                }
+                else
+                {
+                    return BadRequest();
+                }
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"Internal Server Error: {ex.Message}");
+            }
+        }
+        [HttpPost("UpdateSiteDetails")]
+        [ProducesResponseType(typeof(SiteDetail), StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        public async Task<IActionResult> UpdateSiteDetailsData(SiteDetail siteDetail)
+        {
+            try
+            {
+                var jwtToken = Request.Headers["Authorization"].ToString().Replace("Bearer ", "");
+                if (string.IsNullOrEmpty(jwtToken))
+                {
+                    return Unauthorized("JWT Token is missing");
+                }
+                var currentUserId = await _applicationUserBusinessLogic.GetCurrentUserIdAsync(jwtToken);
+                if (currentUserId == null || currentUserId <= 0)
+                {
+                    return Unauthorized("User is not authenticated.");
+                }
+
+                bool isSuccess = false;
+                isSuccess = await _navigationRepository.UpdateSiteDetailsAsync(siteDetail);
+
+                if (isSuccess)
+                {
+                    return Ok(isSuccess);
                 }
                 else
                 {

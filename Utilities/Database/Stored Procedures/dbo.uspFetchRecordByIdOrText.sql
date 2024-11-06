@@ -24,8 +24,8 @@ BEGIN
 		
 		DECLARE @NewSiteId BIGINT;
 
-		-- Validate the value of @TextCriteria currently 1 to 12 only
-        IF @TextCriteria NOT BETWEEN 1 AND 12
+		-- Validate the value of @TextCriteria currently 1 to 13 only
+        IF @TextCriteria NOT BETWEEN 1 AND 13
 		BEGIN
 				
 			SELECT -1 AS RowsAffected;
@@ -181,7 +181,11 @@ BEGIN
 				LEFT JOIN BranchMiscInformation bmi WITH (NOLOCK) ON sd.SiteID = bmi.SiteID
 			WHERE 
 				sd.SiteID = @InputInt;
+		END
 
+		-- GetSitePicture
+		ELSE IF @TextCriteria = 13
+		BEGIN
 			-- Retrieve site pictures using the assigned SiteID
 			SELECT 
 				sp.SiteID, sp.SitePicID, sp.PicCatID, 

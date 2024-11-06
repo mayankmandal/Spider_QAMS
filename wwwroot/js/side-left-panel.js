@@ -38,50 +38,6 @@ function populateSidebarforProfiles(profile) {
     listItem.appendChild(link);
     list.appendChild(listItem);
 }
-
-async function fetchPages() {
-    $.ajax({
-        url: '/api/Navigation/GetCurrentUserPages',
-        type: 'GET',
-        headers: {
-            'Authorization': 'Bearer ' + tokenC
-        },
-        success: function (pages) {
-            pages.sort((a, b) => a.pageDesc.localeCompare(b.pageDescription));
-            populateSidebarforPages(pages);
-        },
-        error: function (xhr, status, error) {
-            console.error('Fetch error: ', error);
-        }
-    });
-}
-function populateSidebarforPages(pages) {
-    const list = document.getElementById('dynamicPagesList');
-    list.innerHTML = ''; // Clear existing list items if any
-    pages.forEach(page => {
-        const listItem = document.createElement('li');
-        listItem.className = 'nav-item';
-
-        const link = document.createElement('a');
-        link.href = page.pageUrl;
-        link.className = 'nav-link';
-        link.target = '_self';
-
-        const icon = document.createElement('i');
-        icon.className = 'nav-icon fas fa-external-link-alt';
-
-        const paragraph = document.createElement('p');
-
-        const text = document.createTextNode(page.pageDesc);
-
-        paragraph.appendChild(text);
-        link.appendChild(icon);
-        link.appendChild(paragraph);
-        listItem.appendChild(link);
-        list.appendChild(listItem);
-    });
-}
-
 async function fetchCategories() {
     $.ajax({
         url: '/api/Navigation/GetCurrentUserCategories',
@@ -181,6 +137,5 @@ function populateSidebarforUserProfiles(currentUser) {
 document.addEventListener('DOMContentLoaded', function () {
     fetchUserProfile();
     fetchProfiles();
-    fetchPages();
     fetchCategories();
 });

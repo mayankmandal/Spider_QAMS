@@ -1,0 +1,53 @@
+﻿@page
+@using Spider_QAMS.Models.ViewModels
+@model Spider_QAMS.Pages.SiteImageUploaderModel
+@{
+    ViewData["Title"] = "Site Image Uploader";
+    TempData["NavigationalPageName"] = "Site Image Uploader";
+}
+
+<head>
+    <link rel="stylesheet" href="~/plugins/filepond/filepond.min.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/plugins/filepond/filepond-plugin-image-preview.min.css" asp-append-version="true" />
+</head>
+
+
+<div class="pb-2">
+    <h5>Upload Images for Site: @Model.SiteImageUploaderVM.SiteId</h5>
+    <input type="hidden" asp-for="@Model.SiteImageUploaderVM.SiteId" />
+    @foreach (var category in Model.SitePicCategories)
+    {
+        <div class="mb-4 category-@category.PicCatID" style="border: 1px solid #5B5551;border-radius: 8px;padding:10px;box-shadow: 0 1px 5px rgba(0, 0, 0, 0.1);">
+            <h5>@category.Description</h5>
+            <!-- Find and display matching images in SiteImageUploaderVM.SitePicCategoryList -->
+            @{
+                var categoryImages = Model.SiteImageUploaderVM.SitePicCategoryList
+                .FirstOrDefault(c => c.PicCatId == category.PicCatID)?.Images ?? new List<ImageViewModel>();
+            }
+            <ul>
+                @foreach (var image in categoryImages)
+                {
+                    <li>
+                        <img src="@image.FilePath" alt="@image.FileName" width="100" />
+                        <input type="text" value="@image.FileDescription" placeholder="Add a description" class="image-comment" data-image-id="@image.SitePicID" data-category-id="@category.PicCatID" />
+                        <button class="delete-image delete-btn" data-image-id="@image.SitePicID" data-category-id="@category.PicCatID">Delete</button>
+                    </li>
+                }
+            </ul>
+
+            <!-- FilePond Input for New Image Upload -->
+            <input type="file"
+                   class="filepond"
+                   name="filepond"
+                   data-category-id="@category.PicCatID"
+                   multiple />
+        </div>
+    }
+</div>
+
+@section scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script src="~/plugins/filepond/filepond.min.js"></script>
+    <script src="~/plugins/filepond/filepond-plugin-image-preview.min.js"></script>
+    <script src="~/js/site-image-uploader.js" asp-append-version="true"></script>
+}

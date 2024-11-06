@@ -180,10 +180,7 @@
                 <div class="card-header p-0 pt-1" style="background-color: #9C9C9C;">
                     <ul class="nav nav-tabs fw-bolder" id="custom-tabs-one-tab" role="tablist" style="background-color: #9C9C9C;">
                         <li class="nav-item">
-                            <a class="nav-link active" href="#uploadPics" data-toggle="tab" role="tab" aria-controls="uploadPics" aria-selected="true">Upload Pictures</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="#contactInformation" data-toggle="tab" role="tab" aria-controls="contactInformation" aria-selected="false">Contact Information</a>
+                            <a class="nav-link active" href="#contactInformation" data-toggle="tab" role="tab" aria-controls="contactInformation" aria-selected="false">Contact Information</a>
                         </li>
                         <li class="nav-item">
                             <a class="nav-link" href="#geographicalDetails" data-toggle="tab" role="tab" aria-controls="geographicalDetails" aria-selected="false">Geographical Details</a>
@@ -213,40 +210,9 @@
                 </div>
                 <div class="card-body">
                     <div class="tab-content" id="custom-tabs-one-tabContent">
-                        <!-- Upload Pictures Tab -->
-                        <div class="tab-pane fade show active" id="uploadPics" role="tabpanel" aria-labelledby="custom-tabs-one-home-tab">
-                            <div class="row" style="display: flex; justify-content: space-between; align-items: flex-end;">
-                                <!-- Picture Category Dropdown -->
-                                <div class="col-md-4">
-                                    <label for="sitePicCategory" class="form-label">Picture Category</label>
-                                    <select id="sitePicCategory" class="form-select" required>
-                                        <option value="" disabled selected>--Select Category--</option>
-                                        @foreach (var category in Model.SitePicCategories)
-                                        {
-                                            <option value="@category.PicCatID" data-description="@category.Description">
-                                                @category.Description
-                                            </option>
-                                        }
-                                    </select>
-                                </div>
-
-                                <div class="col-md-4">
-                                    <button type="button" id="addImages" class="btn btn-primary">Add Images</button>
-                                </div>
-
-                                <span id="categoryValidation" class="text-danger fw-bold" style="display:none;"></span>
-                            </div>
-
-                            <hr />
-
-                            <div id="uploadedImagesContainer" class="row">
-                                <!-- Dynamic content will be appended here -->
-                            </div>
-                        </div>
-
 
                         <!-- Contact Information Tab -->
-                        <div class="tab-pane fade" id="contactInformation" role="tabpanel" aria-labelledby="custom-tabs-one-profile-tab">
+                        <div class="tab-pane fade show active" id="contactInformation" role="tabpanel" aria-labelledby="custom-tabs-one-profile-tab">
                             <div class="row">
                                 <div class="col-md-6">
                                     <div class="mb-3">

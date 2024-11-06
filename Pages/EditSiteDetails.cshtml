@@ -264,45 +264,33 @@
                         <div class="card-body">
                             <div class="tab-content" id="custom-tabs-one-tabContent">
                                 <!-- Upload Pictures Tab -->
-                                <div class="tab-pane fade show active" id="uploadPics" role="tabpanel">
-                                    <div id="uploadedImagesContainer" class="row">
-                                        @foreach (var category in Model.SitePicCategoryList)
-                                        {
-                                            if (category.ImagesPath.Count <= 0)
-                                            {
-                                                continue;
-                                            }
-                                            <div class="mb-4 category-@category.PicCatID">
-                                                <h5>@category.Description</h5>
-                                                <input type="hidden" name="SitePicCategoryList[@category.PicCatID].PicCatID" value="@category.PicCatID" />
-                                                <input type="hidden" name="SitePicCategoryList[@category.PicCatID].Description" value="@category.Description" />
-                                                <input type="file" name="SitePicCategoryList[@category.PicCatID].Images" class="form-control upload-image" accept="image/*" multiple />
+                                <div class="tab-pane fade show active" id="uploadPics" role="tabpanel" aria-labelledby="custom-tabs-one-home-tab">
+                                    <div class="row" style="display: flex; justify-content: space-between; align-items: flex-end;">
+                                        <div class="col-md-4">
+                                            <label for="sitePicCategory" class="form-label">Picture Category</label>
+                                            <select id="sitePicCategory" class="form-select">
+                                                <option value="" disabled selected>--Select Category--</option>
+                                                @foreach (var category in Model.SitePicCategories)
+                                                {
+                                                    <option value="@category.PicCatID" data-description="@category.Description">
+                                                        @category.Description
+                                                    </option>
+                                                }
+                                            </select>
+                                        </div>
 
-                                                <div class="row image-preview mt-3 g-3">
-                                                    @for (int i = 0; i < category.ImagesPath.Count; i++)
-                                                    {
-                                                        var picture = category.ImagesPath[i];
-                                                        <div class="col-md-6 uploaded-image-container d-flex align-items-center mb-3">
-                                                            <span class="me-2">@((i + 1).ToString()).</span>
-                                                            <img src="@picture" class="img-thumbnail" style="max-width: 150px; margin-right: 20px;" />
-                                                            <div style="flex-grow: 1;">
-                                                                <label class="form-label">Description for @category.Description</label>
-                                                                <input type="text" name="SitePicCategoryList[@category.PicCatID].ImageComments[@i]"
-                                                                       class="form-control"
-                                                                       value="@category.ImageComments[i]"
-                                                                       placeholder="Add description" />
-                                                                <button type="button" class="btn btn-danger btn-sm remove-individual-image mt-2">
-                                                                    Remove Image
-                                                                </button>
-                                                            </div>
-                                                        </div>
-                                                    }
-                                                </div>
-                                                <button type="button" class="btn btn-danger mt-2 remove-category">Remove @category.Description</button>
-                                            </div>
-                                        }
+                                        <div class="col-md-4">
+                                            <button type="button" id="addImages" class="btn btn-primary">Add Images</button>
+                                        </div>
+
+                                        <span id="categoryValidation" class="text-danger fw-bold" style="display:none;"></span>
                                     </div>
+
+                                    <hr />
+
+                                    <div id="uploadedImagesContainer" class="row"></div>
                                 </div>
+
 
                                 <!-- Contact Information Tab -->
                                 <div class="tab-pane fade" id="contactInformation" role="tabpanel" aria-labelledby="custom-tabs-one-profile-tab">
@@ -646,7 +634,6 @@
                     </div>
 
                 </div>
-            </div>
         </form>
     </div>
 </div>

@@ -33,7 +33,7 @@ namespace Spider_QAMS.Utilities
         public const string SP_CreateEntityRecord = "dbo.uspCreateEntityRecord";
 
         public const string SP_CreateSiteDetails = "dbo.uspCreateSiteDetails";
-        public const string SP_CreateSitePictures = "dbo.uspCreateSitePictures";
+        public const string SP_UpsertSitePictures = "dbo.uspUpsertSitePictures";
 
         public static List<SelectListItem> GetTimeDropDown()
         {
@@ -86,6 +86,7 @@ namespace Spider_QAMS.Utilities
             GetLocationData = 10,                        // Fetch location data
             GetContactData = 11,                         // Fetch contact data
             GetSiteDetail = 12,                          // Fetch site detail data
+            GetSitePicture = 13,                         // Fetch site picture data
         }
 
         public static class FetchRecordTypeMapper
@@ -104,6 +105,7 @@ namespace Spider_QAMS.Utilities
                 { FetchRecordByIdOrTextEnum.GetLocationData, typeof(SiteLocation) },
                 { FetchRecordByIdOrTextEnum.GetContactData, typeof(Contact) },
                 { FetchRecordByIdOrTextEnum.GetSiteDetail, typeof(SiteDetail) },
+                { FetchRecordByIdOrTextEnum.GetSitePicture, typeof(List<SitePictures>) },
             };
             public static Type GetTypeByEnum(FetchRecordByIdOrTextEnum recordType)
             {

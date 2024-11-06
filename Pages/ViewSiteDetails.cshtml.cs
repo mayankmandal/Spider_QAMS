@@ -9,12 +9,12 @@ using System.Text;
 
 namespace Spider_QAMS.Pages
 {
-    public class DeleteSiteDetailsModel : PageModel
+    public class ViewSiteDetailsModel : PageModel
     {
         private readonly IConfiguration _configuration;
         private readonly IHttpClientFactory _clientFactory;
         private SiteDetail _siteDetail;
-        public DeleteSiteDetailsModel(IConfiguration configuration, IHttpClientFactory httpClientFactory)
+        public ViewSiteDetailsModel(IConfiguration configuration, IHttpClientFactory httpClientFactory)
         {
             _configuration = configuration;
             _clientFactory = httpClientFactory;
@@ -77,23 +77,6 @@ namespace Spider_QAMS.Pages
                     BranchNo = _siteDetail.BranchNo ?? string.Empty,
                     BranchTypeId = _siteDetail.BranchTypeId,
                     AtmClass = _siteDetail.AtmClass ?? string.Empty,
-
-                    // Populate Site Pictures List for rendering
-                    SitePicturesLst = _siteDetail.SitePicturesLst?.Select(p => new SitePicturesVM
-                    {
-                        SitePicID = p.SitePicID,
-                        Description = p.Description ?? string.Empty,
-                        PicPath = Path.Combine(
-                            _configuration["BaseUrl"],
-                            _configuration["SiteDetailImgPath"],
-                            p.SitePicCategoryData.Description,
-                            p.PicPath) ?? string.Empty,
-                        SitePicCategoryVMData = new SitePicCategoryVM
-                        {
-                            PicCatID = p.SitePicCategoryData?.PicCatID,
-                            Description = p.SitePicCategoryData?.Description ?? string.Empty
-                        }
-                    }).ToList(),
 
                     // Populate Contact Information
                     SiteContactInformation = new SiteContactInformationVM
@@ -273,43 +256,6 @@ namespace Spider_QAMS.Pages
                 ContactsList = contacts
                  .Where(c => c.sponsor.SponsorId == sponsorGroup.Key).ToList() // Filter contacts by sponsor
             }).ToList();
-        }
-
-        public async Task<IActionResult> OnPostAsync(string siteId)
-        {
-            if (string.IsNullOrEmpty(siteId))
-            {
-                TempData["error"] = "Site ID is required.";
-                return RedirectToPage("/Error");
-            }
-            try
-            {
-                var client = _clientFactory.CreateClient();
-                client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", JWTCookieHelper.GetJWTCookie(HttpContext));
-                var apiUrl = $"{_configuration["ApiBaseUrl"]}/Navigation/DeleteEntity?deleteId={siteId}&deleteType={DeleteEntityType.SiteDetail}";
-                HttpResponseMessage response;
-                response = await client.DeleteAsync(apiUrl);
-
-                if (response.IsSuccessStatusCode)
-                {
-                    TempData["success"] = $"{DeleteEntityType.User} - {siteId} deleted Successfully";
-                    return RedirectToPage("/ManageSiteDetails");
-                }
-                else
-                {
-                    TempData["error"] = $"{DeleteEntityType.User} - {siteId} - Error occurred in response with status: {response.StatusCode} - {response.ReasonPhrase}";
-                    return Page();
-                }
-            }
-            catch (Exception ex)
-            {
-                return HandleError(ex, "An unexpected error occurred.");
-            }
-        }
-        private IActionResult HandleError(Exception ex, string errorMessage)
-        {
-            TempData["error"] = $"Error Message - " + errorMessage + ". Error details: " + ex.Message;
-            return Page();
         }
     }
 }

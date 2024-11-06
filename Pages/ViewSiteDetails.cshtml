@@ -1,8 +1,8 @@
 ﻿@page
-@model Spider_QAMS.Pages.DeleteSiteDetailsModel
+@model Spider_QAMS.Pages.ViewSiteDetailsModel
 @{
-    ViewData["Title"] = "Delete Site";
-    TempData["NavigationalPageName"] = "Delete Site";
+    ViewData["Title"] = "View Site";
+    TempData["NavigationalPageName"] = "View Site";
 }
 
 <head>
@@ -12,12 +12,12 @@
 <div style="display:flex; flex-direction:column; justify-content:center; align-items:center;">
     <!-- Edit Site Form (Hidden Initially) -->
     <div style="display:flex; flex-direction: column; align-items: center; min-height: 20vh;">
-        <form id="deleteSiteDiv" method="post" enctype="multipart/form-data">
+        <form id="readSiteDiv" method="post" enctype="multipart/form-data">
             <input type="hidden" asp-for="SiteDetailVM.SiteID" id="deleteSiteId" readonly />
             <div class="pt-4 pb-2 mt-3">
                 <div class="form-control border-2 mb-2" style="display:flex; justify-content:space-around; height:auto; width:75rem;flex-direction:column;">
                     <div class="row pb-1 pt-2">
-                        <div style="color:#dc3545; text-align:center; font-size:1.7rem; font-weight:500">SITE DETAILS</div>
+                        <div style="color:#408EC6; text-align:center; font-size:1.7rem; font-weight:500">SITE DETAILS</div>
                         <div>
                             <hr />
                         </div>
@@ -187,10 +187,7 @@
                         <div class="card-header p-0 pt-1" style="background-color: #9C9C9C;">
                             <ul class="nav nav-tabs fw-bolder" id="custom-tabs-one-tab" role="tablist" style="background-color: #9C9C9C;">
                                 <li class="nav-item">
-                                    <a class="nav-link active" href="#uploadPics" data-toggle="tab" role="tab" aria-controls="uploadPics" aria-selected="true">Upload Pictures</a>
-                                </li>
-                                <li class="nav-item">
-                                    <a class="nav-link" href="#contactInformation" data-toggle="tab" role="tab" aria-controls="contactInformation" aria-selected="false">Contact Information</a>
+                                    <a class="nav-link active" href="#contactInformation" data-toggle="tab" role="tab" aria-controls="contactInformation" aria-selected="false">Contact Information</a>
                                 </li>
                                 <li class="nav-item">
                                     <a class="nav-link" href="#geographicalDetails" data-toggle="tab" role="tab" aria-controls="geographicalDetails" aria-selected="false">Geographical Details</a>
@@ -220,49 +217,9 @@
                         </div>
                         <div class="card-body">
                             <div class="tab-content" id="custom-tabs-one-tabContent">
-                                <!-- Upload Pictures Tab -->
-                                <div class="tab-pane fade show active" id="uploadPics" role="tabpanel">
-                                    <div id="uploadedImagesContainer" class="row">
-                                        @foreach (var category in Model.SitePicCategoryList)
-                                        {
-                                            if (category.ImagePaths.Count <= 0)
-                                            {
-                                                continue;
-                                            }
-                                            <div class="mb-4 category-@category.PicCatID">
-                                                <h5>@category.Description</h5>
-                                                <input type="hidden" name="SitePicCategoryList[@category.PicCatID].PicCatID" value="@category.PicCatID" disabled />
-                                                <input type="hidden" name="SitePicCategoryList[@category.PicCatID].Description" value="@category.Description" disabled />
-                                                <input type="file" name="SitePicCategoryList[@category.PicCatID].Images" class="form-control upload-image" accept="image/*" multiple disabled />
-
-                                                <div class="row image-preview mt-3 g-3">
-                                                    @for (int i = 0; i < category.ImagePaths.Count; i++)
-                                                    {
-                                                        var picture = category.ImagePaths[i];
-                                                        <div class="col-md-6 uploaded-image-container d-flex align-items-center mb-3">
-                                                            <span class="me-2">@((i + 1).ToString()).</span>
-                                                            <img src="@picture" class="img-thumbnail" style="max-width: 150px; margin-right: 20px;" />
-                                                            <div style="flex-grow: 1;">
-                                                                <label class="form-label">Description for @category.Description</label>
-                                                                <input type="text" name="SitePicCategoryList[@category.PicCatID].ImageComments[@i]"
-                                                                       class="form-control"
-                                                                       value="@category.ImageComments[i]"
-                                                                       placeholder="Add description" disabled />
-                                                                <button type="button" class="btn btn-danger btn-sm remove-individual-image mt-2">
-                                                                    Remove Image
-                                                                </button>
-                                                            </div>
-                                                        </div>
-                                                    }
-                                                </div>
-                                                <button type="button" class="btn btn-danger mt-2 remove-category">Remove @category.Description</button>
-                                            </div>
-                                        }
-                                    </div>
-                                </div>
 
                                 <!-- Contact Information Tab -->
-                                <div class="tab-pane fade" id="contactInformation" role="tabpanel" aria-labelledby="custom-tabs-one-profile-tab">
+                                <div class="tab-pane fade show active" id="contactInformation" role="tabpanel" aria-labelledby="custom-tabs-one-profile-tab">
                                     <div class="row">
                                         <div class="col-md-6">
                                             <div class="mb-3">
@@ -597,7 +554,6 @@
                     <!-- Buttons for deletion confirmation -->
                     <div style="display: flex; justify-content: center; align-items: center; margin-top: 20px;">
                         <div class="row" style="width: 100%; max-width: 600px; display: flex; justify-content: space-around;">
-                            <button type="button" id="deleteButton" class="btn delete-btn">Confirm Delete</button>
                             <a asp-page="/ManageSiteDetails" type="button" class="btn btn-secondary">Back to All Sites</a>
                         </div>
                     </div>
@@ -610,15 +566,6 @@
 @section scripts {
     <partial name="_ValidationScriptsPartial" />
     <script src="~/plugins/leaflet/leaflet.js"></script>
-    <script>
-        document.getElementById('deleteButton').addEventListener('click', function (e) {
-            e.preventDefault();
-            if (confirm("Are you sure you want to delete this user?")) {
-                // Trigger form submission to delete the user
-                document.getElementById('deleteSiteDiv').submit();
-            }
-        });
-    </script>
     <script src="~/js/delete-site-details.js" asp-append-version="true"></script>
 }
 

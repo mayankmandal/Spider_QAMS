@@ -33,22 +33,32 @@ $("#jsGrid").jsGrid({
             width: 100,
             align: "center",
             itemTemplate: function (_, item) {
+                var readButton = $("<button>")
+                    .addClass("btn btn-warning btn-sm me-1")
+                    .html('<i class="fas fa-eye"></i>')
+                    .on("click", function () {
+                        window.location.href = `/ViewSiteDetails?siteId=${item.siteID}`
+                    });
                 var editButton = $("<button>")
                     .addClass("btn btn-primary btn-sm me-1")
-                    .html('<i class="fas fa-edit"></i> Edit')
+                    .html('<i class="fas fa-edit"></i>')
                     .on("click", function () {
-                        // Navigate to the EditSiteDetails page with the siteId as a query parameter
                         window.location.href = `/EditSiteDetails?siteId=${item.siteID}`
                     });
                 var deleteButton = $("<button>")
                     .addClass("btn btn-danger btn-sm")
-                    .html('<i class="fas fa-trash-alt"></i> Delete')
+                    .html('<i class="fas fa-trash-alt"></i>')
                     .on("click", function () {
-                        // Navigate to the EditSiteDetails page with the siteId as a query parameter
                         window.location.href = `/DeleteSiteDetails?siteId=${item.siteID}`
                     });
+                var editImagesButton = $("<button>")
+                    .addClass("btn btn-success btn-sm mx-1 my-1")
+                    .html('<i class="fas fa-images"></i>')
+                    .on("click", function () {
+                        window.location.href = `/SiteImageUploader?siteId=${item.siteID}`
+                    });
 
-                return $("<div>").append(editButton).append(deleteButton);
+                return $("<div>").append(readButton).append(editButton).append(deleteButton).append(editImagesButton);
             }
         }
     ],

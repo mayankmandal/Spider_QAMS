@@ -214,7 +214,7 @@ namespace Spider_QAMS.Pages
                 PicCatID = category.PicCatID,
                 Description = category.Description,
                 Images = new List<IFormFile>(),
-                ImagesPath = _siteDetail.SitePicturesLst?
+                ImagePaths = _siteDetail.SitePicturesLst?
                 .Where(p => p.SitePicCategoryData?.PicCatID == category.PicCatID)
                 .Select(p => Path.Combine(
                     _configuration["BaseUrl"],
@@ -285,11 +285,16 @@ namespace Spider_QAMS.Pages
         }
         public async Task<IActionResult> OnPostAsync()
         {
+            ModelState.Remove("SiteDetailVM.SiteCode");
+            ModelState.Remove("SiteDetailVM.SiteName");
+            ModelState.Remove("SiteDetailVM.GPSLatt");
+            ModelState.Remove("SiteDetailVM.GPSLong");
             ModelState.Remove("SiteDetailVM.SitePicturesLst");
             if (!ModelState.IsValid)
             {
                 var errorMessages = ModelState.Values.SelectMany(x => x.Errors).Select(e => e.ErrorMessage).ToList();
                 TempData["error"] = "Model State Validation Failed: " + string.Join("; ", errorMessages);
+                await LoadSiteDetailsDataAsync(SiteDetailVM.SiteID.ToString());
                 await LoadDropdownDataAsync();
                 return Page();
             }
@@ -493,6 +498,7 @@ namespace Spider_QAMS.Pages
                 }
                 else
                 {
+                    await LoadSiteDetailsDataAsync(SiteDetailVM.SiteID.ToString());
                     await LoadDropdownDataAsync();
                     TempData["error"] = $"{SiteDetailVM.SiteName} - Error occurred in response with status: {response.StatusCode} - {response.ReasonPhrase}";
                     return Page();

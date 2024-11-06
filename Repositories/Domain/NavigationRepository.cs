@@ -44,6 +44,8 @@ namespace Spider_QAMS.Repositories.Domain
                     return await GetContactDataAsync(record.RecordId);
                 case (int)FetchRecordByIdOrTextEnum.GetSiteDetail:
                     return await GetSiteDetailsDataAsync(record);
+                case (int)FetchRecordByIdOrTextEnum.GetSitePicture:
+                    return await GetSitePicturesDataAsync(record);
                 default:
                     throw new Exception("Invalid Record Type");
             }
@@ -795,14 +797,15 @@ namespace Spider_QAMS.Repositories.Domain
                     {
                         new SqlParameter("@SiteID", SqlDbType.BigInt) { Value = sitePicture.SiteID == 0 ? (object)DBNull.Value : sitePicture.SiteID },
                         new SqlParameter("@PicCatID", SqlDbType.Int) { Value = sitePicture.SitePicCategoryData.PicCatID == 0 ? (object)DBNull.Value : sitePicture.SitePicCategoryData.PicCatID },
+                        new SqlParameter("@SitePicID", SqlDbType.Int) { Value = sitePicture.SitePicID == 0 ? (object)DBNull.Value : sitePicture.SitePicID },
                         new SqlParameter("@Description", SqlDbType.VarChar, -1) { Value = string.IsNullOrEmpty(sitePicture.Description) ? (object)DBNull.Value : sitePicture.Description },
                         new SqlParameter("@PicPath", SqlDbType.VarChar, -1) { Value = string.IsNullOrEmpty(sitePicture.PicPath) ? (object)DBNull.Value : sitePicture.PicPath },
                         new SqlParameter("@NewSitePicID", SqlDbType.Int) { Direction = ParameterDirection.Output }
                     };
 
-                    isFailure = SqlDBHelper.ExecuteNonQuery(SP_CreateSitePictures, CommandType.StoredProcedure, sqlParameters);
+                    isFailure = SqlDBHelper.ExecuteNonQuery(SP_UpsertSitePictures, CommandType.StoredProcedure, sqlParameters);
 
-                    sitePicture.SitePicID = (sqlParameters[4].Value != DBNull.Value) ? (int)sqlParameters[4].Value : -1;
+                    sitePicture.SitePicID = (sqlParameters[5].Value != DBNull.Value) ? (int)sqlParameters[5].Value : -1;
 
                     // Validate if the newId is greater than 0
                     if (sitePicture.SitePicID <= 0 && isFailure)
@@ -929,6 +932,32 @@ namespace Spider_QAMS.Repositories.Domain
                 if (RowsAffected <= 0 && isFailure)
                 {
                     return false;
+                }
+
+                foreach (var sitePicture in siteDetail.SitePicturesLst)
+                {
+                    sitePicture.SiteID = siteDetail.SiteID;
+                    sitePicture.PicPath = siteDetail.SiteCode + "_" + siteDetail.SiteTypeID + "_" + siteDetail.SiteID + "_" + sitePicture.PicPath;
+
+                    sqlParameters = new SqlParameter[]
+                    {
+                        new SqlParameter("@SiteID", SqlDbType.BigInt) { Value = sitePicture.SiteID == 0 ? (object)DBNull.Value : sitePicture.SiteID },
+                        new SqlParameter("@PicCatID", SqlDbType.Int) { Value = sitePicture.SitePicCategoryData.PicCatID == 0 ? (object)DBNull.Value : sitePicture.SitePicCategoryData.PicCatID },
+                        new SqlParameter("@SitePicID", SqlDbType.Int) { Value = sitePicture.SitePicID == 0 ? (object)DBNull.Value : sitePicture.SitePicID },
+                        new SqlParameter("@Description", SqlDbType.VarChar, -1) { Value = string.IsNullOrEmpty(sitePicture.Description) ? (object)DBNull.Value : sitePicture.Description },
+                        new SqlParameter("@PicPath", SqlDbType.VarChar, -1) { Value = string.IsNullOrEmpty(sitePicture.PicPath) ? (object)DBNull.Value : sitePicture.PicPath },
+                        new SqlParameter("@NewSitePicID", SqlDbType.Int) { Direction = ParameterDirection.Output }
+                    };
+
+                    isFailure = SqlDBHelper.ExecuteNonQuery(SP_UpsertSitePictures, CommandType.StoredProcedure, sqlParameters);
+
+                    sitePicture.SitePicID = (sqlParameters[4].Value != DBNull.Value) ? (int)sqlParameters[4].Value : -1;
+
+                    // Validate if the newId is greater than 0
+                    if (sitePicture.SitePicID <= 0 && isFailure)
+                    {
+                        return false;
+                    }
                 }
             }
             catch (SqlException sqlEx)
@@ -1665,10 +1694,44 @@ namespace Spider_QAMS.Repositories.Domain
                             };
                         }
                     }
-                    DataTable dataTable2 = dataTables[1];
-                    if (dataTable2.Rows.Count > 0)
+                }
+                else
+                {
+                    return null;
+                }
+            }
+            catch (SqlException sqlEx)
+            {
+                // Log or handle SQL exceptions
+                throw new Exception("Error executing SQL command.", sqlEx);
+            }
+            catch (Exception ex)
+            {
+                // Log or handle other exceptions
+                throw new Exception("Error in Getting Settings.", ex);
+            }
+            return site;
+        }
+        public async Task<List<SitePictures>> GetSitePicturesDataAsync(Record record)
+        {
+            List<SitePictures> sitePictures = new List<SitePictures>();
+            try
+            {
+                SqlParameter[] sqlParameters = new SqlParameter[]
+                {
+                    new SqlParameter("@TextCriteria", SqlDbType.Int) { Value = record.RecordType != 0 ? record.RecordType : DBNull.Value  },
+                    new SqlParameter("@InputInt", SqlDbType.Int) { Value = record.RecordId != 0 ? record.RecordId : DBNull.Value },
+                    new SqlParameter("@InputText", SqlDbType.VarChar, 100) { Value = record.RecordText != string.Empty ? record.RecordText : DBNull.Value },
+                    new SqlParameter("@RowsAffected", SqlDbType.Int) { Direction = ParameterDirection.Output }
+                };
+                List<DataTable> dataTables = SqlDBHelper.ExecuteParameterizedNonQuery(SP_FetchRecordByIdOrText, CommandType.StoredProcedure, sqlParameters);
+                if (dataTables.Count > 0)
+                {
+                    DataTable dataTable = dataTables[0];
+                    
+                    if (dataTable.Rows.Count > 0)
                     {
-                        foreach (DataRow dataRow in dataTable2.Rows)
+                        foreach (DataRow dataRow in dataTable.Rows)
                         {
                             // Create a new SitePicCategory object
                             var sitePicCategory = new SitePicCategory
@@ -1688,7 +1751,7 @@ namespace Spider_QAMS.Repositories.Domain
                             };
 
                             // Add the site picture to the list
-                            site.SitePicturesLst.Add(sitePicture);
+                            sitePictures.Add(sitePicture);
                         }
                     }
                     else
@@ -1711,7 +1774,7 @@ namespace Spider_QAMS.Repositories.Domain
                 // Log or handle other exceptions
                 throw new Exception("Error in Getting Settings.", ex);
             }
-            return site;
+            return sitePictures;
         }
 
         public async Task<List<ProfileUserAPIVM>> GetAllUsersDataAsync()

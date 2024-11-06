@@ -770,6 +770,112 @@ namespace Spider_QAMS.Controllers
             }
         }
 
+        [HttpPost("UploadSiteImage")]
+        [ProducesResponseType(typeof(string), StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        public async Task<IActionResult> UploadSiteImageData(IFormFile imageFile, int categoryId, long siteId)
+        {
+            try
+            {
+                var jwtToken = Request.Headers["Authorization"].ToString().Replace("Bearer ", "");
+                if (string.IsNullOrEmpty(jwtToken))
+                {
+                    return Unauthorized("JWT Token is missing");
+                }
+                var currentUserId = await _applicationUserBusinessLogic.GetCurrentUserIdAsync(jwtToken);
+                if (currentUserId == null || currentUserId <= 0)
+                {
+                    return Unauthorized("User is not authenticated.");
+                }
+
+                if(imageFile == null || imageFile.Length == 0)
+                {
+                    return BadRequest("Invalid image file.");
+                }
+
+                string uniqueFileName = $"{siteId}_{Path.GetFileName(imageFile.FileName)}";
+                string categoryFolder = Path.Combine(_webHostEnvironment.WebRootPath, _configuration["SiteDetailImgPath"], categoryId.ToString());
+
+                if (!Directory.Exists(categoryFolder))
+                {
+                    Directory.CreateDirectory(categoryFolder);
+                }
+
+                string filePath = Path.Combine(categoryFolder, uniqueFileName);
+                using var fileStream = new FileStream(filePath, FileMode.Create);
+                await imageFile.CopyToAsync(fileStream);
+
+                var imageRecord = new SitePictures
+                {
+                    SiteID = siteId,
+                    Description = string.Empty,
+                    PicPath = uniqueFileName,
+                    SitePicCategoryData = new SitePicCategory { PicCatID = categoryId },
+                };
+
+                bool isSuccess = false;
+                // isSuccess = await _navigationRepository.UpdateSiteDetailsAsync(imageRecord);
+
+                if (isSuccess)
+                {
+                    return Ok(new {filePath = $""});
+                }
+                else
+                {
+                    return BadRequest();
+                }
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"Internal Server Error: {ex.Message}");
+            }
+        }
+        [HttpDelete("DeleteSiteImage")]
+        [ProducesResponseType(typeof(string), StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        public async Task<IActionResult> DeleteSiteImageData(int imageId)
+        {
+            try
+            {
+                var jwtToken = Request.Headers["Authorization"].ToString().Replace("Bearer ", "");
+                if (string.IsNullOrEmpty(jwtToken))
+                {
+                    return Unauthorized("JWT Token is missing");
+                }
+                var currentUserId = await _applicationUserBusinessLogic.GetCurrentUserIdAsync(jwtToken);
+                if (currentUserId == null || currentUserId <= 0)
+                {
+                    return Unauthorized("User is not authenticated.");
+                }
+
+                /*var imageRecord = null; // await _navigationRepository.GetSitePicturesDataAsync(imageId.ToString());
+                if (imageRecord == null)
+                {
+                    return NotFound("Image not found");
+                }
+
+                string filePath = Path.Combine(_webHostEnvironment.WebRootPath, _configuration["SiteDetailImgPath"], imageRecord.);
+*/
+                bool isSuccess = false;
+                // isSuccess = await _navigationRepository.UpdateSiteDetailsAsync(imageRecord);
+
+                if (isSuccess)
+                {
+                    return Ok(new { filePath = $"" });
+                }
+                else
+                {
+                    return BadRequest();
+                }
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"Internal Server Error: {ex.Message}");
+            }
+        }
+
         [HttpGet("GetCurrentUser")]
         [ProducesResponseType(typeof(CurrentUser), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]

@@ -42,6 +42,7 @@ namespace Spider_QAMS.Repositories.Skeleton
         Task<SiteLocation> GetLocationDataAsync(int newUserId);
         Task<Contact> GetContactDataAsync(int newUserId);
         Task<SiteDetail> GetSiteDetailsDataAsync(Record record);
+        Task<List<SitePictures>> GetSitePicturesDataAsync(Record record);
 
         Task<List<ProfileUserAPIVM>> GetAllUsersDataAsync();
         Task<List<ProfileSite>> GetAllProfilesAsync();

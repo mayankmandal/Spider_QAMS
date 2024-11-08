@@ -23,27 +23,27 @@ namespace Spider_QAMS.Models.ViewModels
         [DisplayName("Site Category")]
         public string SiteCategory { get; set; }
 
-        [DisplayName("Sponsor ID")]
+        [DisplayName("Sponsor")]
         public int SponsorID { get; set; }
         public string? SponsorName { get; set; } = string.Empty;
 
-        [DisplayName("Region ID")]
+        [DisplayName("Region")]
         public int RegionID { get; set; }
         public string? RegionName { get; set; } = string.Empty;
 
-        [DisplayName("City ID")]
+        [DisplayName("City")]
         public int CityID { get; set; }
         public string? CityName { get; set; } = string.Empty;
 
-        [DisplayName("Location ID")]
+        [DisplayName("Location")]
         public int LocationID { get; set; }
         public string? LocationName { get; set; } = string.Empty;
 
-        [DisplayName("Contact ID")]
+        [DisplayName("Contact")]
         public int ContactID { get; set; }
         public string? ContactName { get; set; } = string.Empty;
 
-        [DisplayName("Site Type ID")]
+        [DisplayName("Site Type")]
         public int SiteTypeID { get; set; }
         public string? SiteTypeDescription { get; set; } = string.Empty;
 
@@ -55,19 +55,19 @@ namespace Spider_QAMS.Models.ViewModels
         [CheckUniquenessinDB("GPSLatt", "GPSLong")]
         public string GPSLatt { get; set; }
 
-        [DisplayName("Visit User ID")]
+        [DisplayName("Visit User")]
         public int? VisitUserID { get; set; }
 
         [DisplayName("Visited Date")]
         public DateTime? VisitedDate { get; set; }
 
-        [DisplayName("Approved User ID")]
+        [DisplayName("Approved User")]
         public int? ApprovedUserID { get; set; }
 
         [DisplayName("Approval Date")]
         public DateTime? ApprovalDate { get; set; }
 
-        [DisplayName("Visit Status ID")]
+        [DisplayName("Visit Status")]
         public int? VisitStatusID { get; set; }
 
         [DisplayName("Is Active")]

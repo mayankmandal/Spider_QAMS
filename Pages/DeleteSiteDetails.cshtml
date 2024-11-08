@@ -37,7 +37,7 @@
                         </div>
                         <div class="card-body">
                             <div class="row">
-                                <div class="row" style="display: flex; justify-content: space-between; align-items:flex-end;">
+                                <div class="row" style="display: flex; justify-content: space-between; align-items:flex-start;">
                                     <!-- First Column -->
                                     <div style="flex: 1; padding: 10px;">
                                         <div class="mb-3">
@@ -58,17 +58,26 @@
                                         <div class="mb-3">
                                             <label asp-for="SiteDetailVM.SponsorID" class="form-label"></label>
                                             <select asp-for="SiteDetailVM.SponsorID" class="form-select" id="sponsorSelect">
-                                                <option value="" disabled selected>Select Sponsor</option>
+                                                <option value="@Model.SiteDetailVM.SponsorID" disabled selected>@Model.SiteDetailVM.SponsorName</option>
                                                 <!-- Populate options here -->
                                             </select>
                                             <span asp-validation-for="SiteDetailVM.SponsorID" class="text-danger fw-bold"></span>
                                         </div>
                                         <div class="mb-3">
-                                            <label asp-for="SiteDetailVM.ContactID" class="form-label"></label>
-                                            <select asp-for="SiteDetailVM.ContactID" class="form-select" id="contactSelect">
-                                                <option value="" disabled selected>Select Contact</option>
+                                            <label asp-for="SiteDetailVM.SiteTypeID" class="form-label"></label>
+                                            <select asp-for="SiteDetailVM.SiteTypeID" class="form-select" id="siteTypeSelect">
+                                                <option value="@Model.SiteDetailVM.SiteTypeID" disabled selected>@Model.SiteDetailVM.SiteTypeDescription</option>
+                                                <!-- Populate options here -->
                                             </select>
-                                            <span asp-validation-for="SiteDetailVM.ContactID" class="text-danger fw-bold"></span>
+                                            <span asp-validation-for="SiteDetailVM.SiteTypeID" class="text-danger fw-bold"></span>
+                                        </div>
+                                        <div class="mb-3" id="branchTypeDiv">
+                                            <label asp-for="SiteDetailVM.BranchTypeId" class="form-label" for="branchTypeSelect"></label>
+                                            <select asp-for="SiteDetailVM.BranchTypeId" class="form-select" id="branchTypeSelect">
+                                                <option value="@Model.SiteDetailVM.BranchTypeId" disabled selected>@Model.SiteDetailVM.BranchTypeDescription</option>
+                                                <!-- Populate options here -->
+                                            </select>
+                                            <span asp-validation-for="SiteDetailVM.BranchTypeId" class="text-danger fw-bold"></span>
                                         </div>
                                     </div>
 
@@ -77,7 +86,7 @@
                                         <div class="mb-3">
                                             <label asp-for="SiteDetailVM.RegionID" class="form-label"></label>
                                             <select asp-for="SiteDetailVM.RegionID" class="form-select" id="regionSelect">
-                                                <option value="" disabled selected>Select Region</option>
+                                                <option value="@Model.SiteDetailVM.RegionID" disabled selected>@Model.SiteDetailVM.RegionName</option>
                                                 <!-- Populate options here -->
                                             </select>
                                             <span asp-validation-for="SiteDetailVM.RegionID" class="text-danger fw-bold"></span>
@@ -85,7 +94,7 @@
                                         <div class="mb-3">
                                             <label asp-for="SiteDetailVM.CityID" class="form-label"></label>
                                             <select asp-for="SiteDetailVM.CityID" class="form-select" id="citySelect">
-                                                <option value="" disabled selected>Select City</option>
+                                                <option value="@Model.SiteDetailVM.CityID" disabled selected>@Model.SiteDetailVM.CityName</option>
                                                 <!-- Populate options here -->
                                             </select>
                                             <span asp-validation-for="SiteDetailVM.CityID" class="text-danger fw-bold"></span>
@@ -93,7 +102,7 @@
                                         <div class="mb-3">
                                             <label asp-for="SiteDetailVM.LocationID" class="form-label"></label>
                                             <select asp-for="SiteDetailVM.LocationID" class="form-select" id="locationSelect">
-                                                <option value="" disabled selected>Select Location</option>
+                                                <option value="@Model.SiteDetailVM.LocationID" disabled selected>@Model.SiteDetailVM.LocationName</option>
                                                 <!-- Populate options here -->
                                             </select>
                                             <span asp-validation-for="SiteDetailVM.LocationID" class="text-danger fw-bold"></span>
@@ -108,12 +117,46 @@
                                             <input type="text" asp-for="SiteDetailVM.GPSLatt" placeholder="GPS Latitude" class="form-control" disabled />
                                             <span asp-validation-for="SiteDetailVM.GPSLatt" class="text-danger fw-bold"></span>
                                         </div>
+                                        <div class="mb-3">
+                                            <label asp-for="SiteDetailVM.BranchNo" class="form-label"></label>
+                                            <input type="text" asp-for="SiteDetailVM.BranchNo" placeholder="Branch No" class="form-control" disabled />
+                                            <span asp-validation-for="SiteDetailVM.BranchNo" class="text-danger fw-bold"></span>
+                                        </div>
                                     </div>
 
                                     <!-- Third Column -->
                                     <div style="flex: 1; padding: 10px;">
+                                        <!-- Site Profile Image View -->
+                                        <div class="my-3" id="siteProfileImageContainer" style="position: relative; width: 100%; height: 150px; border: 1px solid #ccc; margin-bottom: 15px;">
+                                            <img id="siteProfileImage" src="@Model.SiteDetailVM.SitePicturesLst.FirstOrDefault()?.PicPath" alt="Site Profile Image" style="width:100%; height:100%; object-fit:contain;" />
+                                            <!-- Enlarge Button in the Bottom Left Corner -->
+                                            <div id="enlargesiteProfileImageBtn"
+                                                 style="position: absolute; bottom: 10px; left: 10px; background-color: rgba(242,240,239, 0.8); border: 2px solid #ccc; border-radius: 5px; cursor: pointer; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2); display: inline-block;">
+                                                <i class="fas fa-expand-arrows-alt" style="font-size: 12px; color: #333; margin: 10px;"></i>
+                                            </div>
+                                        </div>
+
+                                        <!-- Full Screen Image Modal -->
+                                        <div class="modal fade" id="siteImageModal" tabindex="-1" aria-labelledby="siteImageModalLabel" aria-hidden="true">
+                                            <div class="modal-dialog modal-lg modal-dialog-centered">
+                                                <div class="modal-content">
+                                                    <div class="m-2">
+                                                        <div class="modal-header">
+                                                            <h5 class="modal-title" id="siteImageModalLabel">Full-Screen Site Profile Image</h5>
+                                                            <span class="btn-close" data-bs-dismiss="modal" aria-label="Close" id="cancelImageButton"></span>
+                                                        </div>
+                                                    </div>
+                                                    <div class="m-2" style="background-color: #F2F0EF;">
+                                                        <div class="modal-body" style="text-align: center;">
+                                                            <img id="fullSiteImage" src="@Model.SiteDetailVM.SitePicturesLst.FirstOrDefault()?.PicPath"
+                                                                 alt="Full Site Profile Image" style="width: 50%; height: auto;" />
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
                                         <!-- Map View -->
-                                        <div id="mapContainer" style="position: relative; width: 100%; height: 150px; border: 1px solid #ccc; margin-bottom: 15px;">
+                                        <div class="my-3" id="mapContainer" style="position: relative; width: 100%; height: 150px; border: 1px solid #ccc; margin-bottom: 15px;">
                                             <!-- Map Button in the Bottom Left Corner -->
                                             <div id="enlargeMapBtn"
                                                  style="position: absolute; bottom: 10px; left: 10px; background-color: rgba(255, 255, 255, 0.8);
@@ -143,37 +186,17 @@
                                                 </div>
                                             </div>
                                         </div>
-
                                         <div class="mb-3">
-                                            <label asp-for="SiteDetailVM.SiteTypeID" class="form-label"></label>
-                                            <select asp-for="SiteDetailVM.SiteTypeID" class="form-select" id="siteTypeSelect">
-                                                <option value="" disabled selected>Select Site Type</option>
-                                                <!-- Populate options here -->
+                                            <label asp-for="SiteDetailVM.ContactID" class="form-label"></label>
+                                            <select asp-for="SiteDetailVM.ContactID" class="form-select" id="contactSelect">
+                                                <option value="@Model.SiteDetailVM.ContactID" disabled selected>@Model.SiteDetailVM.ContactName</option>
                                             </select>
-                                            <span asp-validation-for="SiteDetailVM.SiteTypeID" class="text-danger fw-bold"></span>
+                                            <span asp-validation-for="SiteDetailVM.ContactID" class="text-danger fw-bold"></span>
                                         </div>
-                                        <div class="mb-3">
-                                            <label asp-for="SiteDetailVM.BranchNo" class="form-label"></label>
-                                            <input type="text" asp-for="SiteDetailVM.BranchNo" placeholder="Branch No" class="form-control" disabled />
-                                            <span asp-validation-for="SiteDetailVM.BranchNo" class="text-danger fw-bold"></span>
-                                        </div>
-                                        <div class="mb-3" id="branchTypeDiv">
-                                            <label asp-for="SiteDetailVM.BranchTypeId" class="form-label" for="branchTypeSelect"></label>
-                                            <select asp-for="SiteDetailVM.BranchTypeId" class="form-select" id="branchTypeSelect">
-                                                <option value="" disabled selected>Select Branch Type</option>
-                                                <!-- Populate options here -->
-                                            </select>
-                                            <span asp-validation-for="SiteDetailVM.BranchTypeId" class="text-danger fw-bold"></span>
-                                        </div>
-
                                         <div class="mb-3">
                                             <label asp-for="SiteDetailVM.AtmClass" class="form-label"></label>
                                             <select asp-for="SiteDetailVM.AtmClass" class="form-select" id="atmClassSelect">
-                                                <option value="" disabled selected>Select ATM Class</option>
-                                                @foreach (var clas in Model.ATMClass)
-                                                {
-                                                    <option value="@clas">Class @clas</option>
-                                                }
+                                                <option value="@Model.SiteDetailVM.AtmClass" disabled selected>@Model.SiteDetailVM.AtmClass</option>
                                             </select>
                                             <span asp-validation-for="SiteDetailVM.AtmClass" class="text-danger fw-bold"></span>
                                         </div>
@@ -187,10 +210,7 @@
                         <div class="card-header p-0 pt-1" style="background-color: #9C9C9C;">
                             <ul class="nav nav-tabs fw-bolder" id="custom-tabs-one-tab" role="tablist" style="background-color: #9C9C9C;">
                                 <li class="nav-item">
-                                    <a class="nav-link active" href="#uploadPics" data-toggle="tab" role="tab" aria-controls="uploadPics" aria-selected="true">Upload Pictures</a>
-                                </li>
-                                <li class="nav-item">
-                                    <a class="nav-link" href="#contactInformation" data-toggle="tab" role="tab" aria-controls="contactInformation" aria-selected="false">Contact Information</a>
+                                    <a class="nav-link active" href="#contactInformation" data-toggle="tab" role="tab" aria-controls="contactInformation" aria-selected="true">Contact Information</a>
                                 </li>
                                 <li class="nav-item">
                                     <a class="nav-link" href="#geographicalDetails" data-toggle="tab" role="tab" aria-controls="geographicalDetails" aria-selected="false">Geographical Details</a>
@@ -220,49 +240,9 @@
                         </div>
                         <div class="card-body">
                             <div class="tab-content" id="custom-tabs-one-tabContent">
-                                <!-- Upload Pictures Tab -->
-                                <div class="tab-pane fade show active" id="uploadPics" role="tabpanel">
-                                    <div id="uploadedImagesContainer" class="row">
-                                        @foreach (var category in Model.SitePicCategoryList)
-                                        {
-                                            if (category.ImagePaths.Count <= 0)
-                                            {
-                                                continue;
-                                            }
-                                            <div class="mb-4 category-@category.PicCatID">
-                                                <h5>@category.Description</h5>
-                                                <input type="hidden" name="SitePicCategoryList[@category.PicCatID].PicCatID" value="@category.PicCatID" disabled />
-                                                <input type="hidden" name="SitePicCategoryList[@category.PicCatID].Description" value="@category.Description" disabled />
-                                                <input type="file" name="SitePicCategoryList[@category.PicCatID].Images" class="form-control upload-image" accept="image/*" multiple disabled />
-
-                                                <div class="row image-preview mt-3 g-3">
-                                                    @for (int i = 0; i < category.ImagePaths.Count; i++)
-                                                    {
-                                                        var picture = category.ImagePaths[i];
-                                                        <div class="col-md-6 uploaded-image-container d-flex align-items-center mb-3">
-                                                            <span class="me-2">@((i + 1).ToString()).</span>
-                                                            <img src="@picture" class="img-thumbnail" style="max-width: 150px; margin-right: 20px;" />
-                                                            <div style="flex-grow: 1;">
-                                                                <label class="form-label">Description for @category.Description</label>
-                                                                <input type="text" name="SitePicCategoryList[@category.PicCatID].ImageComments[@i]"
-                                                                       class="form-control"
-                                                                       value="@category.ImageComments[i]"
-                                                                       placeholder="Add description" disabled />
-                                                                <button type="button" class="btn btn-danger btn-sm remove-individual-image mt-2">
-                                                                    Remove Image
-                                                                </button>
-                                                            </div>
-                                                        </div>
-                                                    }
-                                                </div>
-                                                <button type="button" class="btn btn-danger mt-2 remove-category">Remove @category.Description</button>
-                                            </div>
-                                        }
-                                    </div>
-                                </div>
 
                                 <!-- Contact Information Tab -->
-                                <div class="tab-pane fade" id="contactInformation" role="tabpanel" aria-labelledby="custom-tabs-one-profile-tab">
+                                <div class="tab-pane fade show active" id="contactInformation" role="tabpanel" aria-labelledby="custom-tabs-one-profile-tab">
                                     <div class="row">
                                         <div class="col-md-6">
                                             <div class="mb-3">
@@ -598,7 +578,7 @@
                     <div style="display: flex; justify-content: center; align-items: center; margin-top: 20px;">
                         <div class="row" style="width: 100%; max-width: 600px; display: flex; justify-content: space-around;">
                             <button type="button" id="deleteButton" class="btn delete-btn">Confirm Delete</button>
-                            <a asp-page="/ManageSiteDetails" type="button" class="btn btn-secondary">Back to All Sites</a>
+                            <a asp-page="/ManageSiteDetails" type="button" class="btn btn-secondary"><i class="fas fa-arrow-circle-left"></i> Back to All Sites</a>
                         </div>
                     </div>
                 </div>
@@ -613,7 +593,7 @@
     <script>
         document.getElementById('deleteButton').addEventListener('click', function (e) {
             e.preventDefault();
-            if (confirm("Are you sure you want to delete this user?")) {
+            if (confirm("Are you sure you want to delete this site?")) {
                 // Trigger form submission to delete the user
                 document.getElementById('deleteSiteDiv').submit();
             }

@@ -177,7 +177,7 @@ $(document).ready(function () {
         siteTypeSelect.empty().append('<option disabled selected>Select Site Type</option>');
         siteTypes.forEach(siteType => {
             siteTypeSelect.append(new Option(siteType.siteTypeDescription, siteType.siteTypeId));
-        })
+        });
 
         // Populate Contact Dropdown
         const contactSelect = $('#contactSelect');
@@ -246,96 +246,23 @@ $(document).ready(function () {
         const selectedSiteType = groupedData.find(s => s.sponsorId == selectedSponsorId)
             .siteTypes.find(st => st.siteTypeId == selectedSiteTypeId);
 
-        const branchTypeSelect = $('#branchTypeSelect');
-        const branchTypeDiv = $('#branchTypeDiv');
-        branchTypeSelect.empty().append('<option disabled selected>Select Branch Type</option>');
+        $('#branchTypeSelect').empty().append('<option disabled selected>Select Branch Type</option>');
 
         if (selectedSiteType && selectedSiteType.branchTypes && selectedSiteType.branchTypes.length > 0) {
             // If the selected site type has branch types, show and populate the Branch Type dropdown
-            branchTypeDiv.show(); // Show the branch type div
+            $('#branchTypeDiv').show(); // Show the branch type div
 
             const branchTypes = selectedSiteType.branchTypes;
             branchTypes.forEach(branchType => {
-                branchTypeSelect.append(new Option(branchType.description, branchType.branchTypeId));
+                $('#branchTypeSelect').append(new Option(branchType.description, branchType.branchTypeId));
             });
         } else {
             // If there are no branch types, hide the Branch Type dropdown
-            branchTypeDiv.hide(); // Hide the branch type div
-            branchTypeSelect.empty().append('<option disabled selected>Select Branch Type</option>'); // Reset the dropdown
+            $('#branchTypeDiv').hide(); // Hide the branch type div
+            $('#branchTypeSelect').empty().append('<option disabled selected>Select Branch Type</option>'); // Reset the dropdown
         }
     });
 
     // Initialize the Sponsor dropdown on page load
     populateSponsorDropdown();
-    $('#addImages').on('click', function () {
-        const categorySelect = $('#sitePicCategory');
-        const selectedCategory = categorySelect.val();
-        const selectedDescription = categorySelect.find(':selected').data('description');
-        const container = $('#uploadedImagesContainer');
-        const validationMessage = $('#categoryValidation');
-        const existingCategoryDiv = container.find(`.category-${selectedCategory}`);
-
-        validationMessage.hide();
-
-        if (selectedCategory) {
-            if (existingCategoryDiv.length > 0) {
-                validationMessage.text(`Images for ${selectedDescription} already added.`).show();
-                return;
-            }
-
-            const categoryIndex = container.children().length;
-            const uploadDiv = $(`
-        <div class="mb-4 category-${selectedCategory}">
-            <h5>${selectedDescription}</h5>
-            <input type="hidden" name="SitePicCategoryList[${categoryIndex}].PicCatID" value="${selectedCategory}" />
-            <input type="hidden" name="SitePicCategoryList[${categoryIndex}].Description" value="${selectedDescription}" />
-            <input type="file" name="SitePicCategoryList[${categoryIndex}].Images" 
-                class="form-control upload-image" accept="image/*" multiple />
-            <div class="row image-preview mt-3 g-3"></div>
-            <button type="button" class="btn btn-danger mt-2 remove-category">Remove ${selectedDescription}</button>
-        </div>
-    `);
-
-            container.append(uploadDiv);
-
-            uploadDiv.find('.upload-image').on('change', function () {
-                const files = $(this).prop('files');
-                const previewContainer = $(this).siblings('.image-preview');
-                previewContainer.empty();
-
-                Array.from(files).forEach((file, index) => {
-                    const reader = new FileReader();
-                    reader.onload = function (e) {
-                        const imgPreview = `
-                    <div class="col-md-6 uploaded-image-container d-flex align-items-center mb-3">
-                        <span class="me-2">${index + 1}.</span>
-                        <img src="${e.target.result}" class="img-thumbnail" 
-                            style="max-width: 150px; margin-right: 20px;" />
-                        <div style="flex-grow: 1;">
-                            <label class="form-label">Description for ${file.name}</label>
-                            <input type="text" 
-                                name="SitePicCategoryList[${categoryIndex}].ImageComments[${index}]"
-                                class="form-control" placeholder="Add description" />
-                            <button type="button" class="btn btn-danger btn-sm remove-individual-image mt-2">
-                                Remove Image
-                            </button>
-                        </div>
-                    </div>`;
-                        previewContainer.append(imgPreview);
-
-                        previewContainer.find('.remove-individual-image').last().on('click', function () {
-                            $(this).closest('.uploaded-image-container').remove();
-                        });
-                    };
-                    reader.readAsDataURL(file);
-                });
-            });
-
-            uploadDiv.find('.remove-category').on('click', function () {
-                uploadDiv.remove();
-            });
-        } else {
-            validationMessage.text('Please select a category first.').show();
-        }
-    });
 });

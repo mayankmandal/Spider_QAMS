@@ -19,16 +19,9 @@ namespace Spider_QAMS.Pages
             _configuration = configuration;
             _clientFactory = httpClientFactory;
         }
-        // Dropdown Data Lists
-        public IList<SponsorGroup> SponsorsList { get; set; }
-        public IList<VisitStatusModel> VisitStatuses { get; set; }
-        public IList<SitePicCategory> SitePicCategories { get; set; }
-        public IList<string> ATMClass { get; set; }
         [BindProperty]
         public SiteDetailVM SiteDetailVM { get; set; }
-        [BindProperty]
-        public List<SitePicCategoryVMAssociation> SitePicCategoryList { get; set; }
-
+        
         public async Task<IActionResult> OnGetAsync(string siteId)
         {
             if (string.IsNullOrEmpty(siteId))
@@ -36,7 +29,6 @@ namespace Spider_QAMS.Pages
                 return RedirectToPage("/Error");
             }
             await LoadSiteDetailsDataAsync(siteId);
-            await LoadDropdownDataAsync();
             return Page();
         }
         private async Task LoadSiteDetailsDataAsync(string SiteId)
@@ -61,11 +53,17 @@ namespace Spider_QAMS.Pages
                     SiteName = _siteDetail.SiteName ?? string.Empty,
                     SiteCategory = _siteDetail.SiteCategory ?? string.Empty,
                     SponsorID = _siteDetail.SponsorID,
+                    SponsorName = _siteDetail.SponsorName != null ? _siteDetail.SponsorName : "Sponsor's not present",
                     RegionID = _siteDetail.RegionID,
+                    RegionName = _siteDetail.RegionName != null ? _siteDetail.RegionName : "Region's Data not present",
                     CityID = _siteDetail.CityID,
+                    CityName = _siteDetail.CityName != null ? _siteDetail.CityName : "City's Data not present",
                     LocationID = _siteDetail.LocationID,
+                    LocationName = _siteDetail.LocationName != null ? _siteDetail.LocationName : "Location's Data not present",
                     ContactID = _siteDetail.ContactID,
+                    ContactName = _siteDetail.ContactName != null ? _siteDetail.ContactName : "Contact's Data not present",
                     SiteTypeID = _siteDetail.SiteTypeID,
+                    SiteTypeDescription = _siteDetail.SiteTypeDescription != null ? _siteDetail.SiteTypeDescription : "Site Type's not present",
                     GPSLong = _siteDetail.GPSLong ?? string.Empty,
                     GPSLatt = _siteDetail.GPSLatt ?? string.Empty,
                     VisitUserID = _siteDetail.VisitUserID,
@@ -74,9 +72,10 @@ namespace Spider_QAMS.Pages
                     ApprovalDate = _siteDetail.ApprovalDate,
                     VisitStatusID = _siteDetail.VisitStatusID,
                     IsActive = _siteDetail.IsActive,
-                    BranchNo = _siteDetail.BranchNo ?? string.Empty,
-                    BranchTypeId = _siteDetail.BranchTypeId,
-                    AtmClass = _siteDetail.AtmClass ?? string.Empty,
+                    BranchNo = _siteDetail.BranchNo != null ? _siteDetail.BranchNo : "Branch Number's data not present",
+                    BranchTypeId = _siteDetail.BranchTypeId != null ? _siteDetail.BranchTypeId : -1,
+                    BranchTypeDescription = _siteDetail.BranchTypeDescription != string.Empty? _siteDetail.BranchTypeDescription : "Branch Type's Data not present",
+                    AtmClass = _siteDetail.AtmClass != null ? _siteDetail.AtmClass : "ATM Class's data not present",
 
                     // Populate Site Pictures List for rendering
                     SitePicturesLst = _siteDetail.SitePicturesLst?.Select(p => new SitePicturesVM
@@ -86,7 +85,7 @@ namespace Spider_QAMS.Pages
                         PicPath = Path.Combine(
                             _configuration["BaseUrl"],
                             _configuration["SiteDetailImgPath"],
-                            p.SitePicCategoryData.Description,
+                            p.SitePicCategoryData.PicCatID.ToString(),
                             p.PicPath) ?? string.Empty,
                         SitePicCategoryVMData = new SitePicCategoryVM
                         {
@@ -188,92 +187,6 @@ namespace Spider_QAMS.Pages
                 throw new Exception($"Error fetching user record: {response.StatusCode} - {response.ReasonPhrase}");
             }
         }
-        // API call to load dropdown data
-        private async Task LoadDropdownDataAsync()
-        {
-            var client = _clientFactory.CreateClient();
-            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", JWTCookieHelper.GetJWTCookie(HttpContext));
-
-            var responseATMClasses = await client.GetStringAsync($"{_configuration["ApiBaseUrl"]}/Navigation/GetAllATMClasses");
-            ATMClass = string.IsNullOrEmpty(responseATMClasses) ? new List<string>() : JsonSerializer.Deserialize<List<string>>(responseATMClasses, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
-
-            var responsePicCategories = await client.GetStringAsync($"{_configuration["ApiBaseUrl"]}/Navigation/GetAllPicCategories");
-            SitePicCategories = string.IsNullOrEmpty(responsePicCategories) ? new List<SitePicCategory>() : JsonSerializer.Deserialize<List<SitePicCategory>>(responsePicCategories, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
-
-            SitePicCategoryList = SitePicCategories.Select(category => new SitePicCategoryVMAssociation
-            {
-                PicCatID = category.PicCatID,
-                Description = category.Description,
-                Images = new List<IFormFile>(),
-                ImagePaths = _siteDetail.SitePicturesLst?
-                .Where(p => p.SitePicCategoryData?.PicCatID == category.PicCatID)
-                .Select(p => Path.Combine(
-                    _configuration["BaseUrl"],
-                    _configuration["SiteDetailImgPath"],
-                    category.Description,
-                    p.PicPath ?? string.Empty
-                )).ToList() ?? new List<string>(),
-                ImageComments = _siteDetail.SitePicturesLst?
-                    .Where(p => p.SitePicCategoryData?.PicCatID == category.PicCatID)
-                    .Select(p => p.Description ?? string.Empty)
-                    .ToList() ?? new List<string>()
-            }).ToList();
-
-            var responseVisitStatuses = await client.GetStringAsync($"{_configuration["ApiBaseUrl"]}/Navigation/GetAllVisitStatuses");
-            VisitStatuses = string.IsNullOrEmpty(responseVisitStatuses) ? new List<VisitStatusModel>() : JsonSerializer.Deserialize<List<VisitStatusModel>>(responseVisitStatuses, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
-
-            // Fetch contacts and group by sponsor
-            var responseContacts = await client.GetStringAsync($"{_configuration["ApiBaseUrl"]}/Navigation/GetAllContacts");
-            var contacts = string.IsNullOrEmpty(responseContacts) ? new List<Contact>() : JsonSerializer.Deserialize<List<Contact>>(responseContacts, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
-
-            // Fetch branch types and group by sponsor, sitetypes
-            var responseSiteTypes = await client.GetStringAsync($"{_configuration["ApiBaseUrl"]}/Navigation/GetAllSiteTypes");
-            var siteTypes = string.IsNullOrEmpty(responseSiteTypes) ? new List<SiteType>() : JsonSerializer.Deserialize<List<SiteType>>(responseSiteTypes, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
-
-            // Fetch branch types and group by sponsor, sitetypes
-            var responseBranchTypes = await client.GetStringAsync($"{_configuration["ApiBaseUrl"]}/Navigation/GetAllBranchTypes");
-            var branches = string.IsNullOrEmpty(responseBranchTypes) ? new List<BranchType>() : JsonSerializer.Deserialize<List<BranchType>>(responseBranchTypes, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
-
-            // Fetch site locations and group by sponsors, regions, and cities
-            var responseLocations = await client.GetStringAsync($"{_configuration["ApiBaseUrl"]}/Navigation/GetAllLocations");
-            var siteLocations = string.IsNullOrEmpty(responseLocations) ? new List<SiteLocation>() : JsonSerializer.Deserialize<List<SiteLocation>>(responseLocations, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
-
-            // Grouping by sponsor
-            SponsorsList = siteLocations
-            .GroupBy(loc => loc.Sponsor.SponsorId)
-            .Select(sponsorGroup => new SponsorGroup
-            {
-                SponsorId = sponsorGroup.Key,
-                SponsorName = sponsorGroup.First().Sponsor.SponsorName, // Get the sponsor name from the first item in the group
-                Regions = sponsorGroup
-                    .GroupBy(loc => loc.City.RegionData.RegionId)
-                    .Select(regionGroup => new RegionGroup
-                    {
-                        RegionId = regionGroup.Key,
-                        RegionName = regionGroup.First().City.RegionData.RegionName, // Get the region name from the first item
-                        Cities = regionGroup
-                            .GroupBy(loc => loc.City.CityId)
-                            .Select(cityGroup => new CityGroup
-                            {
-                                CityId = cityGroup.Key,
-                                CityName = cityGroup.First().City.CityName, // Get the city name from the first item
-                                Locations = cityGroup.ToList()
-                            }).ToList()
-                    }).ToList(),
-                SiteTypes = siteTypes
-                .Where(b => b.sponsor.SponsorId == sponsorGroup.Key)
-                .GroupBy(b => b.SiteTypeID)
-                .Select(siteTypeGroup => new SiteTypeGroup
-                {
-                    SiteTypeId = siteTypeGroup.Key,
-                    SiteTypeDescription = siteTypeGroup.First().Description,
-                    BranchTypes = branches.Where(cv => cv.siteType.SiteTypeID == siteTypeGroup.Key).ToList()
-                }).ToList(),
-                // Add Contacts List based on Sponsor
-                ContactsList = contacts
-                 .Where(c => c.sponsor.SponsorId == sponsorGroup.Key).ToList() // Filter contacts by sponsor
-            }).ToList();
-        }
 
         public async Task<IActionResult> OnPostAsync(string siteId)
         {
@@ -292,12 +205,12 @@ namespace Spider_QAMS.Pages
 
                 if (response.IsSuccessStatusCode)
                 {
-                    TempData["success"] = $"{DeleteEntityType.User} - {siteId} deleted Successfully";
+                    TempData["success"] = $"Site - {siteId} deleted Successfully";
                     return RedirectToPage("/ManageSiteDetails");
                 }
                 else
                 {
-                    TempData["error"] = $"{DeleteEntityType.User} - {siteId} - Error occurred in response with status: {response.StatusCode} - {response.ReasonPhrase}";
+                    TempData["error"] = $"Site - {siteId} - Error occurred in response with status: {response.StatusCode} - {response.ReasonPhrase}";
                     return Page();
                 }
             }

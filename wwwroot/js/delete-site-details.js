@@ -135,108 +135,20 @@ $(document).ready(function () {
 
     checkAndRenderMap();
 
-    // Handle image preview removal
-    $('.remove-individual-image').on('click', function () {
-        $(this).closest('.uploaded-image-container').remove();
+    // Enlarge image button functionality
+    $('#enlargesiteProfileImageBtn').on('click', function () {
+        $('#siteImageModal').modal('show'); // Shows the image modal
     });
 
-    // Image upload preview functionality
-    $('.upload-image').on('change', function () {
-        const files = $(this).prop('files');
-        const previewContainer = $(this).siblings('.image-preview');
-        previewContainer.empty();
-
-        Array.from(files).forEach((file, index) => {
-            const reader = new FileReader();
-            reader.onload = function (e) {
-                const imgPreview = `
-                    <div class="col-md-6 uploaded-image-container d-flex align-items-center mb-3">
-                        <span class="me-2">${index + 1}.</span>
-                        <img src="${e.target.result}" class="img-thumbnail" style="max-width: 150px; margin-right: 20px;" />
-                        <div style="flex-grow: 1;">
-                            <label class="form-label">Description for ${file.name}</label>
-                            <input type="text" class="form-control" placeholder="Add description" />
-                            <button type="button" class="btn btn-danger btn-sm remove-individual-image mt-2">
-                                Remove Image
-                            </button>
-                        </div>
-                    </div>`;
-                previewContainer.append(imgPreview);
-
-                // Attach event listener for removing individual images
-                previewContainer.find('.remove-individual-image').last().on('click', function () {
-                    $(this).closest('.uploaded-image-container').remove();
-                });
-            };
-            reader.readAsDataURL(file);
-        });
+    // Cancel button for image modal
+    $('#cancelImageButton').on('click', function () {
+        $('#siteImageModal').modal('hide'); // Hides the image modal
     });
 
-    $('#addImages').on('click', function () {
-        const categorySelect = $('#sitePicCategory');
-        const selectedCategory = categorySelect.val();
-        const selectedDescription = categorySelect.find(':selected').data('description');
-        const container = $('#uploadedImagesContainer');
-        const validationMessage = $('#categoryValidation');
-        const existingCategoryDiv = container.find(`.category-${selectedCategory}`);
-
-        validationMessage.hide();
-
-        if (selectedCategory) {
-            if (existingCategoryDiv.length > 0) {
-                validationMessage.text(`Images for ${selectedDescription} already added.`).show();
-                return;
-            }
-
-            const categoryIndex = container.children().length;
-            const uploadDiv = $(`
-                <div class="mb-4 category-${selectedCategory}">
-                    <h5>${selectedDescription}</h5>
-                    <input type="hidden" name="SitePicCategoryList[${categoryIndex}].PicCatID" value="${selectedCategory}" />
-                    <input type="hidden" name="SitePicCategoryList[${categoryIndex}].Description" value="${selectedDescription}" />
-                    <input type="file" name="SitePicCategoryList[${categoryIndex}].Images" class="form-control upload-image" accept="image/*" multiple />
-                    <div class="row image-preview mt-3 g-3"></div>
-                    <button type="button" class="btn btn-danger mt-2 remove-category">Remove ${selectedDescription}</button>
-                </div>
-            `);
-
-            container.append(uploadDiv);
-
-            uploadDiv.find('.upload-image').on('change', function () {
-                const files = $(this).prop('files');
-                const previewContainer = $(this).siblings('.image-preview');
-                previewContainer.empty();
-
-                Array.from(files).forEach((file, index) => {
-                    const reader = new FileReader();
-                    reader.onload = function (e) {
-                        const imgPreview = `
-                            <div class="col-md-6 uploaded-image-container d-flex align-items-center mb-3">
-                                <span class="me-2">${index + 1}.</span>
-                                <img src="${e.target.result}" class="img-thumbnail" style="max-width: 150px; margin-right: 20px;" />
-                                <div style="flex-grow: 1;">
-                                    <label class="form-label">Description for ${file.name}</label>
-                                    <input type="text" name="SitePicCategoryList[${categoryIndex}].ImageComments[${index}]" class="form-control" placeholder="Add description" />
-                                    <button type="button" class="btn btn-danger btn-sm remove-individual-image mt-2">
-                                        Remove Image
-                                    </button>
-                                </div>
-                            </div>`;
-                        previewContainer.append(imgPreview);
-
-                        previewContainer.find('.remove-individual-image').last().on('click', function () {
-                            $(this).closest('.uploaded-image-container').remove();
-                        });
-                    };
-                    reader.readAsDataURL(file);
-                });
-            });
-
-            uploadDiv.find('.remove-category').on('click', function () {
-                uploadDiv.remove();
-            });
-        } else {
-            validationMessage.text('Please select a category first.').show();
-        }
+    // Cancel button for map modal
+    $('#cancelButton').on('click', function () {
+        $('#mapModel').modal('hide'); // Hides the modal
     });
 });
+
+

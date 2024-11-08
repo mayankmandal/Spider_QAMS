@@ -259,63 +259,8 @@ namespace Spider_QAMS.Pages
                     // Successfully created the site, now upload images
                     var siteDetailResponse = await response.Content.ReadAsStringAsync();
                     var createdSite = JsonSerializer.Deserialize<SiteDetail>(siteDetailResponse, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
-
-                    // Upload images after the site is created
-                    if (SitePicCategoryList != null && SitePicCategoryList.Any())
-                    {
-                        foreach (var category in SitePicCategoryList)
-                        {
-                            // Ensure the category description exists
-                            if (string.IsNullOrWhiteSpace(category.Description))
-                                continue;
-
-                            // Append category description as folder name
-                            string categoryFolder = Path.Combine(
-                                _webHostEnvironment.WebRootPath,
-                                _configuration["SiteDetailImgPath"],
-                                category.Description
-                            );
-
-                            // Create the folder if it doesn't exist
-                            if (!Directory.Exists(categoryFolder))
-                            {
-                                Directory.CreateDirectory(categoryFolder);
-                            }
-
-                            foreach (var image in category.Images)
-                            {
-                                if (image != null && image.Length > 0)
-                                {
-                                    // Extract file name from the uploaded image
-                                    string uploadedFileName = Path.GetFileName(image.FileName);
-
-                                    // Find the matching SitePicture entry based on PicPath containing the uploaded file name
-                                    var sitePicture = createdSite.SitePicturesLst.FirstOrDefault(sp => sp.PicPath.Contains(uploadedFileName));
-
-                                    if (sitePicture != null)
-                                    {
-                                        // Build the complete file path
-                                        string filePath = Path.Combine(categoryFolder, sitePicture.PicPath);
-
-                                        // Copy the file to the appropriate path on the server
-                                        using (var fileStream = new FileStream(filePath, FileMode.Create))
-                                        {
-                                            await image.CopyToAsync(fileStream);
-                                        }
-
-                                    }
-                                    else
-                                    {
-                                        // Handle the case where the picture is not found (optional logging or error handling)
-                                        Console.WriteLine($"No matching entry found for file: {uploadedFileName}");
-                                    }
-                                }
-                            }
-                        }
-                    }
-
-                    TempData["success"] = $"{SiteDetailVM.SiteName} - Created Successfully with Images Uploaded";
-                    return RedirectToPage("/ManageSiteDetails");
+                    TempData["success"] = $"{createdSite.SiteName} - Created Successfully with Images Uploaded";
+                    return Redirect($"/SiteImageUploader?siteId={createdSite.SiteID}");
                 }
                 else
                 {

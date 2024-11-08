@@ -10,12 +10,14 @@ namespace Spider_QAMS.Utilities
 
         public const string CategoryType_UncategorizedPages = "Uncategorized Pages";
 
-        public static string SuperUserName = "SuperUser";
-        public static string SiteInspectorName = "SiteInspector";
-        public static string SiteAuditorName = "SiteAuditor";
+        public const string SitePicCategory_SiteProfilePicture = "Site Profile Picture";
 
-        public static string SP_RegisterNewUser = "dbo.uspRegisterNewUser";
-        public static string SP_UpdateUserFlags = "dbo.uspUpdateUserFlags";
+        public const string SuperUserName = "SuperUser";
+        public const string SiteInspectorName = "SiteInspector";
+        public const string SiteAuditorName = "SiteAuditor";
+
+        public const string SP_RegisterNewUser = "dbo.uspRegisterNewUser";
+        public const string SP_UpdateUserFlags = "dbo.uspUpdateUserFlags";
         public const string SP_AddUserPermission = "dbo.uspAddUserPermission";
         public const string SP_AddNewProfile = "dbo.uspAddNewProfile";
         public const string SP_DeleteUserPermission = "dbo.uspDeleteUserPermission";
@@ -34,6 +36,7 @@ namespace Spider_QAMS.Utilities
 
         public const string SP_CreateSiteDetails = "dbo.uspCreateSiteDetails";
         public const string SP_UpsertSitePictures = "dbo.uspUpsertSitePictures";
+        public const string SP_UpdateSiteDetails = "dbo.uspUpdateSiteDetails";
 
         public static List<SelectListItem> GetTimeDropDown()
         {
@@ -86,7 +89,8 @@ namespace Spider_QAMS.Utilities
             GetLocationData = 10,                        // Fetch location data
             GetContactData = 11,                         // Fetch contact data
             GetSiteDetail = 12,                          // Fetch site detail data
-            GetSitePicture = 13,                         // Fetch site picture data
+            GetSitePictureBySiteId = 13,                 // Fetch site picture data
+            GetSitePictureBySitePicID = 14,              // Fetch site picture data
         }
 
         public static class FetchRecordTypeMapper
@@ -105,7 +109,8 @@ namespace Spider_QAMS.Utilities
                 { FetchRecordByIdOrTextEnum.GetLocationData, typeof(SiteLocation) },
                 { FetchRecordByIdOrTextEnum.GetContactData, typeof(Contact) },
                 { FetchRecordByIdOrTextEnum.GetSiteDetail, typeof(SiteDetail) },
-                { FetchRecordByIdOrTextEnum.GetSitePicture, typeof(List<SitePictures>) },
+                { FetchRecordByIdOrTextEnum.GetSitePictureBySiteId, typeof(List<SitePictures>) },
+                { FetchRecordByIdOrTextEnum.GetSitePictureBySitePicID, typeof(SitePictures) },
             };
             public static Type GetTypeByEnum(FetchRecordByIdOrTextEnum recordType)
             {
@@ -160,6 +165,7 @@ namespace Spider_QAMS.Utilities
             public static string Sponsor = "Sponsor";
             public static string Contact = "Contact";
             public static string SiteDetail = "SiteDetail";
+            public static string SitePicture = "SitePicture";
         }
 
         public static class TableNameClassForUniqueness

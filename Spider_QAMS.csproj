@@ -9,8 +9,8 @@
   <ItemGroup>
     <Folder Include="Filters\" />
     <Folder Include="Utilities\Database\Stored Procedures\" />
-    <Folder Include="wwwroot\images\sitedetail_pictures\" />
     <Folder Include="wwwroot\images\profiles_picture\" />
+    <Folder Include="wwwroot\images\sitedetail_pictures\" />
   </ItemGroup>
 
   <ItemGroup>

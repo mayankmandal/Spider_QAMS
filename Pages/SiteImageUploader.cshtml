@@ -11,43 +11,41 @@
     <link rel="stylesheet" href="~/plugins/filepond/filepond-plugin-image-preview.min.css" asp-append-version="true" />
 </head>
 
-
-<div class="pb-2">
-    <h5>Upload Images for Site: @Model.SiteImageUploaderVM.SiteId</h5>
-    <input type="hidden" asp-for="@Model.SiteImageUploaderVM.SiteId" />
-    @foreach (var category in Model.SitePicCategories)
-    {
-        <div class="mb-4 category-@category.PicCatID" style="border: 1px solid #5B5551;border-radius: 8px;padding:10px;box-shadow: 0 1px 5px rgba(0, 0, 0, 0.1);">
-            <h5>@category.Description</h5>
-            <!-- Find and display matching images in SiteImageUploaderVM.SitePicCategoryList -->
-            @{
-                var categoryImages = Model.SiteImageUploaderVM.SitePicCategoryList
-                .FirstOrDefault(c => c.PicCatId == category.PicCatID)?.Images ?? new List<ImageViewModel>();
-            }
-            <ul>
-                @foreach (var image in categoryImages)
-                {
-                    <li>
-                        <img src="@image.FilePath" alt="@image.FileName" width="100" />
-                        <input type="text" value="@image.FileDescription" placeholder="Add a description" class="image-comment" data-image-id="@image.SitePicID" data-category-id="@category.PicCatID" />
-                        <button class="delete-image delete-btn" data-image-id="@image.SitePicID" data-category-id="@category.PicCatID">Delete</button>
-                    </li>
-                }
-            </ul>
-
-            <!-- FilePond Input for New Image Upload -->
-            <input type="file"
-                   class="filepond"
-                   name="filepond"
-                   data-category-id="@category.PicCatID"
-                   multiple />
+<div class="pb-2" style="display:flex; flex-direction:column; justify-content:center; align-items:center;">
+    <!-- Title and Action Buttons -->
+    <div class="row pt-1 mb-3" style="width:100%;">
+        <div class="col text-start">
+            <h5 class="rb-header">Upload Images for Site: @Model.SiteImageUploaderVM.SiteId</h5>
         </div>
-    }
+        <div class="col text-end">
+            <a asp-page="/ManageSiteDetails" type="button" class="btn btn-secondary">
+                <i class="fas fa-arrow-circle-left"></i> Back to All Sites
+            </a>
+        </div>
+    </div>
+
+    <input type="hidden" asp-for="@Model.SiteImageUploaderVM.SiteId" />
+    <div id="siteImageUploaderDiv" style="flex-direction: column; align-items: center; min-height: auto; min-width:75rem;">
+        @foreach (var category in Model.SitePicCategories)
+        {
+            <div class="mb-4 category-@category.PicCatID" style="border: 1px solid #5B5551;border-radius: 8px;padding:10px;box-shadow: 0 1px 5px rgba(0, 0, 0, 0.1);">
+                <h5>@category.Description</h5>
+
+                <!-- FilePond Input for Existing and New Images -->
+                <input type="file" class="filepond" name="filepond" data-category-id="@category.PicCatID" data-category-description="@category.Description" multiple />
+            </div>
+        }
+    </div>
 </div>
 
 @section scripts {
     <partial name="_ValidationScriptsPartial" />
+    <script>
+        const sitePicCategoryList = @Html.Raw(Json.Serialize(Model.SiteImageUploaderVM.SitePicCategoryList));
+    </script>
     <script src="~/plugins/filepond/filepond.min.js"></script>
     <script src="~/plugins/filepond/filepond-plugin-image-preview.min.js"></script>
+    <script src="~/plugins/filepond/filepond-plugin-file-validate-type.min.js"></script>
+    <script src="~/plugins/filepond/filepond-plugin-file-metadata.min.js"></script>
     <script src="~/js/site-image-uploader.js" asp-append-version="true"></script>
 }

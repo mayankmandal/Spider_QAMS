@@ -25,7 +25,7 @@ BEGIN
 		DECLARE @NewSiteId BIGINT;
 
 		-- Validate the value of @TextCriteria currently 1 to 13 only
-        IF @TextCriteria NOT BETWEEN 1 AND 13
+        IF @TextCriteria NOT BETWEEN 1 AND 14
 		BEGIN
 				
 			SELECT -1 AS RowsAffected;
@@ -181,9 +181,20 @@ BEGIN
 				LEFT JOIN BranchMiscInformation bmi WITH (NOLOCK) ON sd.SiteID = bmi.SiteID
 			WHERE 
 				sd.SiteID = @InputInt;
+
+			-- Retrieve site pictures using the assigned SiteID
+			SELECT 
+				sp.SiteID, sp.SitePicID, sp.PicCatID, 
+				spc.[Description] AS SitePicCategoryDescription, 
+				sp.[Description] AS SitePicturesDescription, sp.PicPath
+			FROM 
+				SitePictures sp WITH (NOLOCK)
+				LEFT JOIN SitePicCategory spc WITH (NOLOCK) ON sp.PicCatID = spc.PicCatID
+			WHERE 
+				sp.SiteID = @InputInt AND spc.[Description] = @InputText;
 		END
 
-		-- GetSitePicture
+		-- GetSitePictureBySiteId
 		ELSE IF @TextCriteria = 13
 		BEGIN
 			-- Retrieve site pictures using the assigned SiteID
@@ -196,6 +207,19 @@ BEGIN
 				LEFT JOIN SitePicCategory spc WITH (NOLOCK) ON sp.PicCatID = spc.PicCatID
 			WHERE 
 				sp.SiteID = @InputInt;
+		END
+
+		-- GetSitePictureBySitePicID
+		ELSE IF @TextCriteria = 14
+		BEGIN
+			-- Retrieve site pictures using the assigned SiteID
+			SELECT 
+				sp.SiteID, sp.SitePicID, sp.PicCatID, 
+				sp.[Description] AS SitePicturesDescription, sp.PicPath
+			FROM 
+				SitePictures sp WITH (NOLOCK)
+			WHERE 
+				sp.SitePicID = @InputInt;
 		END
 
 		-- Capture number of rows affected

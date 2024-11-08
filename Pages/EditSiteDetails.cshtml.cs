@@ -24,12 +24,9 @@ namespace Spider_QAMS.Pages
         // Dropdown Data Lists
         public IList<SponsorGroup> SponsorsList { get; set; }
         public IList<VisitStatusModel> VisitStatuses { get; set; }
-        public IList<SitePicCategory> SitePicCategories { get; set; }
         public IList<string> ATMClass { get; set; }
         [BindProperty]
         public SiteDetailVM SiteDetailVM { get; set; }
-        [BindProperty]
-        public List<SitePicCategoryVMAssociation> SitePicCategoryList { get; set; }
         public async Task<IActionResult> OnGetAsync(string siteId)
         {
             if (string.IsNullOrEmpty(siteId))
@@ -95,7 +92,7 @@ namespace Spider_QAMS.Pages
                         PicPath = Path.Combine(
                             _configuration["BaseUrl"],
                             _configuration["SiteDetailImgPath"],
-                            p.SitePicCategoryData.Description,
+                            p.SitePicCategoryData.PicCatID.ToString(),
                             p.PicPath) ?? string.Empty,
                         SitePicCategoryVMData = new SitePicCategoryVM
                         {
@@ -206,28 +203,6 @@ namespace Spider_QAMS.Pages
             var responseATMClasses = await client.GetStringAsync($"{_configuration["ApiBaseUrl"]}/Navigation/GetAllATMClasses");
             ATMClass = string.IsNullOrEmpty(responseATMClasses) ? new List<string>() : JsonSerializer.Deserialize<List<string>>(responseATMClasses, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
 
-            var responsePicCategories = await client.GetStringAsync($"{_configuration["ApiBaseUrl"]}/Navigation/GetAllPicCategories");
-            SitePicCategories = string.IsNullOrEmpty(responsePicCategories) ? new List<SitePicCategory>() : JsonSerializer.Deserialize<List<SitePicCategory>>(responsePicCategories, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
-
-            SitePicCategoryList = SitePicCategories.Select(category => new SitePicCategoryVMAssociation
-            {
-                PicCatID = category.PicCatID,
-                Description = category.Description,
-                Images = new List<IFormFile>(),
-                ImagePaths = _siteDetail.SitePicturesLst?
-                .Where(p => p.SitePicCategoryData?.PicCatID == category.PicCatID)
-                .Select(p => Path.Combine(
-                    _configuration["BaseUrl"],
-                    _configuration["SiteDetailImgPath"],
-                    category.Description,
-                    p.PicPath ?? string.Empty
-                )).ToList() ?? new List<string>(),
-                ImageComments = _siteDetail.SitePicturesLst?
-                    .Where(p => p.SitePicCategoryData?.PicCatID == category.PicCatID)
-                    .Select(p => p.Description ?? string.Empty)
-                    .ToList() ?? new List<string>()
-            }).ToList();
-
             var responseVisitStatuses = await client.GetStringAsync($"{_configuration["ApiBaseUrl"]}/Navigation/GetAllVisitStatuses");
             VisitStatuses = string.IsNullOrEmpty(responseVisitStatuses) ? new List<VisitStatusModel>() : JsonSerializer.Deserialize<List<VisitStatusModel>>(responseVisitStatuses, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
 
@@ -302,7 +277,7 @@ namespace Spider_QAMS.Pages
             {
                 _siteDetail = new SiteDetail
                 {
-                    SiteID = 0,  // Assuming SiteID is set during editing
+                    SiteID = SiteDetailVM.SiteID,  // Assuming SiteID is set during editing
                     SiteCode = SiteDetailVM.SiteCode == null ? string.Empty : SiteDetailVM.SiteCode,  // Assuming SiteCode is under SiteBranchFacilities
                     SiteName = SiteDetailVM.SiteName == null ? string.Empty : SiteDetailVM.SiteName,
                     SiteCategory = SiteDetailVM.SiteCategory == null ? string.Empty : SiteDetailVM.SiteCategory,
@@ -323,6 +298,8 @@ namespace Spider_QAMS.Pages
                     AtmClass = SiteDetailVM.AtmClass == null ? string.Empty : SiteDetailVM.AtmClass, // ATM Class
                     BranchNo = SiteDetailVM.BranchNo == null ? string.Empty : SiteDetailVM.BranchNo,
                     BranchTypeId = SiteDetailVM.BranchTypeId == null ? 0 : SiteDetailVM.BranchTypeId,
+
+                    SitePicturesLst = new List<SitePictures>(),
 
                     // Map child objects with null handling
                     ContactInformation = new SiteContactInformation
@@ -399,31 +376,6 @@ namespace Spider_QAMS.Pages
                         NoOfInternalCameras = SiteDetailVM.SiteMiscInformation?.NoOfInternalCameras ?? 0,
                         TrackingSystem = SiteDetailVM.SiteMiscInformation?.TrackingSystem ?? string.Empty,
                     },
-                    // Initialize SitePicturesLst from SitePicCategoryList
-                    SitePicturesLst = SitePicCategoryList.SelectMany(category =>
-                    category.Images.Select((image, index) => new SitePictures
-                    {
-                        Description = category.ImageComments.ElementAtOrDefault(index) ?? string.Empty,
-                        PicPath = image.FileName,
-                        SitePicCategoryData = new SitePicCategory
-                        {
-                            PicCatID = category.PicCatID ?? 0,
-                            Description = category.Description ?? string.Empty
-                        }
-                    })).ToList() ?? new List<SitePictures> // Default to an empty list with default values if null
-                    {
-                        new SitePictures
-                        {
-                            SitePicID = 0,
-                            Description = string.Empty,
-                            PicPath = string.Empty,
-                            SitePicCategoryData = new SitePicCategory
-                            {
-                                PicCatID = 0,
-                                Description = string.Empty
-                            }
-                        }
-                    }
                 };
 
                 var client = _clientFactory.CreateClient();
@@ -435,73 +387,15 @@ namespace Spider_QAMS.Pages
 
                 if (response.IsSuccessStatusCode)
                 {
-                    // Successfully created the site, now upload images
-                    var siteDetailResponse = await response.Content.ReadAsStringAsync();
-                    var createdSite = JsonSerializer.Deserialize<SiteDetail>(siteDetailResponse, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
-
-                    // Upload images after the site is created
-                    if (SitePicCategoryList != null && SitePicCategoryList.Any())
-                    {
-                        foreach (var category in SitePicCategoryList)
-                        {
-                            // Ensure the category description exists
-                            if (string.IsNullOrWhiteSpace(category.Description))
-                                continue;
-
-                            // Create the folder path based on category description
-                            string categoryFolder = Path.Combine(
-                                _webHostEnvironment.WebRootPath,
-                                _configuration["SiteDetailImgPath"],
-                                category.Description
-                            );
-
-                            // Create the folder if it doesn't exist
-                            if (!Directory.Exists(categoryFolder))
-                            {
-                                Directory.CreateDirectory(categoryFolder);
-                            }
-
-                            foreach (var image in category.Images)
-                            {
-                                if (image != null && image.Length > 0)
-                                {
-                                    // Extract file name from the uploaded image
-                                    string uploadedFileName = Path.GetFileName(image.FileName);
-
-                                    // Find the matching SitePicture entry based on PicPath containing the uploaded file name
-                                    var sitePicture = createdSite.SitePicturesLst
-                                        .FirstOrDefault(sp => sp.PicPath.Contains(uploadedFileName));
-
-                                    if (sitePicture != null)
-                                    {
-                                        // Build the complete file path
-                                        string filePath = Path.Combine(categoryFolder, sitePicture.PicPath);
-
-                                        // Copy the file to the appropriate path on the server
-                                        using (var fileStream = new FileStream(filePath, FileMode.Create))
-                                        {
-                                            await image.CopyToAsync(fileStream);
-                                        }
-                                    }
-                                    else
-                                    {
-                                        // Handle the case where the picture is not found (optional logging or error handling)
-                                        Console.WriteLine($"No matching entry found for file: {uploadedFileName}");
-                                    }
-                                }
-                            }
-                        }
-                    }
-
-                    TempData["success"] = $"{SiteDetailVM.SiteName} - Created Successfully with Images Uploaded";
-                    return RedirectToPage("/ManageSiteDetails");
+                    TempData["success"] = $"{SiteDetailVM.SiteName} - Updated Successfully. Please Update Images if required";
+                    return Redirect($"/SiteImageUploader?siteId={_siteDetail.SiteID}");
                 }
                 else
                 {
                     await LoadSiteDetailsDataAsync(SiteDetailVM.SiteID.ToString());
                     await LoadDropdownDataAsync();
                     TempData["error"] = $"{SiteDetailVM.SiteName} - Error occurred in response with status: {response.StatusCode} - {response.ReasonPhrase}";
-                    return Page();
+                    return RedirectToPage();
                 }
             }
             catch (HttpRequestException ex)

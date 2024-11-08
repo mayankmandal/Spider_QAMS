@@ -20,7 +20,7 @@ ConfigureServices(builder.Services, builder.Configuration);
 var app = builder.Build();
 
 // Configure the HTTP request pipeline
-Configure(app);
+Configure(app, builder.Configuration);
 
 app.Run();
 
@@ -106,9 +106,20 @@ void ConfigureServices(IServiceCollection services, IConfiguration configuration
 
     // Register the ApplicationUserBusinessLogic
     services.AddScoped<ApplicationUserBusinessLogic>();
+
+    // Apply CORS specifically for image requests
+    /*services.AddCors(options =>
+    {
+        options.AddPolicy("ImagesOnlyPolicy", builder =>
+        {
+            builder.WithOrigins(configuration["BaseUrl"]) // Allow specific origin
+                   .WithMethods("GET") // Allow only GET requests
+                   .AllowCredentials(); // Allow cookies and authorization
+        });
+    });*/
 }
 
-void Configure(WebApplication app)
+void Configure(WebApplication app, IConfiguration configuration)
 {
     // Configure the HTTP request pipeline.
     if (!app.Environment.IsDevelopment())
@@ -126,7 +137,22 @@ void Configure(WebApplication app)
 
     // Use authentication and authorization
     app.UseAuthentication();
+
+    // app.UseCors("ImagesOnlyPolicy");
+
     app.UseAuthorization();
+
+    /*app.UseEndpoints(endpoints =>
+    {
+        endpoints.MapControllers();
+        endpoints.MapRazorPages();
+        endpoints.MapFallbackToFile("");
+        endpoints.MapGet(configuration["SiteDetailImgPath"] + "/{*filepath}", async context =>
+        {
+            context.Response.Headers.Add("Access-Control-Allow-Origin", configuration["BaseUrl"]);
+            await context.Response.SendFileAsync(context.Request.Path);
+        });
+    });*/
 
     app.MapRazorPages();
     app.MapControllers();

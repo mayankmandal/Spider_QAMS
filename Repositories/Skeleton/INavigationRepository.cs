@@ -30,6 +30,9 @@ namespace Spider_QAMS.Repositories.Skeleton
         Task<SiteDetail> CreateSiteDetailsAsync(SiteDetail siteDetail);
         Task<bool> UpdateSiteDetailsAsync(SiteDetail siteDetail);
 
+        Task<int> UploadSiteImageAsync(SitePictures sitePictures);
+        // Task<bool> UpdateSiteDetailsAsync(SiteDetail siteDetail);
+
         Task<ProfileUserAPIVM> GetUserRecordAsync(int newUserId);
         Task<ProfileSite> GetCurrentUserProfileAsync(int CurrentUserId);
         Task<List<PageSiteVM>> GetCurrentUserPagesAsync(int CurrentUserId);
@@ -43,6 +46,7 @@ namespace Spider_QAMS.Repositories.Skeleton
         Task<Contact> GetContactDataAsync(int newUserId);
         Task<SiteDetail> GetSiteDetailsDataAsync(Record record);
         Task<List<SitePictures>> GetSitePicturesDataAsync(Record record);
+        Task<SitePictures> GetSitePictureDataAsync(Record record);
 
         Task<List<ProfileUserAPIVM>> GetAllUsersDataAsync();
         Task<List<ProfileSite>> GetAllProfilesAsync();

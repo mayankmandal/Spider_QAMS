@@ -37,7 +37,7 @@
                         </div>
                         <div class="card-body">
                             <div class="row">
-                                <div class="row" style="display: flex; justify-content: space-between; align-items:flex-end;">
+                                <div class="row" style="display: flex; justify-content: space-between; align-items:flex-start;">
                                     <!-- First Column -->
                                     <div style="flex: 1; padding: 10px;">
                                         <div class="mb-3">
@@ -70,18 +70,32 @@
                                             <span asp-validation-for="SiteDetailVM.SponsorID" class="text-danger fw-bold"></span>
                                         </div>
                                         <div class="mb-3">
-                                            <label asp-for="SiteDetailVM.ContactID" class="form-label"></label>
-                                            <select asp-for="SiteDetailVM.ContactID" class="form-select" id="contactSelect">
-                                                @if (!string.IsNullOrEmpty(Model.SiteDetailVM.ContactName))
+                                            <label asp-for="SiteDetailVM.SiteTypeID" class="form-label"></label>
+                                            <select asp-for="SiteDetailVM.SiteTypeID" class="form-select" id="siteTypeSelect">
+                                                @if (!string.IsNullOrEmpty(Model.SiteDetailVM.SiteTypeDescription))
                                                 {
-                                                    <option value="@Model.SiteDetailVM.ContactID">@Model.SiteDetailVM.ContactName</option>
+                                                    <option value="@Model.SiteDetailVM.SiteTypeID">@Model.SiteDetailVM.SiteTypeDescription</option>
                                                 }
                                                 else
                                                 {
-                                                    <option value="" disabled>Select Contact</option>
+                                                    <option value="" disabled>Select Site Type</option>
                                                 }
                                             </select>
-                                            <span asp-validation-for="SiteDetailVM.ContactID" class="text-danger fw-bold"></span>
+                                            <span asp-validation-for="SiteDetailVM.SiteTypeID" class="text-danger fw-bold"></span>
+                                        </div>
+                                        <div class="mb-3" id="branchTypeDiv">
+                                            <label asp-for="SiteDetailVM.BranchTypeId" class="form-label" for="branchTypeSelect"></label>
+                                            <select asp-for="SiteDetailVM.BranchTypeId" class="form-select" id="branchTypeSelect">
+                                                @if (!string.IsNullOrEmpty(Model.SiteDetailVM.BranchTypeDescription))
+                                                {
+                                                    <option value="@Model.SiteDetailVM.BranchTypeId">@Model.SiteDetailVM.BranchTypeDescription</option>
+                                                }
+                                                else
+                                                {
+                                                    <option value="" disabled>Select Branch Type</option>
+                                                }
+                                            </select>
+                                            <span asp-validation-for="SiteDetailVM.BranchTypeId" class="text-danger fw-bold"></span>
                                         </div>
                                     </div>
 
@@ -139,12 +153,46 @@
                                             <input type="text" asp-for="SiteDetailVM.GPSLatt" placeholder="GPS Latitude" class="form-control" />
                                             <span asp-validation-for="SiteDetailVM.GPSLatt" class="text-danger fw-bold"></span>
                                         </div>
+                                        <div class="mb-3">
+                                            <label asp-for="SiteDetailVM.BranchNo" class="form-label"></label>
+                                            <input type="text" asp-for="SiteDetailVM.BranchNo" placeholder="Branch No" class="form-control" />
+                                            <span asp-validation-for="SiteDetailVM.BranchNo" class="text-danger fw-bold"></span>
+                                        </div>
                                     </div>
 
                                     <!-- Third Column -->
                                     <div style="flex: 1; padding: 10px;">
+                                        <!-- Site Profile Image View -->
+                                        <div class="my-3" id="siteProfileImageContainer" style="position: relative; width: 100%; height: 150px; border: 1px solid #ccc; margin-bottom: 15px;">
+                                            <img id="siteProfileImage" src="@Model.SiteDetailVM.SitePicturesLst.FirstOrDefault()?.PicPath" alt="Site Profile Image" style="width:100%; height:100%; object-fit:contain;" />
+                                            <!-- Enlarge Button in the Bottom Left Corner -->
+                                            <div id="enlargesiteProfileImageBtn"
+                                                 style="position: absolute; bottom: 10px; left: 10px; background-color: rgba(242,240,239, 0.8); border: 2px solid #ccc; border-radius: 5px; cursor: pointer; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2); display: inline-block;">
+                                                <i class="fas fa-expand-arrows-alt" style="font-size: 12px; color: #333; margin: 10px;"></i>
+                                            </div>
+                                        </div>
+
+                                        <!-- Full Screen Image Modal -->
+                                        <div class="modal fade" id="siteImageModal" tabindex="-1" aria-labelledby="siteImageModalLabel" aria-hidden="true">
+                                            <div class="modal-dialog modal-lg modal-dialog-centered">
+                                                <div class="modal-content">
+                                                    <div class="m-2">
+                                                        <div class="modal-header">
+                                                            <h5 class="modal-title" id="siteImageModalLabel">Full-Screen Site Profile Image</h5>
+                                                            <span class="btn-close" data-bs-dismiss="modal" aria-label="Close" id="cancelImageButton"></span>
+                                                        </div>
+                                                    </div>
+                                                    <div class="m-2" style="background-color: #F2F0EF;">
+                                                        <div class="modal-body" style="text-align: center;">
+                                                            <img id="fullSiteImage" src="@Model.SiteDetailVM.SitePicturesLst.FirstOrDefault()?.PicPath"
+                                                                 alt="Full Site Profile Image" style="width: 50%; height: auto;" />
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
                                         <!-- Map View -->
-                                        <div id="mapContainer" style="position: relative; width: 100%; height: 150px; border: 1px solid #ccc; margin-bottom: 15px;">
+                                        <div class="my-3" id="mapContainer" style="position: relative; width: 100%; height: 150px; border: 1px solid #ccc; margin-bottom: 15px;">
                                             <!-- Map Button in the Bottom Left Corner -->
                                             <div id="enlargeMapBtn"
                                                  style="position: absolute; bottom: 10px; left: 10px; background-color: rgba(255, 255, 255, 0.8);
@@ -155,7 +203,6 @@
                                             <!-- Placeholder for the map -->
                                             <p style="text-align: center; line-height: 150px;">Map will be here</p>
                                         </div>
-
                                         <!-- Full Screen Map Model-->
                                         <div class="modal fade" id="mapModel" tabindex="-1" aria-labelledby="mapModalLabel" aria-hidden="true">
                                             <div class="modal-dialog modal-lg modal-dialog-centered">
@@ -176,39 +223,19 @@
                                         </div>
 
                                         <div class="mb-3">
-                                            <label asp-for="SiteDetailVM.SiteTypeID" class="form-label"></label>
-                                            <select asp-for="SiteDetailVM.SiteTypeID" class="form-select" id="siteTypeSelect">
-                                                @if (!string.IsNullOrEmpty(Model.SiteDetailVM.SiteTypeDescription))
+                                            <label asp-for="SiteDetailVM.ContactID" class="form-label"></label>
+                                            <select asp-for="SiteDetailVM.ContactID" class="form-select" id="contactSelect">
+                                                @if (!string.IsNullOrEmpty(Model.SiteDetailVM.ContactName))
                                                 {
-                                                    <option value="@Model.SiteDetailVM.SiteTypeID">@Model.SiteDetailVM.SiteTypeDescription</option>
+                                                    <option value="@Model.SiteDetailVM.ContactID">@Model.SiteDetailVM.ContactName</option>
                                                 }
                                                 else
                                                 {
-                                                    <option value="" disabled>Select Site Type</option>
+                                                    <option value="" disabled>Select Contact</option>
                                                 }
                                             </select>
-                                            <span asp-validation-for="SiteDetailVM.SiteTypeID" class="text-danger fw-bold"></span>
+                                            <span asp-validation-for="SiteDetailVM.ContactID" class="text-danger fw-bold"></span>
                                         </div>
-                                        <div class="mb-3">
-                                            <label asp-for="SiteDetailVM.BranchNo" class="form-label"></label>
-                                            <input type="text" asp-for="SiteDetailVM.BranchNo" placeholder="Branch No" class="form-control" />
-                                            <span asp-validation-for="SiteDetailVM.BranchNo" class="text-danger fw-bold"></span>
-                                        </div>
-                                        <div class="mb-3" id="branchTypeDiv">
-                                            <label asp-for="SiteDetailVM.BranchTypeId" class="form-label" for="branchTypeSelect"></label>
-                                            <select asp-for="SiteDetailVM.BranchTypeId" class="form-select" id="branchTypeSelect">
-                                                @if (!string.IsNullOrEmpty(Model.SiteDetailVM.BranchTypeDescription))
-                                                {
-                                                    <option value="@Model.SiteDetailVM.BranchTypeId">@Model.SiteDetailVM.BranchTypeDescription</option>
-                                                }
-                                                else
-                                                {
-                                                    <option value="" disabled>Select Branch Type</option>
-                                                }
-                                            </select>
-                                            <span asp-validation-for="SiteDetailVM.BranchTypeId" class="text-danger fw-bold"></span>
-                                        </div>
-
                                         <div class="mb-3">
                                             <label asp-for="SiteDetailVM.AtmClass" class="form-label"></label>
                                             <select asp-for="SiteDetailVM.AtmClass" class="form-select" id="atmClassSelect">
@@ -230,10 +257,7 @@
                         <div class="card-header p-0 pt-1" style="background-color: #9C9C9C;">
                             <ul class="nav nav-tabs fw-bolder" id="custom-tabs-one-tab" role="tablist" style="background-color: #9C9C9C;">
                                 <li class="nav-item">
-                                    <a class="nav-link active" href="#uploadPics" data-toggle="tab" role="tab" aria-controls="uploadPics" aria-selected="true">Upload Pictures</a>
-                                </li>
-                                <li class="nav-item">
-                                    <a class="nav-link" href="#contactInformation" data-toggle="tab" role="tab" aria-controls="contactInformation" aria-selected="false">Contact Information</a>
+                                    <a class="nav-link active" href="#contactInformation" data-toggle="tab" role="tab" aria-controls="contactInformation" aria-selected="true">Contact Information</a>
                                 </li>
                                 <li class="nav-item">
                                     <a class="nav-link" href="#geographicalDetails" data-toggle="tab" role="tab" aria-controls="geographicalDetails" aria-selected="false">Geographical Details</a>
@@ -263,37 +287,9 @@
                         </div>
                         <div class="card-body">
                             <div class="tab-content" id="custom-tabs-one-tabContent">
-                                <!-- Upload Pictures Tab -->
-                                <div class="tab-pane fade show active" id="uploadPics" role="tabpanel" aria-labelledby="custom-tabs-one-home-tab">
-                                    <div class="row" style="display: flex; justify-content: space-between; align-items: flex-end;">
-                                        <div class="col-md-4">
-                                            <label for="sitePicCategory" class="form-label">Picture Category</label>
-                                            <select id="sitePicCategory" class="form-select">
-                                                <option value="" disabled selected>--Select Category--</option>
-                                                @foreach (var category in Model.SitePicCategories)
-                                                {
-                                                    <option value="@category.PicCatID" data-description="@category.Description">
-                                                        @category.Description
-                                                    </option>
-                                                }
-                                            </select>
-                                        </div>
-
-                                        <div class="col-md-4">
-                                            <button type="button" id="addImages" class="btn btn-primary">Add Images</button>
-                                        </div>
-
-                                        <span id="categoryValidation" class="text-danger fw-bold" style="display:none;"></span>
-                                    </div>
-
-                                    <hr />
-
-                                    <div id="uploadedImagesContainer" class="row"></div>
-                                </div>
-
-
+                                
                                 <!-- Contact Information Tab -->
-                                <div class="tab-pane fade" id="contactInformation" role="tabpanel" aria-labelledby="custom-tabs-one-profile-tab">
+                                <div class="tab-pane fade show active" id="contactInformation" role="tabpanel" aria-labelledby="custom-tabs-one-profile-tab">
                                     <div class="row">
                                         <div class="col-md-6">
                                             <div class="mb-3">
@@ -629,11 +625,12 @@
                     <div style="display: flex; justify-content: center; align-items: center; margin-top: 20px;">
                         <div class="row" style="width: 100%; max-width: 600px; display: flex; justify-content: space-around;">
                             <button type="submit" class="btn update-btn">Edit Site</button>
-                            <a asp-page="/ManageSiteDetails" type="button" class="btn btn-secondary">Back to All Sites</a>
+                            <a asp-page="/ManageSiteDetails" type="button" class="btn btn-secondary"><i class="fas fa-arrow-circle-left"></i> Back to All Sites</a>
                         </div>
                     </div>
 
                 </div>
+            </div>
         </form>
     </div>
 </div>
@@ -643,8 +640,14 @@
     <partial name="_ValidationScriptsPartial" />
     <script src="~/plugins/leaflet/leaflet.js"></script>
     <script>
+        var selectedSponsorId = @(Model?.SiteDetailVM?.SponsorID ?? 0);
+        var selectedRegionId = @(Model?.SiteDetailVM?.RegionID ?? 0);
+        var selectedCityId = @(Model?.SiteDetailVM?.CityID ?? 0);
+        var selectedLocationId = @(Model?.SiteDetailVM?.LocationID ?? 0);
+        var selectedContactId = @(Model?.SiteDetailVM?.ContactID ?? 0);
+        var selectedSiteTypeId = @(Model?.SiteDetailVM?.SiteTypeID ?? 0);
+        var selectedBranchTypeId = @(Model?.SiteDetailVM?.BranchTypeId ?? 0);
         const groupedData = @Html.Raw(Json.Serialize(Model.SponsorsList));
-        const ImagesData = @Html.Raw(Json.Serialize(Model.SitePicCategoryList));
     </script>
     <script src="~/js/edit-site-details.js" asp-append-version="true"></script>
 }

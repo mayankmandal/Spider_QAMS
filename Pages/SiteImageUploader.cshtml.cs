@@ -59,7 +59,7 @@ namespace Spider_QAMS.Pages
             var client = _clientFactory.CreateClient();
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", JWTCookieHelper.GetJWTCookie(HttpContext));
             var apiUrl = $"{_configuration["ApiBaseUrl"]}/Navigation/FetchRecord";
-            var requestBody = new { RecordId = Convert.ToInt32(siteId), RecordType = (int)FetchRecordByIdOrTextEnum.GetSitePicture };
+            var requestBody = new { RecordId = Convert.ToInt32(siteId), RecordType = (int)FetchRecordByIdOrTextEnum.GetSitePictureBySiteId };
             var jsonContent = JsonSerializer.Serialize(requestBody);
             var httpContent = new StringContent(jsonContent, Encoding.UTF8, "application/json");
 
@@ -80,7 +80,7 @@ namespace Spider_QAMS.Pages
                         Images = group.Select(img => new ImageViewModel
                         {
                             SitePicID = img.SitePicID,
-                            FilePath = Path.Combine(_configuration["BaseUrl"],_configuration["SiteDetailImgPath"], img.SitePicCategoryData.Description, img.PicPath) ?? string.Empty,
+                            FilePath = Path.Combine(_configuration["BaseUrl"],_configuration["SiteDetailImgPath"], img.SitePicCategoryData.Description, img.PicPath)?.Replace("\\","/") ?? string.Empty,
                             FileName = img.PicPath ?? string.Empty,
                             ImageFile = null,
                             IsDeleted = false,

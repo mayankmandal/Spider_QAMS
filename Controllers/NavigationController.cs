@@ -774,7 +774,7 @@ namespace Spider_QAMS.Controllers
         [ProducesResponseType(typeof(string), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-        public async Task<IActionResult> UploadSiteImageData(IFormFile imageFile, int categoryId, long siteId)
+        public async Task<IActionResult> UploadSiteImageData(IFormFile imageFile,[FromForm] int categoryId, [FromForm] long siteId)
         {
             try
             {
@@ -808,22 +808,22 @@ namespace Spider_QAMS.Controllers
 
                 var imageRecord = new SitePictures
                 {
-                    SiteID = siteId,
+                    SiteID = Convert.ToInt64(siteId),
                     Description = string.Empty,
                     PicPath = uniqueFileName,
-                    SitePicCategoryData = new SitePicCategory { PicCatID = categoryId },
+                    SitePicCategoryData = new SitePicCategory { PicCatID = Convert.ToInt32(categoryId) },
                 };
 
-                bool isSuccess = false;
-                // isSuccess = await _navigationRepository.UpdateSiteDetailsAsync(imageRecord);
+                int SitePicId = -1;
+                SitePicId = await _navigationRepository.UploadSiteImageAsync(imageRecord);
 
-                if (isSuccess)
+                if (SitePicId <= 0)
                 {
-                    return Ok(new {filePath = $""});
+                    return BadRequest();
                 }
                 else
                 {
-                    return BadRequest();
+                    return Ok(new { SitePicId, filePath = uniqueFileName });
                 }
             }
             catch (Exception ex)
@@ -833,42 +833,84 @@ namespace Spider_QAMS.Controllers
         }
         [HttpDelete("DeleteSiteImage")]
         [ProducesResponseType(typeof(string), StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         public async Task<IActionResult> DeleteSiteImageData(int imageId)
         {
             try
             {
+                // Validate JWT token
                 var jwtToken = Request.Headers["Authorization"].ToString().Replace("Bearer ", "");
                 if (string.IsNullOrEmpty(jwtToken))
                 {
-                    return Unauthorized("JWT Token is missing");
+                    return Unauthorized("JWT token is missing.");
                 }
+
                 var currentUserId = await _applicationUserBusinessLogic.GetCurrentUserIdAsync(jwtToken);
                 if (currentUserId == null || currentUserId <= 0)
                 {
                     return Unauthorized("User is not authenticated.");
                 }
 
-                /*var imageRecord = null; // await _navigationRepository.GetSitePicturesDataAsync(imageId.ToString());
-                if (imageRecord == null)
+                // Retrieve the image record from the repository
+                if (imageId <= 0)
                 {
-                    return NotFound("Image not found");
+                    return BadRequest("Invalid image ID.");
                 }
 
-                string filePath = Path.Combine(_webHostEnvironment.WebRootPath, _configuration["SiteDetailImgPath"], imageRecord.);
-*/
-                bool isSuccess = false;
-                // isSuccess = await _navigationRepository.UpdateSiteDetailsAsync(imageRecord);
+                Record record = new Record
+                {
+                    RecordId = imageId,
+                    RecordText = string.Empty,
+                    RecordType = (int)FetchRecordByIdOrTextEnum.GetSitePictureBySitePicID
+                };
 
-                if (isSuccess)
+                object result = await _navigationRepository.FetchRecordByTypeAsync(record);
+                if (result == null)
                 {
-                    return Ok(new { filePath = $"" });
+                    return NotFound("Image not found.");
                 }
-                else
+
+                // Get expected type and validate result type
+                Type expectedType = FetchRecordTypeMapper.GetTypeByEnum((FetchRecordByIdOrTextEnum)record.RecordType);
+                if (result.GetType() != expectedType)
                 {
-                    return BadRequest();
+                    return StatusCode(500, "Returned data does not match expected type.");
                 }
+
+                // Extract PicPath and SitePicCategoryId from the result
+                var typedResult = Convert.ChangeType(result, expectedType);
+                string picPath = expectedType.GetProperty("PicPath")?.GetValue(typedResult) as string;
+                // Get the SitePicCategoryData object from typedResult
+                var sitePicCategoryData = expectedType.GetProperty("SitePicCategoryData")?.GetValue(typedResult);
+
+                // Check if sitePicCategoryData is not null and retrieve PicCatID
+                int? sitePicCategoryId = sitePicCategoryData?.GetType().GetProperty("PicCatID")?.GetValue(sitePicCategoryData) as int?;
+
+                if (string.IsNullOrEmpty(picPath) || sitePicCategoryId == null)
+                {
+                    return BadRequest("Image path or category ID is missing.");
+                }
+
+                // Delete the physical file
+                string oldFilePath = Path.Combine(_webHostEnvironment.WebRootPath, _configuration["SiteDetailImgPath"], sitePicCategoryId.ToString(), picPath);
+                bool fileDeletionSuccess = await DeleteFileAsync(oldFilePath);
+
+                if (!fileDeletionSuccess)
+                {
+                    return BadRequest("Failed to delete image file.");
+                }
+
+                // Delete the database record
+                bool recordDeletionSuccess = await _navigationRepository.DeleteEntityAsync(imageId, DeleteEntityType.SitePicture);
+
+                if (!recordDeletionSuccess)
+                {
+                    return BadRequest("Failed to delete image record from the database.");
+                }
+                return Ok(new { message = $"{picPath} has been deleted successfully." });
             }
             catch (Exception ex)
             {

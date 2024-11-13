@@ -13,6 +13,7 @@ namespace Spider_QAMS.Pages
     {
         private readonly IConfiguration _configuration;
         private readonly IHttpClientFactory _clientFactory;
+        private SiteImageUploaderVM _siteImageUploaderVM;
         public SiteImageUploaderModel(IConfiguration configuration, IHttpClientFactory httpClientFactory)
         {
             _configuration = configuration;
@@ -42,6 +43,45 @@ namespace Spider_QAMS.Pages
 
             return Page();
         }
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> OnPostAsync()
+        {
+            if (!ModelState.IsValid)
+            {
+                TempData["error"] = "Please provide valid data.";
+                return Page();
+            }
+
+            // Save files to server and collect the data for API call
+            _siteImageUploaderVM = SiteImageUploaderVM;
+
+            // Send API request to save image data
+            try
+            {
+                var client = _clientFactory.CreateClient();
+                client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", JWTCookieHelper.GetJWTCookie(HttpContext));
+                var apiUrl = $"{_configuration["ApiBaseUrl"]}/Navigation/UpdateSiteImages";
+                var jsonContent = JsonSerializer.Serialize(_siteImageUploaderVM);
+                var httpContent = new StringContent(jsonContent, Encoding.UTF8, "application/json");
+                var response = await client.PostAsync(apiUrl, httpContent);
+
+                if (response.IsSuccessStatusCode)
+                {
+                    TempData["success"] = "Images uploaded and saved successfully.";
+                    return RedirectToPage("/ManageSiteDetails");
+                }
+                else
+                {
+                    TempData["error"] = $"Error saving images: {response.StatusCode} - {response.ReasonPhrase}";
+                    return Page();
+                }
+            }
+            catch (Exception ex)
+            {
+                TempData["error"] = "An unexpected error occurred while saving images.";
+                return HandleError(ex, "An unexpected error occurred.");
+            }
+        }
 
         private async Task LoadDropdownDataAsync()
         {
@@ -53,7 +93,6 @@ namespace Spider_QAMS.Pages
                 ? new List<SitePicCategory>()
                 : JsonSerializer.Deserialize<List<SitePicCategory>>(response, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
         }
-
         private async Task LoadExistingImagesAsync(string siteId)
         {
             var client = _clientFactory.CreateClient();
@@ -80,7 +119,7 @@ namespace Spider_QAMS.Pages
                         Images = group.Select(img => new ImageViewModel
                         {
                             SitePicID = img.SitePicID,
-                            FilePath = Path.Combine(_configuration["BaseUrl"],_configuration["SiteDetailImgPath"], img.SitePicCategoryData.Description, img.PicPath)?.Replace("\\","/") ?? string.Empty,
+                            FilePath = Path.Combine(_configuration["BaseUrl"],_configuration["SiteDetailImgPath"], img.SitePicCategoryData.PicCatID.ToString(), img.PicPath)?.Replace("\\","/") ?? string.Empty,
                             FileName = img.PicPath ?? string.Empty,
                             ImageFile = null,
                             IsDeleted = false,
@@ -94,6 +133,11 @@ namespace Spider_QAMS.Pages
             {
                 throw new Exception($"Error fetching images: {response.StatusCode} - {response.ReasonPhrase}");
             }
+        }
+        private IActionResult HandleError(Exception ex, string errorMessage)
+        {
+            TempData["error"] = $"Error Message - " + errorMessage + ". Error details: " + ex.Message;
+            return Page();
         }
     }
 }

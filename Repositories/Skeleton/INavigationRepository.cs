@@ -30,8 +30,7 @@ namespace Spider_QAMS.Repositories.Skeleton
         Task<SiteDetail> CreateSiteDetailsAsync(SiteDetail siteDetail);
         Task<bool> UpdateSiteDetailsAsync(SiteDetail siteDetail);
 
-        Task<int> UploadSiteImageAsync(SitePictures sitePictures);
-        // Task<bool> UpdateSiteDetailsAsync(SiteDetail siteDetail);
+        Task<bool> UpdateSiteImagesAsync(List<SitePictures> sitePictures);
 
         Task<ProfileUserAPIVM> GetUserRecordAsync(int newUserId);
         Task<ProfileSite> GetCurrentUserProfileAsync(int CurrentUserId);

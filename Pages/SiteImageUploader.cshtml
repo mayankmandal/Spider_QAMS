@@ -7,45 +7,52 @@
 }
 
 <head>
-    <link rel="stylesheet" href="~/plugins/filepond/filepond.min.css" asp-append-version="true" />
-    <link rel="stylesheet" href="~/plugins/filepond/filepond-plugin-image-preview.min.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/plugins/lightbox2/css/lightbox.min.css" />
 </head>
 
-<div class="pb-2" style="display:flex; flex-direction:column; justify-content:center; align-items:center;">
-    <!-- Title and Action Buttons -->
-    <div class="row pt-1 mb-3" style="width:100%;">
-        <div class="col text-start">
-            <h5 class="rb-header">Upload Images for Site: @Model.SiteImageUploaderVM.SiteId</h5>
-        </div>
-        <div class="col text-end">
-            <a asp-page="/ManageSiteDetails" type="button" class="btn btn-secondary">
-                <i class="fas fa-arrow-circle-left"></i> Back to All Sites
-            </a>
-        </div>
-    </div>
+<div class="pb-2" style="display:flex; flex-direction:column; justify-content:center; align-items:stretch;">
+    <div id="siteImageUploaderDiv" style="flex-direction: column; align-items: stretch;">
+        <form id="imageUploadForm">
+            @Html.AntiForgeryToken()
+            <div>
+                <!-- Dropdown for selecting category -->
+                <div class="row pt-1 mb-3" style="width:100%;display:flex; justify-content:space-between; align-items:center;">
+                    <div class="col text-start">
+                        <label for="categorySelect" class="">Select Image Category</label>
+                        <select id="categorySelect" class="form-select striped-select mb-3">
+                            <option value="" disabled selected> -- Select a Category -- </option>
+                        </select>
+                    </div>
+                    <div class="col text-end">
+                        <a asp-page="/EditSiteDetails" asp-route-siteId="@Model.SiteImageUploaderVM.SiteId" type="button" class="btn btn-warning">
+                            <i class="fas fa-arrow-circle-left"></i> Edit Site
+                        </a>
+                    </div>
+                </div>
 
-    <input type="hidden" asp-for="@Model.SiteImageUploaderVM.SiteId" />
-    <div id="siteImageUploaderDiv" style="flex-direction: column; align-items: center; min-height: auto; min-width:75rem;">
-        @foreach (var category in Model.SitePicCategories)
-        {
-            <div class="mb-4 category-@category.PicCatID" style="border: 1px solid #5B5551;border-radius: 8px;padding:10px;box-shadow: 0 1px 5px rgba(0, 0, 0, 0.1);">
-                <h5>@category.Description</h5>
+                <!-- Image upload sections container -->
+                <div id="imageUploadSection"></div>
 
-                <!-- FilePond Input for Existing and New Images -->
-                <input type="file" class="filepond" name="filepond" data-category-id="@category.PicCatID" data-category-description="@category.Description" multiple />
+                <!-- Buttons for deletion confirmation -->
+                <div style="display: flex; justify-content: center; align-items: center; margin-top: 20px;">
+                    <div class="row" style="width: 100%; max-width: 600px; display: flex; justify-content: space-around;">
+                        <button id="submitButton" class="btn update-btn">Submit All Images</button>
+                        <a asp-page="/ManageSiteDetails" type="button" class="btn btn-secondary"><i class="fas fa-arrow-circle-left"></i> Back to All Sites</a>
+                    </div>
+                </div>
             </div>
-        }
+        </form>
     </div>
 </div>
 
 @section scripts {
     <partial name="_ValidationScriptsPartial" />
     <script>
-        const sitePicCategoryList = @Html.Raw(Json.Serialize(Model.SiteImageUploaderVM.SitePicCategoryList));
+        const sitePicCategories = @Html.Raw(Json.Serialize(Model.SitePicCategories)); 
+        const existingImages = @Html.Raw(Json.Serialize(Model.SiteImageUploaderVM.SitePicCategoryList));
+        const siteId = @Model.SiteImageUploaderVM.SiteId;
+        const uploadUrl = '@Url.Page(null)';
     </script>
-    <script src="~/plugins/filepond/filepond.min.js"></script>
-    <script src="~/plugins/filepond/filepond-plugin-image-preview.min.js"></script>
-    <script src="~/plugins/filepond/filepond-plugin-file-validate-type.min.js"></script>
-    <script src="~/plugins/filepond/filepond-plugin-file-metadata.min.js"></script>
+    <script src="~/plugins/lightbox2/js/lightbox.min.js"></script>
     <script src="~/js/site-image-uploader.js" asp-append-version="true"></script>
 }

@@ -211,3 +211,37 @@ button, a.btn {
     color: white !important;
     text-align: center;
 }
+
+.category-section {
+    border: 1px solid #ddd;
+    border-radius: 5px;
+}
+
+.gallery-item {
+    position: relative;
+    display: inline-block;
+    margin: 5px;
+    text-align: center;
+}
+
+img.img-thumbnail {
+    width: 150px;
+    height: 100px;
+}
+
+.position-relative {
+    position: relative;
+}
+.delete-image-btn {
+    right: 0; /* Place it at the very right */
+    padding: 0;
+    background: transparent;
+    border: none;
+    font-size: 1rem; /* Adjust icon size */
+    cursor: pointer;
+    z-index: 10; /* Ensure the button is above the image */
+    align-items: flex-start;
+}
+.delete-image-btn i {
+    font-size: 1.2rem; /* Adjust the icon size */
+}

@@ -8,6 +8,7 @@ namespace Spider_QAMS.Models
         public long SiteID { get; set; }
         public string? Description { get; set; }
         public string? PicPath { get; set; }
+        public bool? IsDeleted { get; set; }
         public SitePicCategory SitePicCategoryData { get; set; }
     }
 }

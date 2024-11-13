@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Diagnostics;
 using Spider_QAMS.Models;
 using Spider_QAMS.Models.ViewModels;
 using Spider_QAMS.Repositories.Domain;
@@ -62,6 +63,35 @@ namespace Spider_QAMS.Controllers
             catch (Exception ex)
             {
                 throw new Exception("Error while deleting the file.", ex);
+            }
+        }
+        // Helper method for creating files
+        public async Task<string> CreateFileAsync(string folderPath, string fileName, string base64Content)
+        {
+            try
+            {
+                if (!Directory.Exists(folderPath))
+                {
+                    Directory.CreateDirectory(folderPath);
+                }
+                string filePath = Path.Combine(folderPath, fileName);
+
+                // Check if base64Content has a data URI prefix and remove it
+                if(base64Content.Contains(","))
+                {
+                    base64Content = base64Content.Substring(base64Content.IndexOf(",") + 1);
+                }
+
+                // Convert base64 to byte array and save the file
+                var imageBytes = Convert.FromBase64String(base64Content);
+                await using var stream = new FileStream(filePath, FileMode.Create, FileAccess.Write, FileShare.None);
+                await stream.WriteAsync(imageBytes, 0, imageBytes.Length);
+
+                return filePath; // Return full file path after successful creation
+            }
+            catch (Exception ex)
+            {
+                throw new Exception("Error while creating the file.", ex);
             }
         }
         [HttpPost("FetchRecord")]
@@ -770,11 +800,11 @@ namespace Spider_QAMS.Controllers
             }
         }
 
-        [HttpPost("UploadSiteImage")]
+        [HttpPost("UpdateSiteImages")]
         [ProducesResponseType(typeof(string), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-        public async Task<IActionResult> UploadSiteImageData(IFormFile imageFile,[FromForm] int categoryId, [FromForm] long siteId)
+        public async Task<IActionResult> UpdateSiteImagesData(SiteImageUploaderVM siteImageUploaderVM)
         {
             try
             {
@@ -789,128 +819,94 @@ namespace Spider_QAMS.Controllers
                     return Unauthorized("User is not authenticated.");
                 }
 
-                if(imageFile == null || imageFile.Length == 0)
+                var SitePicturesData = new List<SitePictures>();
+
+                // Process each category and its images
+                foreach (var category in siteImageUploaderVM.SitePicCategoryList)
                 {
-                    return BadRequest("Invalid image file.");
+                    foreach (var image in category.Images)
+                    {
+                        if (image.IsDeleted.GetValueOrDefault() && image.SitePicID > 0 && image.FilePath != null)
+                        {
+                            // Mark for Delete
+                            // Delete the physical file
+                            string oldFilePath = Path.Combine(_webHostEnvironment.WebRootPath, _configuration["SiteDetailImgPath"], category.PicCatId.ToString(), image.FileName);
+                            bool fileDeletionSuccess = await DeleteFileAsync(oldFilePath);
+
+                            if (!fileDeletionSuccess)
+                            {
+                                return BadRequest("Failed to delete image file.");
+                            }
+                            // Add new image data to sitePicturesData list
+                            SitePicturesData.Add(new SitePictures
+                            {
+                                SitePicID = (int)image.SitePicID,
+                                SiteID = siteImageUploaderVM.SiteId,
+                                Description = image.FileDescription ?? string.Empty,
+                                PicPath = image.FileName,
+                                IsDeleted = image.IsDeleted.GetValueOrDefault(),
+                                SitePicCategoryData = new SitePicCategory
+                                {
+                                    PicCatID = category.PicCatId,
+                                    Description = category.Description
+                                }
+                            });
+                        }
+                        else if (!image.IsDeleted.GetValueOrDefault() && image.SitePicID < 0 && image.FilePath == null && image.ImageFile != null)
+                        {
+                            // Mark for Add
+                            // Prepare to create a new image
+                            var uniqueFileName = $"{siteImageUploaderVM.SiteId}_{category.PicCatId}_{image.FileName}";
+                            var folderPath = Path.Combine(_webHostEnvironment.WebRootPath, _configuration["SiteDetailImgPath"], category.PicCatId.ToString());
+
+                            var filePath = await CreateFileAsync(folderPath, uniqueFileName, image.ImageFile);
+
+                            // Add new image data to sitePicturesData list
+                            SitePicturesData.Add(new SitePictures
+                            {
+                                SitePicID = -1,
+                                SiteID = siteImageUploaderVM.SiteId,
+                                Description = image.FileDescription ?? string.Empty,
+                                PicPath = uniqueFileName,
+                                IsDeleted = image.IsDeleted.GetValueOrDefault(),
+                                SitePicCategoryData = new SitePicCategory
+                                {
+                                    PicCatID = category.PicCatId,
+                                    Description = category.Description
+                                }
+                            });
+                        }
+                        else if (!image.IsDeleted.GetValueOrDefault() && image.SitePicID > 0 && image.FilePath != null && image.ImageFile == null)
+                        {
+                            // Mark for Update
+                            SitePicturesData.Add(new SitePictures
+                            {
+                                SitePicID = (int)image.SitePicID,
+                                SiteID = siteImageUploaderVM.SiteId,
+                                Description = image.FileDescription ?? string.Empty,
+                                PicPath = image.FileName,
+                                IsDeleted = image.IsDeleted.GetValueOrDefault(),
+                                SitePicCategoryData = new SitePicCategory
+                                {
+                                    PicCatID = category.PicCatId,
+                                    Description = category.Description
+                                }
+                            });
+                        }
+                    }
                 }
 
-                string uniqueFileName = $"{siteId}_{Path.GetFileName(imageFile.FileName)}";
-                string categoryFolder = Path.Combine(_webHostEnvironment.WebRootPath, _configuration["SiteDetailImgPath"], categoryId.ToString());
+                bool isSuccess = false;
+                isSuccess = await _navigationRepository.UpdateSiteImagesAsync(SitePicturesData);
 
-                if (!Directory.Exists(categoryFolder))
-                {
-                    Directory.CreateDirectory(categoryFolder);
-                }
-
-                string filePath = Path.Combine(categoryFolder, uniqueFileName);
-                using var fileStream = new FileStream(filePath, FileMode.Create);
-                await imageFile.CopyToAsync(fileStream);
-
-                var imageRecord = new SitePictures
-                {
-                    SiteID = Convert.ToInt64(siteId),
-                    Description = string.Empty,
-                    PicPath = uniqueFileName,
-                    SitePicCategoryData = new SitePicCategory { PicCatID = Convert.ToInt32(categoryId) },
-                };
-
-                int SitePicId = -1;
-                SitePicId = await _navigationRepository.UploadSiteImageAsync(imageRecord);
-
-                if (SitePicId <= 0)
+                if (isSuccess)
                 {
                     return BadRequest();
                 }
                 else
                 {
-                    return Ok(new { SitePicId, filePath = uniqueFileName });
+                    return Ok();
                 }
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, $"Internal Server Error: {ex.Message}");
-            }
-        }
-        [HttpDelete("DeleteSiteImage")]
-        [ProducesResponseType(typeof(string), StatusCodes.Status200OK)]
-        [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
-        [ProducesResponseType(StatusCodes.Status404NotFound)]
-        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-        public async Task<IActionResult> DeleteSiteImageData(int imageId)
-        {
-            try
-            {
-                // Validate JWT token
-                var jwtToken = Request.Headers["Authorization"].ToString().Replace("Bearer ", "");
-                if (string.IsNullOrEmpty(jwtToken))
-                {
-                    return Unauthorized("JWT token is missing.");
-                }
-
-                var currentUserId = await _applicationUserBusinessLogic.GetCurrentUserIdAsync(jwtToken);
-                if (currentUserId == null || currentUserId <= 0)
-                {
-                    return Unauthorized("User is not authenticated.");
-                }
-
-                // Retrieve the image record from the repository
-                if (imageId <= 0)
-                {
-                    return BadRequest("Invalid image ID.");
-                }
-
-                Record record = new Record
-                {
-                    RecordId = imageId,
-                    RecordText = string.Empty,
-                    RecordType = (int)FetchRecordByIdOrTextEnum.GetSitePictureBySitePicID
-                };
-
-                object result = await _navigationRepository.FetchRecordByTypeAsync(record);
-                if (result == null)
-                {
-                    return NotFound("Image not found.");
-                }
-
-                // Get expected type and validate result type
-                Type expectedType = FetchRecordTypeMapper.GetTypeByEnum((FetchRecordByIdOrTextEnum)record.RecordType);
-                if (result.GetType() != expectedType)
-                {
-                    return StatusCode(500, "Returned data does not match expected type.");
-                }
-
-                // Extract PicPath and SitePicCategoryId from the result
-                var typedResult = Convert.ChangeType(result, expectedType);
-                string picPath = expectedType.GetProperty("PicPath")?.GetValue(typedResult) as string;
-                // Get the SitePicCategoryData object from typedResult
-                var sitePicCategoryData = expectedType.GetProperty("SitePicCategoryData")?.GetValue(typedResult);
-
-                // Check if sitePicCategoryData is not null and retrieve PicCatID
-                int? sitePicCategoryId = sitePicCategoryData?.GetType().GetProperty("PicCatID")?.GetValue(sitePicCategoryData) as int?;
-
-                if (string.IsNullOrEmpty(picPath) || sitePicCategoryId == null)
-                {
-                    return BadRequest("Image path or category ID is missing.");
-                }
-
-                // Delete the physical file
-                string oldFilePath = Path.Combine(_webHostEnvironment.WebRootPath, _configuration["SiteDetailImgPath"], sitePicCategoryId.ToString(), picPath);
-                bool fileDeletionSuccess = await DeleteFileAsync(oldFilePath);
-
-                if (!fileDeletionSuccess)
-                {
-                    return BadRequest("Failed to delete image file.");
-                }
-
-                // Delete the database record
-                bool recordDeletionSuccess = await _navigationRepository.DeleteEntityAsync(imageId, DeleteEntityType.SitePicture);
-
-                if (!recordDeletionSuccess)
-                {
-                    return BadRequest("Failed to delete image record from the database.");
-                }
-                return Ok(new { message = $"{picPath} has been deleted successfully." });
             }
             catch (Exception ex)
             {

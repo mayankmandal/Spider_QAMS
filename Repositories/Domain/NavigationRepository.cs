@@ -792,35 +792,7 @@ namespace Spider_QAMS.Repositories.Domain
                 {
                     return null;
                 }
-                List<SitePictures> SitePicturesData = new List<SitePictures>();
-
-                foreach (var sitePicture in siteDetail.SitePicturesLst)
-                {
-                    sitePicture.SiteID = siteDetail.SiteID;
-                    sitePicture.PicPath = siteDetail.SiteCode + "_" + siteDetail.SiteTypeID + "_" + siteDetail.SiteID + "_" + sitePicture.PicPath;
-
-                    sqlParameters = new SqlParameter[]
-                    {
-                        new SqlParameter("@SiteID", SqlDbType.BigInt) { Value = sitePicture.SiteID == 0 ? (object)DBNull.Value : sitePicture.SiteID },
-                        new SqlParameter("@PicCatID", SqlDbType.Int) { Value = sitePicture.SitePicCategoryData.PicCatID == 0 ? (object)DBNull.Value : sitePicture.SitePicCategoryData.PicCatID },
-                        new SqlParameter("@SitePicID", SqlDbType.Int) { Value = sitePicture.SitePicID == 0 ? (object)DBNull.Value : sitePicture.SitePicID },
-                        new SqlParameter("@Description", SqlDbType.VarChar, -1) { Value = string.IsNullOrEmpty(sitePicture.Description) ? (object)DBNull.Value : sitePicture.Description },
-                        new SqlParameter("@PicPath", SqlDbType.VarChar, -1) { Value = string.IsNullOrEmpty(sitePicture.PicPath) ? (object)DBNull.Value : sitePicture.PicPath },
-                        new SqlParameter("@NewSitePicID", SqlDbType.Int) { Direction = ParameterDirection.Output }
-                    };
-
-                    isFailure = SqlDBHelper.ExecuteNonQuery(SP_UpsertSitePictures, CommandType.StoredProcedure, sqlParameters);
-
-                    sitePicture.SitePicID = (sqlParameters[5].Value != DBNull.Value) ? (int)sqlParameters[5].Value : -1;
-
-                    // Validate if the newId is greater than 0
-                    if (sitePicture.SitePicID <= 0)
-                    {
-                        return null;
-                    }
-                    SitePicturesData.Add(sitePicture);
-                }
-                siteDetail.SitePicturesLst = SitePicturesData;
+                siteDetail.SitePicturesLst = new List<SitePictures>(); ;
             }
             catch (SqlException sqlEx)
             {
@@ -950,40 +922,47 @@ namespace Spider_QAMS.Repositories.Domain
             return true;
         }
 
-        public async Task <int> UploadSiteImageAsync(SitePictures sitePictures)
+        public async Task <bool> UpdateSiteImagesAsync(List<SitePictures> sitePictures)
         {
             try
             {
-                SqlParameter[] sqlParameters = new SqlParameter[]
+                SqlParameter[] sqlParameters;
+
+                foreach(var image in sitePictures)
                 {
-                    new SqlParameter("@SiteID", SqlDbType.BigInt) { Value = sitePictures.SiteID == 0 ? (object)DBNull.Value : sitePictures.SiteID },
-                    new SqlParameter("@PicCatID", SqlDbType.Int) { Value = sitePictures.SitePicCategoryData.PicCatID == 0 ? (object)DBNull.Value : sitePictures.SitePicCategoryData.PicCatID },
-                    new SqlParameter("@SitePicID", SqlDbType.Int) { Value = sitePictures.SitePicID == 0 ? (object)DBNull.Value : sitePictures.SitePicID },
-                    new SqlParameter("@Description", SqlDbType.VarChar, -1) { Value = string.IsNullOrEmpty(sitePictures.Description) ? (object)DBNull.Value : sitePictures.Description },
-                    new SqlParameter("@PicPath", SqlDbType.VarChar, -1) { Value = string.IsNullOrEmpty(sitePictures.PicPath) ? (object)DBNull.Value : sitePictures.PicPath },
-                    new SqlParameter("@NewSitePicID", SqlDbType.Int) { Direction = ParameterDirection.Output }
-                };
+                    sqlParameters = new SqlParameter[] {
+                        new SqlParameter("@SiteID", SqlDbType.BigInt) { Value = image.SiteID == 0 ? (object)DBNull.Value : image.SiteID },
+                        new SqlParameter("@PicCatID", SqlDbType.Int) { Value = image.SitePicCategoryData.PicCatID == 0 ? (object)DBNull.Value : image.SitePicCategoryData.PicCatID },
+                        new SqlParameter("@SitePicID", SqlDbType.Int) { Value = image.SitePicID < 0 ? (object)DBNull.Value : image.SitePicID },
+                        new SqlParameter("@Description", SqlDbType.VarChar, -1) { Value = string.IsNullOrEmpty(image.Description) ? (object)DBNull.Value : image.Description },
+                        new SqlParameter("@PicPath", SqlDbType.VarChar, -1) { Value = string.IsNullOrEmpty(image.PicPath) ? (object)DBNull.Value : image.PicPath },
+                        new SqlParameter("@IsDeleted", SqlDbType.Bit) { Value = !image.IsDeleted.GetValueOrDefault() ? (object)DBNull.Value : image.IsDeleted },
+                        new SqlParameter("@NewSitePicID", SqlDbType.Int) { Direction = ParameterDirection.Output },
+                        new SqlParameter("@RowsAffected", SqlDbType.Int) { Direction = ParameterDirection.Output }
+                    };
 
-                bool isFailure = SqlDBHelper.ExecuteNonQuery(SP_UpsertSitePictures, CommandType.StoredProcedure, sqlParameters);
+                    bool isFailure = SqlDBHelper.ExecuteNonQuery(SP_UpsertDeleteSitePictures, CommandType.StoredProcedure, sqlParameters);
 
-                sitePictures.SitePicID = (sqlParameters[5].Value != DBNull.Value) ? (int)sqlParameters[5].Value : -1;
+                    // Get the output values from the stored procedure
+                    image.SitePicID = sqlParameters[6].Value != DBNull.Value ? Convert.ToInt32(sqlParameters[6].Value) : -1;
+                    int rowsAffected = sqlParameters[7].Value != DBNull.Value ? Convert.ToInt32(sqlParameters[7].Value) : 0;
 
-                // Validate if the newId is greater than 0
-                if (sitePictures.SitePicID <= 0)
-                {
-                    return -1;
+                    // Verify the output from stored procedure to confirm upsert/delete
+                    if (image.SitePicID <= 0 || rowsAffected <= 0)
+                    {
+                        return false;
+                    }
                 }
-                
             }
             catch (SqlException sqlEx)
             {
-                throw new Exception($"Error updating record for {sitePictures.PicPath} - SQL Exception.", sqlEx);
+                throw new Exception($"Error updating record - SQL Exception.", sqlEx);
             }
             catch (Exception ex)
             {
-                throw new Exception($"Error updating record for {sitePictures.PicPath}.", ex);
+                throw new Exception($"Error updating record", ex);
             }
-            return sitePictures.SitePicID;
+            return true;
         }
 
         public async Task<ProfileUserAPIVM> GetUserRecordAsync(int newUserId)

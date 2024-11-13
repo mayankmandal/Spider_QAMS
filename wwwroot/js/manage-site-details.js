@@ -27,7 +27,14 @@ $("#jsGrid").jsGrid({
         { name: "siteName", type: "text", title: "Site Name", width: 150, filtering: true, sorting: true },
         { name: "siteCategory", type: "text", title: "Site Category", width: 100, filtering: true, sorting: true },
         { name: "branchNo", type: "text", title: "Branch Number", width: 120, filtering: true, sorting: true },
-        { name: "contactInformation.emailAddress", type: "text", title: "Email Address", width: 150, css: { "word-wrap": "break-word" }, filtering: true, sorting: true },
+        {
+            name: "contactInformation.emailAddress", type: "text", title: "Email Address", width: 150, css: { 'word-wrap': 'break-word' }, filtering: true, sorting: true, itemTemplate: function (value) {
+                return $("<div>").text(value).css({
+                    'word-wrap': 'break-word',
+                    'white-space': 'normal' // Ensures wrapping within the cell
+                });
+            }
+        },
         {
             title: "Actions",
             width: 100,

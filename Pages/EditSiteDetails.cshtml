@@ -623,8 +623,9 @@
 
                     <!-- Buttons for Edit -->
                     <div style="display: flex; justify-content: center; align-items: center; margin-top: 20px;">
-                        <div class="row" style="width: 100%; max-width: 600px; display: flex; justify-content: space-around;">
+                        <div class="column" style="width: 100%; max-width: 600px; display: flex; justify-content: space-around;">
                             <button type="submit" class="btn update-btn">Edit Site</button>
+                            <a asp-page="/SiteImageUploader" asp-route-siteId="@Model.SiteDetailVM.SiteID" type="button" class="btn btn-warning"><i class="fas fa-arrow-circle-left"></i> Edit Site Pictures</a>
                             <a asp-page="/ManageSiteDetails" type="button" class="btn btn-secondary"><i class="fas fa-arrow-circle-left"></i> Back to All Sites</a>
                         </div>
                     </div>

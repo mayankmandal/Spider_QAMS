@@ -28,8 +28,6 @@ namespace Spider_QAMS.Pages
         public IList<string> ATMClass {  get; set; }
         [BindProperty]
         public SiteDetailVM SiteDetailVM { get; set; }
-        [BindProperty]
-        public List<SitePicCategoryVMAssociation> SitePicCategoryList { get; set; }
         public async Task<IActionResult> OnGetAsync()
         {
             await LoadDropdownDataAsync();
@@ -43,16 +41,6 @@ namespace Spider_QAMS.Pages
 
             var responseATMClasses = await client.GetStringAsync($"{_configuration["ApiBaseUrl"]}/Navigation/GetAllATMClasses");
             ATMClass = string.IsNullOrEmpty(responseATMClasses) ? new List<string>() : JsonSerializer.Deserialize<List<string>>(responseATMClasses, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
-
-            var responsePicCategories = await client.GetStringAsync($"{_configuration["ApiBaseUrl"]}/Navigation/GetAllPicCategories");
-            SitePicCategories = string.IsNullOrEmpty(responsePicCategories) ? new List<SitePicCategory>() : JsonSerializer.Deserialize<List<SitePicCategory>>(responsePicCategories, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
-
-            SitePicCategoryList = SitePicCategories.Select(category => new SitePicCategoryVMAssociation
-            {
-                PicCatID = category.PicCatID,
-                Description = category.Description,
-                Images = new List<IFormFile>()
-            }).ToList();
 
             var responseVisitStatuses = await client.GetStringAsync($"{_configuration["ApiBaseUrl"]}/Navigation/GetAllVisitStatuses");
             VisitStatuses = string.IsNullOrEmpty(responseVisitStatuses) ? new List<VisitStatusModel>() : JsonSerializer.Deserialize<List<VisitStatusModel>>(responseVisitStatuses, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
@@ -145,6 +133,8 @@ namespace Spider_QAMS.Pages
                     BranchNo = SiteDetailVM.BranchNo == null ? string.Empty : SiteDetailVM.BranchNo,
                     BranchTypeId = SiteDetailVM.BranchTypeId == null ? 0 : SiteDetailVM.BranchTypeId,
 
+                    SitePicturesLst = new List<SitePictures>(),
+
                     // Map child objects with null handling
                     ContactInformation = new SiteContactInformation
                     {
@@ -220,31 +210,6 @@ namespace Spider_QAMS.Pages
                         NoOfInternalCameras = SiteDetailVM.SiteMiscInformation?.NoOfInternalCameras ?? 0,
                         TrackingSystem = SiteDetailVM.SiteMiscInformation?.TrackingSystem ?? string.Empty,
                     },
-                    // Initialize SitePicturesLst from SitePicCategoryList
-                    SitePicturesLst = SitePicCategoryList.SelectMany(category =>
-                    category.Images.Select((image, index) => new SitePictures
-                    {
-                        Description = category.ImageComments.ElementAtOrDefault(index) ?? string.Empty,
-                        PicPath = image.FileName,
-                        SitePicCategoryData = new SitePicCategory
-                        {
-                            PicCatID = category.PicCatID ?? 0,
-                            Description = category.Description ?? string.Empty
-                        }
-                    })).ToList() ?? new List<SitePictures> // Default to an empty list with default values if null
-                    {
-                        new SitePictures
-                        {
-                            SitePicID = 0,
-                            Description = string.Empty,
-                            PicPath = string.Empty,
-                            SitePicCategoryData = new SitePicCategory
-                            {
-                                PicCatID = 0,
-                                Description = string.Empty
-                            }
-                        }
-                    }
                 };
 
                 var client = _clientFactory.CreateClient();

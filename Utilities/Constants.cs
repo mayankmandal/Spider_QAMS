@@ -35,7 +35,7 @@ namespace Spider_QAMS.Utilities
         public const string SP_CreateEntityRecord = "dbo.uspCreateEntityRecord";
 
         public const string SP_CreateSiteDetails = "dbo.uspCreateSiteDetails";
-        public const string SP_UpsertSitePictures = "dbo.uspUpsertSitePictures";
+        public const string SP_UpsertDeleteSitePictures = "dbo.uspUpsertDeleteSitePictures";
         public const string SP_UpdateSiteDetails = "dbo.uspUpdateSiteDetails";
 
         public static List<SelectListItem> GetTimeDropDown()

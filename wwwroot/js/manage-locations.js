@@ -70,34 +70,39 @@ function loadCities(regionId, selectedCityId = null, formType = "create") {
 
 $("#jsGrid").jsGrid({
     width: "100%",
-    height: "200px",
+    height: "400px",
 
     inserting: false,
     editing: false,
-    sorting: true,
-    paging: true,
+    sorting: true,   // Enable sorting
+    paging: true,    // Enable pagination
+    filtering: true, // Enable search/filtering
+    autoload: true,  // Automatically load data
+    pageSize: 10,    // Items per page
+    pageButtonCount: 5,  // Pagination button count
+
     data: locationsData,
 
     fields: [
-        { name: "location", type: "text", title: "Location", width: 150 },
-        { name: "streetName", type: "text", title: "Street Name", width: 150 },
-        { name: "cityName", type: "text", title: "City", width: 100 },
-        { name: "regionName", type: "text", title: "Region", width: 120 },
-        { name: "sponsorName", type: "text", title: "Sponsor", width: 150 },
+        { name: "location", type: "text", title: "Location", width: 150, filtering: true, sorting: true },
+        { name: "streetName", type: "text", title: "Street Name", width: 150, filtering: true, sorting: true },
+        { name: "cityName", type: "text", title: "City", width: 100, filtering: true, sorting: true },
+        { name: "regionName", type: "text", title: "Region", width: 120, filtering: true, sorting: true },
+        { name: "sponsorName", type: "text", title: "Sponsor", width: 150, filtering: true, sorting: true },
         {
             title: "Actions",
             width: 100,
             align: "center",
             itemTemplate: function (_, item) {
                 var editButton = $("<button>")
-                    .addClass("btn btn-primary btn-sm")
-                    .html('<i class="fas fa-edit"></i> Edit')
+                    .addClass("btn btn-primary btn-sm me-1")
+                    .html('<i class="fas fa-edit"></i>')
                     .on("click", function () {
                         showEditForm(item.locationId, item.location, item.streetName, item.cityId, item.regionId, item.branchName, item.districtName, item.sponsorId);
                     });
                 var deleteButton = $("<button>")
                     .addClass("btn btn-danger btn-sm")
-                    .html('<i class="fas fa-trash-alt"></i> Delete')
+                    .html('<i class="fas fa-trash-alt"></i>')
                     .on("click", function () {
                         var index = locationsData.indexOf(item);
                         if (index > -1) {

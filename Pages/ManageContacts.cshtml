@@ -19,53 +19,7 @@
         </div>
     </div>
 
-    <div style="overflow-x:auto; max-height:20rem; width: 100%;" class="mb-4">
-        <!-- Table: List of Existing Cities -->
-        <table class="table table-bordered table-striped text-center">
-            <thead class="table-header" style="background: linear-gradient(to bottom, #59636E, #6A7682); color: white;">
-                <tr>
-                    <th>Designation</th>
-                    <th>Name</th>
-                    <th>Email Address</th>
-                    <th>Mobile Number</th>
-                    <th>Fax Number</th>
-                    <th>Office Phone</th>
-                    <th>Branch Name</th>
-                    <th>Sponsor</th>
-                    <th>Actions</th>
-                </tr>
-            </thead>
-            <tbody>
-                @foreach (var contact in Model.contactVMList)
-                {
-                    <tr>
-                        <td>@contact.Designation</td>
-                        <td>@contact.Name</td>
-                        <td>@contact.EmailID</td>
-                        <td>@contact.Mobile</td>
-                        <td>@contact.Fax</td>
-                        <td>@contact.OfficePhone</td>
-                        <td>@contact.BranchName</td>
-                        <td>@contact.SponsorName</td>
-                        <td style="white-space: nowrap;">
-                            <!-- Edit Button -->
-                            <button type="button" class="btn btn-primary btn-sm" onclick="showEditContactForm('@contact.ContactId','@contact.Designation', '@contact.Name', '@contact.EmailID','@contact.Mobile','@contact.Fax','@contact.OfficePhone','@contact.BranchName', '@contact.SponsorId')">
-                                <i class="fas fa-edit"></i> Edit
-                            </button>
-                            <!-- Delete Button -->
-                            <button type="button" class="btn btn-danger btn-sm" onclick="showDeleteContactForm('@contact.ContactId','@contact.Designation', '@contact.Name', '@contact.EmailID','@contact.Mobile','@contact.Fax','@contact.OfficePhone','@contact.BranchName', '@contact.SponsorId', '@contact.SponsorName')">
-                                <i class="fas fa-trash-alt"></i> Delete
-                            </button>
-                        </td>
-                    </tr>
-                }
-                @if (Model.contactVMList.Count <= 0)
-                {
-                    <tr><td colspan="9" class="text-center">No Contacts found.</td></tr>
-                }
-            </tbody>
-        </table>
-    </div>
+    <div id="jsGrid" style="width:100%; max-height:400px;" class="mb-4"></div>
 
     <!-- Create New Contact Form (Hidden Initially) -->
     <div id="createContactFormDiv" style="display:none; flex-direction: column; align-items: center; min-height: 20vh;">
@@ -443,12 +397,82 @@
 
 @section scripts {
     <partial name="_ValidationScriptsPartial" />
-    <script>
+    <script src="./plugins/jsgrid/jsgrid.min.js"></script>
+    <script asp-append-version="true">
+        const contactLists = @Html.Raw(Json.Serialize(Model.contactVMList));
+        $(function () {
+            $("#jsGrid").jsGrid({
+                width: "100%",
+                height: "400px",
+                inserting: false,
+                editing: false,
+                sorting: true,
+                paging: true,
+                filtering: true,
+                autoload: true,
+                pageSize: 10,
+                pageButtonCount: 5,
+
+                data: contactLists,
+
+                fields: [
+                    { name: "designation", type: "text", title: "Designation", width: 100, filtering: true, sorting: true },
+                    { name: "name", type: "text", title: "Name", width: 100, filtering: true, sorting: true },
+                    { name: "emailID", type: "text", title: "Email Address", width: 150, filtering: true, sorting: true },
+                    { name: "mobile", type: "text", title: "Mobile Number", width: 100, filtering: true, sorting: true },
+                    { name: "fax", type: "text", title: "Fax Number", width: 100, filtering: true, sorting: true },
+                    { name: "officePhone", type: "text", title: "Office Phone", width: 100, filtering: true, sorting: true },
+                    { name: "branchName", type: "text", title: "Branch Name", width: 100, filtering: true, sorting: true },
+                    { name: "sponsorName", type: "text", title: "Sponsor", width: 100, filtering: true, sorting: true },
+                    {
+                        title: "Actions",
+                        width: 100,
+                        align: "center",
+                        itemTemplate: function (_, item) {
+                            var editButton = $("<button>")
+                                .addClass("btn btn-primary btn-sm me-1")
+                                .html('<i class="fas fa-edit"></i>')
+                                .on("click", function () {
+                                    showEditContactForm(item.contactId, item.designation, item.name, item.emailID, item.mobile, item.fax, item.officePhone, item.branchName, item.sponsorId);
+                                });
+                            var deleteButton = $("<button>")
+                                .addClass("btn btn-danger btn-sm")
+                                .html('<i class="fas fa-trash-alt"></i>')
+                                .on("click", function () {
+                                    showDeleteContactForm(item.contactId, item.designation, item.name, item.emailID, item.mobile, item.fax, item.officePhone, item.branchName, item.sponsorId, item.sponsorName);
+                                });
+                            return $("<div>").append(editButton).append(deleteButton);
+                        }
+                    }
+                ],
+                // No data message when no data is available
+                noDataContent: "No Sites found.",
+                controller: {
+                    loadData: function (filter) {
+                        return $.Deferred(function (dfd) {
+                            var filteredData = $.grep(contactLists, function (item) {
+                                return (!filter.designation || item.designation.includes(filter.designation)) &&
+                                    (!filter.name || item.name.includes(filter.name)) &&
+                                    (!filter.emailID || item.emailID.includes(filter.emailID)) &&
+                                    (!filter.mobile || item.mobile.includes(filter.mobile)) &&
+                                    (!filter.fax || item.Fax.includes(filter.Fax)) &&
+                                    (!filter.officePhone || item.officePhone.includes(filter.officePhone)) &&
+                                    (!filter.branchName || item.branchName.includes(filter.branchName)) &&
+                                    (!filter.sponsorName || item.sponsorName.includes(filter.sponsorName));
+                            });
+                            dfd.resolve(filteredData);
+                        }).promise();
+                    }
+                },
+            });
+        });
+
         // Function to show the Create form
         function showCreateContactForm() {
             hideAllForms();
             $('#createContactFormDiv').show();
         }
+
         // Function to show the Edit Form
         function showEditContactForm(contactId, designation, contactName, emailID, mobile, fax, officePhone, branchName, sponsorId) {
             hideAllForms();

@@ -19,39 +19,20 @@
         </div>
     </div>
 
-    <div style="overflow-x:auto; max-height:20rem; width: 100%;" class="mb-4">
-        <!-- Table: List of Existing Regions -->
-        <table class="table table-bordered table-striped text-center">
-            <thead class="table-header" style="background: linear-gradient(to bottom, #59636E, #6A7682); color: white;">
-                <tr>
-                    <th>Region Name</th>
-                    <th>Actions</th>
-                </tr>
-            </thead>
-            <tbody>
-                @foreach (var region in Model.Regions)
-                {
-                    <tr>
-                        <td>@region.RegionName</td>
-                        <td style="white-space: nowrap;">
-                            <!-- Edit Button -->
-                            <button type="button" class="btn btn-primary btn-sm" onclick="showEditForm('@region.RegionId', '@region.RegionName')">
-                                <i class="fas fa-edit"></i> Edit
-                            </button>
-                            <!-- Delete Button -->
-                            <button type="button" class="btn btn-danger btn-sm" onclick="showDeleteForm('@region.RegionId', '@region.RegionName')">
-                                <i class="fas fa-trash-alt"></i> Delete
-                            </button>
-                        </td>
-                    </tr>
-                }
-                @if (Model.Regions.Count <= 0)
-                {
-                    <tr><td colspan="2" class="text-center">No Regions found.</td></tr>
-                }
-            </tbody>
-        </table>
+    <div class="mb-3 mt-2 d-flex" style="justify-content: flex-start; width: 100%;">
+        <label for="searchBy" class="me-2">Search by:</label>
+        <select id="searchBy" class="form-select me-2" style="width:200px;">
+            <option value="regionName">Region Name</option>
+        </select>
+        <label for="searchInput" class="me-2">Search value:</label>
+        <input type="text" id="searchInput" class="form-control me-2" style="width: 300px;" />
+        <button type="button" class="btn btn-outline-secondary me-2" id="searchBtn">Search</button>
+
+        <!-- Reset button -->
+        <button type="button" class="btn btn-outline-secondary me-2" id="resetBtn">Reset</button>
     </div>
+
+    <div id="jsGridRegions" class="mb-4"></div>
 
     <!-- Create New Region Form (Hidden Initially) -->
     <div id="createFormDiv" style="display:none; flex-direction: column; align-items: center; min-height: 20vh;">
@@ -216,7 +197,83 @@
 
 @section scripts {
     <partial name="_ValidationScriptsPartial" />
-    <script>
+    <script src="./plugins/jsgrid/jsgrid.min.js"></script>
+    <script asp-append-version="true">
+        const regions = @Html.Raw(Json.Serialize(Model.Regions));
+
+        $(function () {
+            $("#jsGridRegions").jsGrid({
+                width: "100%",
+                height: "400px",
+                inserting: false,
+                editing: false,
+                sorting: true,
+                paging: true,
+                filtering: true,
+                autoload: true,
+                pageSize: 10,
+                pageButtonCount: 5,
+
+                controller: {
+                    loadData: function (filter) {
+                        return $.Deferred(function (dfd) {
+                            var filteredData = $.grep(regions, function (item) {
+                                // Apply dynamic filtering based on the selected 'searchBy' field and input value
+                                const searchField = $('#searchBy').val();
+                                const searchValue = filter[searchField] || '';
+
+                                if (searchField === 'regionName') {
+                                    return item.regionName.toLowerCase().includes(searchValue.toLowerCase());
+                                }
+                                return true;
+                            });
+                            dfd.resolve(filteredData);
+                        }).promise();
+                    }
+                },
+                fields: [
+                    { name: "regionName", type: "text", title: "Region Name", width: 150 },
+                    {
+                        title: "Actions",
+                        width: 100,
+                        align: "center",
+                        itemTemplate: function (_, item, rowIndex) {
+                            var editButton = $("<button>")
+                                .addClass("btn btn-primary btn-sm me-1")
+                                .html('<i class="fas fa-edit"></i>')
+                                .on("click", function () {
+                                    showEditForm(item.regionId, item.regionName);
+                                });
+                            var deleteButton = $("<button>")
+                                .addClass("btn btn-danger btn-sm")
+                                .html('<i class="fas fa-trash-alt"></i>')
+                                .on("click", function () {
+                                    showDeleteForm(item.regionId, item.regionName);
+                                });
+
+                            // Return buttons based on the row index (first row will have reset)
+                            return $("<div>").append(editButton).append(deleteButton); // Append Reset button here
+                        }
+                    }
+                ]
+            });
+            // Search button functionality
+            $('#searchBtn').on('click', function () {
+                var searchValue = $('#searchInput').val();
+                var searchBy = $('#searchBy').val();
+
+                // Trigger jsGrid filtering
+                $("#jsGridRegions").jsGrid("loadData", { [searchBy]: searchValue });
+            });
+
+            // Reset button functionality
+            $('#resetBtn').on('click', function () {
+                $('#searchInput').val('');  // Clear search input
+                $('#searchBy').val('regionName');  // Reset search by dropdown to default value
+                $("#jsGridRegions").jsGrid("loadData", {});  // Reset grid data
+            });
+        });
+
         // Function to show the Create form
         function showCreateForm() {
             hideAllForms();

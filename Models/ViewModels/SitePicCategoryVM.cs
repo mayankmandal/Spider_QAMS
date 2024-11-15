@@ -13,6 +13,7 @@ namespace Spider_QAMS.Models.ViewModels
     {
         [Required(ErrorMessage = "Site ID is required.")]
         public long SiteId { get; set; }
+        [MaxCount(10, ErrorMessage = "You can upload a maximum of 10 images.")]
         public List<SitePicCategoryViewModel> SitePicCategoryList { get; set; } = new List<SitePicCategoryViewModel>();
     }
 
@@ -20,6 +21,7 @@ namespace Spider_QAMS.Models.ViewModels
     {
         public int PicCatId { get; set; }
         public string Description { get; set; }
+        [MaxCount(10, ErrorMessage = "You can upload a maximum of 10 images.")]
         public List<ImageViewModel> Images { get; set; } = new List<ImageViewModel>();
     }
 

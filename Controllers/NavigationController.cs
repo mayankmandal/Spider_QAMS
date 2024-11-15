@@ -1,12 +1,10 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.Diagnostics;
 using Spider_QAMS.Models;
 using Spider_QAMS.Models.ViewModels;
 using Spider_QAMS.Repositories.Domain;
 using Spider_QAMS.Repositories.Skeleton;
 using Spider_QAMS.Utilities;
-using System.Security.Authentication;
 using System.Text;
 using System.Text.Json;
 using System.Text.RegularExpressions;
@@ -899,7 +897,7 @@ namespace Spider_QAMS.Controllers
                 bool isSuccess = false;
                 isSuccess = await _navigationRepository.UpdateSiteImagesAsync(SitePicturesData);
 
-                if (isSuccess)
+                if (!isSuccess)
                 {
                     return BadRequest();
                 }

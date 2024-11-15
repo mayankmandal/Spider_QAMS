@@ -64,7 +64,6 @@ $("#jsGrid").jsGrid({
                     .on("click", function () {
                         window.location.href = `/SiteImageUploader?siteId=${item.siteID}`
                     });
-
                 return $("<div>").append(readButton).append(editButton).append(deleteButton).append(editImagesButton);
             }
         }

@@ -6,170 +6,138 @@
     TempData["NavigationalPageName"] = "Manage User";
 }
 
+
 <div style="display:flex; flex-direction:column; align-items:center; min-height:20vh;">
+    <!-- Title and Action Buttons -->
     <div class="row pt-1 mb-3" style="width:100%;">
-        <!-- Title on the left -->
         <div class="col text-start">
             <h4 class="rb-header">Manage Users</h4>
         </div>
-
-        <!-- Buttons on the right -->
         <div class="col text-end">
             <button asp-page-handler="ExportToExcel" class="btn create-btn" style="background: linear-gradient(to bottom, #ffffff, #e0e0e0); color: #71797E;">
-                <i class="fas fa-file-excel"></i>
-                Export to Excel
+                <i class="fas fa-file-excel"></i> Export to Excel
             </button>
             <a asp-page="/Users/CreateUser" class="btn create-btn" style="background: linear-gradient(to bottom, #ffffff, #e0e0e0); color: #71797E;">
-                <i class="fas fa-plus-circle"></i>
-                &nbsp;Create New User
+                <i class="fas fa-plus-circle"></i> Create New User
             </a>
         </div>
     </div>
 
-    <div class="mb-3 mt-2 d-flex" style="justify-content: flex-start; width: 100%;">
+    <!-- Search Filters -->
+    <div class="d-flex mb-3 mt-2" style="width: 100%;">
         <label for="searchBy" class="me-2">Search by:</label>
         <select id="searchBy" class="form-select me-2" style="width:200px;">
             <option value="FullName">Full Name</option>
-            <option value="EmailId">Email Address</option>
+            <option value="EmailID">Email Address</option>
             <option value="PhoneNumber">Phone Number</option>
             <option value="Designation">Designation</option>
             <option value="UserName">Username</option>
         </select>
-        <label for="searchInput" class="me-2">Search value:</label>
         <input type="text" id="searchInput" class="form-control me-2" style="width: 300px;" />
-
         <button type="button" class="btn btn-outline-secondary me-2" id="searchBtn">Search</button>
-        <a href="javascript:void(0);" class="btn btn-link" id="resetBtn">Back to full list</a>
+        <button type="button" class="btn btn-outline-secondary" id="resetBtn">Reset</button>
     </div>
 
-    <div style="overflow-x:auto; max-height:40rem; width:100%;" class="mb-4">
-        <table class="table table-bordered table-striped text-center">
-            <thead class="table-header" style="background: linear-gradient(to bottom, #59636E, #6A7682); color: white;">
-                <tr>
-                    <th>Designation</th>
-                    <th>Full Name</th>
-                    <th>Email</th>
-                    <th>User Name</th>
-                    <th>Profile Name</th>
-                    <th>Phone Number</th>
-                    <th>Is Active</th>
-                    <th>Is ADUser</th>
-                    <th>Actions</th>
-                </tr>
-            </thead>
-            <tbody>
-                @foreach (var user in Model.Users)
-                {
-                    <tr>
-                        <td>@user.Designation</td>
-                        <td>@user.FullName</td>
-                        <td>@user.EmailID</td>
-                        <td>@user.UserName</td>
-                        <td>@user.ProfileSiteData.ProfileName</td>
-                        <td>@user.PhoneNumber</td>
-                        <td>
-                            <input class="ms-1 form-check-input" type="checkbox" disabled="disabled" @(user.IsActive ? "checked" : "") style="position:relative;"/>
-                        </td>
-                        <td>
-                            <input class="ms-1 form-check-input" type="checkbox" disabled="disabled" @(user.IsADUser ? "checked" : "") style="position:relative;" />
-                        </td>
-                        <td style="white-space: nowrap;">
-                            <a asp-page="/Users/UpdateUser" asp-route-userId="@user.UserId" asp- class="btn btn-primary btn-sm"><i class="fas fa-edit"></i></a>
-                            <a asp-page="/Users/DeleteUser" asp-route-userId="@user.UserId" class="btn btn-danger btn-sm"><i class="fas fa-trash-alt"></i></a>
-                        </td>
-                    </tr>
-                }
-                @if (Model.Users.Count <= 0)
-                {
-                    <tr><td colspan="9" class="text-center">No users found.</td></tr>
-                }
-            </tbody>
-        </table>
-    </div>
+    <!-- jsGrid for Users -->
+    <div id="jsGridUsers" style="width:100%;"></div>
 </div>
 
 
 @section scripts {
     <partial name="_ValidationScriptsPartial" />
-    <script>
-        var usersData = @Html.Raw(JsonSerializer.Serialize(Model.Users));
+    <script src="~/plugins/jsgrid/jsgrid.min.js"></script>
+    <script asp-append-version="true">
+        const usersData = @Html.Raw(JsonSerializer.Serialize(Model.Users));
 
-        $(document).ready(function () {
-            // Load the existing user data into the table on page load
-            // updateTable(usersData);
+        $(function () {
+            $("#jsGridUsers").jsGrid({
+                width: "100%",
+                height: "auto",
+                inserting: false,
+                editing: false,
+                sorting: true,
+                paging: true,
+                autoload: true,
+                pageSize: 10,
+                pageButtonCount: 5,
+                data: usersData,
+                controller: {
+                    loadData: function (filter) {
+                        return $.grep(usersData, function (user) {
+                            if (!filter.searchInput) return true;
+                            let searchValue = filter.searchInput.toLowerCase();
+                            return user[filter.searchBy]?.toString().toLowerCase().includes(searchValue);
+                        });
+                    }
+                },
+                fields: [
+                    { name: "Designation", title: "Designation", type: "text", width: 50 },
+                    {
+                        name: "FullName", title: "Full Name", type: "text", width: 100, css: { 'word-wrap': 'break-word' }, filtering: true, sorting: true, itemTemplate: function (value) {
+                            return $("<div>").text(value).css({
+                                'word-wrap': 'break-word',
+                                'white-space': 'normal' // Ensures wrapping within the cell
+                            });
+                        }
+                    },
+                    {
+                        name: "EmailID", title: "Email", type: "text", width: 100, css: { 'word-wrap': 'break-word' }, filtering: true, sorting: true, itemTemplate: function (value) {
+                            return $("<div>").text(value).css({
+                                'word-wrap': 'break-word',
+                                'white-space': 'normal' // Ensures wrapping within the cell
+                            });
+                        }
+                    },
+                    {
+                        name: "UserName", title: "Username", type: "text", width: 100, css: { 'word-wrap': 'break-word' }, filtering: true, sorting: true, itemTemplate: function (value) {
+                            return $("<div>").text(value).css({
+                                'word-wrap': 'break-word',
+                                'white-space': 'normal' // Ensures wrapping within the cell
+                            });
+                        }
+                    },
+                    { name: "ProfileSiteData.ProfileName", title: "Profile Name", type: "text", width: 80 },
+                    { name: "PhoneNumber", title: "Phone Number", type: "text", width: 90 },
+                    {
+                        name: "IsActive", title: "Is Active", type: "checkbox", sorting: false,
+                        itemTemplate: function (value) { return `<input type="checkbox" ${value ? "checked" : ""} disabled>`; }
+                    },
+                    {
+                        name: "IsADUser", title: "Is ADUser", type: "checkbox", sorting: false,
+                        itemTemplate: function (value) { return `<input type="checkbox" ${value ? "checked" : ""} disabled>`; }
+                    },
+                    {
+                        title: "Actions",
+                        width: 80,
+                        align: "center",
+                        itemTemplate: function (_, item) {
+                            let editButton = $("<a>")
+                                .addClass("btn btn-primary btn-sm me-1")
+                                .attr("href", `/Users/UpdateUser?userId=${item.UserId}`)
+                                .html('<i class="fas fa-edit"></i>');
+                            let deleteButton = $("<a>")
+                                .addClass("btn btn-danger btn-sm")
+                                .attr("href", `/Users/DeleteUser?userId=${item.UserId}`)
+                                .html('<i class="fas fa-trash-alt"></i>');
+                            return $("<div>").append(editButton).append(deleteButton);
+                        }
+                    }
+                ]
+            });
 
-            // Event handler for search button click
+            // Search button event handler
             $('#searchBtn').on('click', function () {
-                filterUsers();
+                $("#jsGridUsers").jsGrid("loadData", {
+                    searchBy: $('#searchBy').val(),
+                    searchInput: $('#searchInput').val()
+                });
             });
 
-            // Event handler for reset button click
+            // Reset button event handler
             $('#resetBtn').on('click', function () {
-                resetFilters();
-            });
-
-            // Function to filter users based on the search inputs
-            function filterUsers() {
-                // Get the selected search field and the input value
-                var searchBy = $('#searchBy').val();
-                var searchInput = $('#searchInput').val().toLowerCase();
-
-                // Filter the user data
-                var filteredUsers = $.grep(usersData, function (user) {
-                    if (!searchInput) return true; // Show all users if searchInput is empty
-                    return user[searchBy]?.toString().toLowerCase().includes(searchInput);
-                });
-
-                // Update the table with the filtered users
-                updateTable(filteredUsers);
-            }
-
-            // Function to reset filters and display the full list
-            function resetFilters() {
-                // Reset input and dropdown to default values
                 $('#searchInput').val('');
-                $('#searchBy').prop('selectedIndex', 0);
-
-                // Show the full user list
-                updateTable(usersData);
-            }
-
-            // Function to dynamically update the table with user data
-            function updateTable(users) {
-                var tbody = $('table tbody');
-                tbody.empty(); // Clear the existing table content
-
-                if (users.length === 0) {
-                    // If no matching users are found, show a message
-                    tbody.append('<tr><td colspan="9" class="text-center">No matching users found</td></tr>');
-                    return;
-                }
-
-                // Loop through the user data and generate table rows
-                $.each(users, function (index, user) {
-                    var row = `
-                            <tr>
-                                <td>${user.Designation}</td>
-                                <td>${user.FullName}</td>
-                                <td>${user.EmailID}</td>
-                                <td>${user.UserName}</td>
-                                <td>${user.ProfileSiteData.ProfileName}</td>
-                                <td>${user.PhoneNumber}</td>
-                                <td>
-                                    <input class="ms-1 form-check-input" type="checkbox" disabled ${user.IsActive ? "checked" : ""} style="position:relative;" />
-                                </td>
-                                <td>
-                                    <input class="ms-1 form-check-input" type="checkbox" disabled ${user.IsADUser ? "checked" : ""} style="position:relative;" />
-                                </td>
-                                <td style="white-space: nowrap;">
-                                            <a href="/Users/UpdateUser?userId=${user.UserId}" class="btn btn-primary btn-sm"><i class="fas fa-edit"></i></a>
-                                            <a href="/Users/DeleteUser?userId=${user.UserId}" class="btn btn-danger btn-sm"><i class="fas fa-trash-alt"></i></a>
-                                </td>
-                            </tr>
-                                    `;
-                    tbody.append(row); // Append the row to the table
-                });
-            }
+                $("#jsGridUsers").jsGrid("loadData", {});
+            });
         });
     </script>
 }

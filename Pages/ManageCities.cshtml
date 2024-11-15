@@ -19,41 +19,23 @@
         </div>
     </div>
 
-    <div style="overflow-x:auto; max-height:20rem; width: 100%;" class="mb-4">
-        <!-- Table: List of Existing Cities -->
-        <table class="table table-bordered table-striped text-center">
-            <thead class="table-header" style="background: linear-gradient(to bottom, #59636E, #6A7682); color: white;">
-                <tr>
-                    <th>City Name</th>
-                    <th>Region Name</th>
-                    <th>Actions</th>
-                </tr>
-            </thead>
-            <tbody>
-                @foreach (var city in Model.Cities)
-                {
-                    <tr>
-                        <td>@city.CityName</td>
-                        <td>@city.RegionData.RegionName</td>
-                        <td style="white-space: nowrap;">
-                            <!-- Edit Button -->
-                            <button type="button" class="btn btn-primary btn-sm" onclick="showEditForm('@city.CityId', '@city.CityName', '@city.RegionData.RegionId')">
-                                <i class="fas fa-edit"></i> Edit
-                            </button>
-                            <!-- Delete Button -->
-                            <button type="button" class="btn btn-danger btn-sm" onclick="showDeleteForm('@city.CityId', '@city.CityName', '@city.RegionData.RegionId', '@city.RegionData.RegionName')">
-                                <i class="fas fa-trash-alt"></i> Delete
-                            </button>
-                        </td>
-                    </tr>
-                }
-                @if(Model.Cities.Count <= 0)
-                {
-                    <tr><td colspan="3" class="text-center">No Cities found.</td></tr>
-                }
-            </tbody>
-        </table>
+    <!-- Search Section -->
+    <div class="mb-3 mt-2 d-flex" style="justify-content: flex-start; width: 100%;">
+        <label for="searchBy" class="me-2">Search by:</label>
+        <select id="searchBy" class="form-select me-2" style="width:200px;">
+            <option value="cityName">City Name</option>
+            <option value="regionName">Region Name</option>
+        </select>
+        <label for="searchInput" class="me-2">Search value:</label>
+        <input type="text" id="searchInput" class="form-control me-2" style="width: 300px;" />
+        <button type="button" class="btn btn-outline-secondary me-2" id="searchBtn">Search</button>
+
+        <!-- Reset button -->
+        <button type="button" class="btn btn-outline-secondary me-2" id="resetBtn">Reset</button>
     </div>
+
+    <!-- Cities Grid -->
+    <div id="jsGridCities" class="mb-4"></div>
 
     <!-- Create New City Form (Hidden Initially) -->
     <div id="createFormDiv" style="display:none; flex-direction: column; align-items: center; min-height: 20vh;">
@@ -215,7 +197,80 @@
 
 @section scripts {
     <partial name="_ValidationScriptsPartial" />
-    <script>
+    <script src="./plugins/jsgrid/jsgrid.min.js"></script>
+    <script asp-asp-append-version="true">
+        const cities = @Html.Raw(Json.Serialize(Model.Cities));
+
+        $(function () {
+            // Initialize jsGrid with the searchBy functionality
+            $("#jsGridCities").jsGrid({
+                width: "100%",
+                height: "400px",
+                inserting: false,
+                editing: false,
+                sorting: true,
+                paging: true,
+                filtering: true,
+                autoload: true,
+                pageSize: 10,
+                pageButtonCount: 5,
+                controller: {
+                    loadData: function (filter) {
+                        return $.Deferred(function (dfd) {
+                            var filteredData = $.grep(cities, function (item) {
+                                // Filter based on the selected search criteria
+                                if (filter.searchBy === "cityName") {
+                                    return !filter.cityName || item.cityName.toLowerCase().includes(filter.cityName.toLowerCase());
+                                } else if (filter.searchBy === "regionName") {
+                                    return !filter.regionName || item.regionData.regionName.toLowerCase().includes(filter.regionName.toLowerCase());
+                                }
+                                return true;
+                            });
+                            dfd.resolve(filteredData);
+                        }).promise();
+                    }
+                },
+                fields: [
+                    { name: "cityName", type: "text", title: "City Name", width: 100 },
+                    { name: "regionData.regionName", type: "text", title: "Region Name", width: 100 },
+                    {
+                        title: "Actions",
+                        width: 100,
+                        align: "center",
+                        itemTemplate: function (_, item) {
+                            var editButton = $("<button>")
+                                .addClass("btn btn-primary btn-sm me-1")
+                                .html('<i class="fas fa-edit"></i>')
+                                .on("click", function () {
+                                    showEditForm(item.cityId, item.cityName, item.regionData.regionId);
+                                });
+                            var deleteButton = $("<button>")
+                                .addClass("btn btn-danger btn-sm")
+                                .html('<i class="fas fa-trash-alt"></i>')
+                                .on("click", function () {
+                                    showDeleteForm(item.cityId, item.cityName, item.regionData.regionId, item.regionData.regionName);
+                                });
+                            return $("<div>").append(editButton).append(deleteButton);
+                        }
+                    }
+                ]
+            });
+
+            // Search functionality
+            $('#searchBtn').on('click', function () {
+                var searchBy = $('#searchBy').val();
+                var searchValue = $('#searchInput').val();
+                $("#jsGridCities").jsGrid("loadData", { searchBy: searchBy, [searchBy]: searchValue });
+            });
+
+            // Reset button
+            $('#resetBtn').on('click', function () {
+                $('#searchInput').val(''); // Clear search input
+                $('#searchBy').val('cityName'); // Reset the search by dropdown to default value
+                $("#jsGridCities").jsGrid("loadData", {}); // Reset grid data
+            });
+        });
+        
         // Function to show the Create form
         function showCreateForm() {
             hideAllForms();

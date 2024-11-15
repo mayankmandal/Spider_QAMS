@@ -29,8 +29,15 @@
         const selectedCatId = $(this).val();
         const selectedCatText = $("#categorySelect option:selected").text();
 
-        // Prevent duplicate category sections
-        if ($(`#category-${selectedCatId}`).length === 0) {
+        const categorySection = $(`#category-${selectedCatId}`);
+
+        if (categorySection.length > 0) {
+            // If the section exists and is hidden, show it instead of re-adding
+            if (categorySection.is(':hidden')) {
+                categorySection.closest('.col-md-6').show();  // Show the entire column
+            }
+        } else {
+            // If the section doesn't exist, add a new one
             addCategorySection(selectedCatId, selectedCatText);
         }
     });
@@ -38,16 +45,16 @@
     function addCategorySection(categoryId, categoryName) {
         // Create the category section card inside a Bootstrap column
         const sectionDiv = $(`
-        <div class="col-md-6">
-            <div class="category-section card p-3" id="category-${categoryId}">
-                <h5>${categoryName} 
-                    <button type="button" class="btn btn-danger btn-sm float-end remove-category" data-category-id="${categoryId}">
-                        Remove
-                    </button>
-                </h5>
+            <div class="col-md-6 category-column" id="col-${categoryId}">
+                <div class="category-section card p-3" id="category-${categoryId}">
+                    <h5>${categoryName} 
+                        <button type="button" class="btn btn-danger btn-sm float-end remove-category" data-category-id="${categoryId}">
+                            Remove
+                        </button>
+                    </h5>
+                </div>
             </div>
-        </div>
-        `);
+            `);
 
         // Add hidden inputs for PicCatId and Description
         const hiddenPicCatId = $(`<input type="hidden" name="SiteImageUploaderVM.SitePicCategoryList[${categoryId}].PicCatId" value="${categoryId}" />`);
@@ -89,10 +96,6 @@
         const link = $(`
         <a href="${filePath}" data-lightbox="gallery-${categoryId}" data-title="${description}" class="image-link position-relative d-flex">
             <img src="${filePath}" class="img-thumbnail m-2" style="width: auto; height: 10rem;" alt="${description}" />
-            <!-- Delete button overlay -->
-            <button type="button" class="btn btn-sm delete-image-btn position-absolute">
-                <i class="fas fa-times-circle"></i>
-            </button>
         </a>
     `);
 
@@ -102,8 +105,13 @@
                data-file-name="${fileName}" />
     `);
 
+        const deleteButton = $(`<!-- Delete button overlay -->
+            <button type="button" class="btn btn-sm delete-image-btn position-absolute" data-unique-file-id="${uniqueFileId}">
+                <i class="fas fa-times-circle"></i>
+            </button>`);
+
         const container = $('<div class="gallery-item me-2 mb-2 d-inline-block text-center"></div>');
-        container.append(link).append(commentInput);
+        container.append(link).append(commentInput).append(deleteButton);
 
         return container;
     }
@@ -129,20 +137,22 @@
     $(document).on('click', '.remove-category', function () {
         const categoryId = $(this).data('category-id');
 
-        // Hide the category section visually
-        $(`#category-${categoryId}`).hide();
-
-        // Mark all images in the category as deleted by setting data-is-deleted to true
-        $(`#category-${categoryId} .gallery-item`).each(function () {
-            $(this).find('input[type="text"]').attr('data-is-deleted','true');
+        // Trigger delete for each image in the category section
+        $(`#category-${categoryId} .gallery-item .delete-image-btn`).each(function () {
+            $(this).trigger('click');
         });
+
+        // Remove the entire column div
+        $(`#col-${categoryId}`).hide();
     });
 
     $(document).on('click', '.delete-image-btn', function (e) {
-        // e.preventDefault(); // Prevent the link from triggering Lightbox
-        // e.stopPropagation(); // Stop the event from bubbling up to parent elements
-
-        $(this).closest('.gallery-item').remove();
+        e.preventDefault();
+        e.stopPropagation();
+        const galleryItem = $(this).closest('.gallery-item');
+        galleryItem.find('input[type="text"]').attr('data-is-deleted', 'true').hide();
+        galleryItem.find('img').hide();
+        $(this).hide();
     });
 
     // Submit button event
@@ -159,16 +169,29 @@
 
             // Collect PicCatId and Description (from hidden inputs)
             const picCatId = $(this).find(`input[name="SiteImageUploaderVM.SitePicCategoryList[${catId}].PicCatId"]`).val();
-            const description = $(this).find(`input[name="SiteImageUploaderVM.SitePicCategoryList[${catId}].Description"]`).val();
+            const categoryDescription = $(this).find(`input[name="SiteImageUploaderVM.SitePicCategoryList[${catId}].Description"]`).val();
 
             galleryItems.each(function (galleryIndex) {
-                const fileInput = $(this).find('input[type="file"]');
-                const description = $(this).find('input[type="text"]').val();
-                const uniqueFileId = $(this).children('input[type=text]').data('unique-file-id');
-                const fileName = $(this).children('input[type=text]').data('file-name');
-
                 // Check if the image is marked as deleted
                 const isDeleted = $(this).find('input[type="text"]').data('is-deleted') || false;
+                const uniqueFileId = $(this).children('input[type=text]').data('unique-file-id');
+                const fileName = $(this).children('input[type=text]').data('file-name');
+                let filePath = $(this).find('img').attr('src') || '';
+                let imageFile = null;
+                const imageDescription = $(this).find('input[type="text"]').val();
+
+                // Check if it's an existing file or a new file based on the URL format
+                if (filePath.startsWith('data:')) {
+                    // For new file
+                    imageFile = filePath;
+                    filePath = '';
+                } else {
+                    // For existing file 
+                    // filePath = filePath; No change in filePath
+                    imageFile = '';
+                }
+                if (isDeleted && (uniqueFileId === null && filePath === ''))
+                    return;
 
                 // Prepare field names as required by the model binding
                 const baseFieldName = `SiteImageUploaderVM.SitePicCategoryList[${index}].Images[${galleryIndex}]`;
@@ -177,21 +200,10 @@
                 formData.append(`${baseFieldName}.FileName`, fileName || '');
 
                 // Always append description (even if empty)
-                formData.append(`${baseFieldName}.FileDescription`, description || '');
+                formData.append(`${baseFieldName}.FileDescription`, imageDescription || '');
 
-                let filePath = $(this).find('img').attr('src') || '';
-
-                // Check if it's an existing file or a new file based on the URL format
-                if (filePath.startsWith('data:')) {
-                    // For new file
-                    formData.append(`${baseFieldName}.FilePath`, '');
-                    formData.append(`${baseFieldName}.ImageFile`, filePath);
-                }
-                else {
-                    // For existing file 
-                    formData.append(`${baseFieldName}.FilePath`, filePath);
-                    formData.append(`${baseFieldName}.ImageFile`, '');
-                }
+                formData.append(`${baseFieldName}.FilePath`, filePath);
+                formData.append(`${baseFieldName}.ImageFile`, imageFile);
 
                 // Handle SitePicID
                 const sitePicID = uniqueFileId ? uniqueFileId : -1; // Use uniqueFileId if available, default to -1
@@ -202,7 +214,7 @@
             });
             // Append PicCatId and Description for the category
             formData.append(`SiteImageUploaderVM.SitePicCategoryList[${index}].PicCatId`, picCatId);
-            formData.append(`SiteImageUploaderVM.SitePicCategoryList[${index}].Description`, description);
+            formData.append(`SiteImageUploaderVM.SitePicCategoryList[${index}].Description`, categoryDescription);
         });
 
         const formDataObject = {};
@@ -228,10 +240,18 @@
             processData: false,
             contentType: false,
             beforeSend: function (xhr) {
-                xhr.setRequestHeader("RequestVerificationToken", $('input[name="__RequestVerificationToken"]').val()); // Anti - forgery token for the page
+                xhr.setRequestHeader("RequestVerificationToken", $('input[name="__RequestVerificationToken"]').val());
             },
-            success: function () {
-                toastr.success('Images uploaded successfully!');
+            success: function (data) {
+                if (data.success) {
+                    toastr.success(data.message || 'Images uploaded successfully!');
+                    // Reload the page after short delay for success message
+                    setTimeout(function () {
+                        location.reload();
+                    }, 2000); // 2 seconds delay
+                } else {
+                    toastr.error(data.message || 'An error occurred while uploading images.');
+                }
             },
             error: function (xhr) {
                 toastr.error(`An error occurred during upload. Status: ${xhr.status}`);

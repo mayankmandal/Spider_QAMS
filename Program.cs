@@ -8,6 +8,7 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.Extensions.DependencyInjection;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -107,16 +108,13 @@ void ConfigureServices(IServiceCollection services, IConfiguration configuration
     // Register the ApplicationUserBusinessLogic
     services.AddScoped<ApplicationUserBusinessLogic>();
 
-    // Apply CORS specifically for image requests
-    /*services.AddCors(options =>
-    {
-        options.AddPolicy("ImagesOnlyPolicy", builder =>
-        {
-            builder.WithOrigins(configuration["BaseUrl"]) // Allow specific origin
-                   .WithMethods("GET") // Allow only GET requests
-                   .AllowCredentials(); // Allow cookies and authorization
-        });
-    });*/
+    // Register Unit of Work
+    services.AddScoped<IUnitOfWork>(provider =>
+        new UnitOfWork(
+            configuration.GetConnectionString("DefaultConnection"),
+            provider.GetRequiredService<INavigationRepository>(),
+            provider.GetRequiredService<IUserRepository>()
+        ));
 }
 
 void Configure(WebApplication app, IConfiguration configuration)
@@ -138,21 +136,7 @@ void Configure(WebApplication app, IConfiguration configuration)
     // Use authentication and authorization
     app.UseAuthentication();
 
-    // app.UseCors("ImagesOnlyPolicy");
-
     app.UseAuthorization();
-
-    /*app.UseEndpoints(endpoints =>
-    {
-        endpoints.MapControllers();
-        endpoints.MapRazorPages();
-        endpoints.MapFallbackToFile("");
-        endpoints.MapGet(configuration["SiteDetailImgPath"] + "/{*filepath}", async context =>
-        {
-            context.Response.Headers.Add("Access-Control-Allow-Origin", configuration["BaseUrl"]);
-            await context.Response.SendFileAsync(context.Request.Path);
-        });
-    });*/
 
     app.MapRazorPages();
     app.MapControllers();

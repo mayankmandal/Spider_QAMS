@@ -221,5 +221,61 @@ namespace Spider_QAMS.DAL
 
             return tables;
         }
+
+        public static bool ExecuteNonQueryWithTransaction(SqlTransaction transaction, string CommandName, CommandType cmdType, SqlParameter[] param)
+        {
+            int result = 0;
+
+            using (SqlCommand cmd = transaction.Connection.CreateCommand())
+            {
+                cmd.Transaction = transaction;  // Assign the transaction
+                cmd.CommandType = cmdType;
+                cmd.CommandText = CommandName;
+                cmd.Parameters.AddRange(param);
+
+                try
+                {
+                    result = cmd.ExecuteNonQuery();
+                }
+                catch
+                {
+                    throw;
+                }
+            }
+
+            return (result > 0);
+        }
+
+        internal static List<DataTable> ExecuteParameterizedNonQueryWithTransaction(SqlTransaction transaction,string CommandName,CommandType cmdType,SqlParameter[] param)
+        {
+            List<DataTable> tables = new List<DataTable>();
+            using (SqlCommand cmd = transaction.Connection.CreateCommand())
+            {
+                cmd.Transaction = transaction;
+                cmd.CommandType = cmdType;
+                cmd.CommandText = CommandName;
+                cmd.Parameters.AddRange(param);
+                cmd.CommandTimeout = CONNECTION_TIMEOUT;
+                try
+                {
+                    using (SqlDataAdapter da = new SqlDataAdapter(cmd))
+                    {
+                        DataSet ds = new DataSet();
+                        da.Fill(ds);
+
+                        foreach (DataTable dt in ds.Tables)
+                        {
+                            tables.Add(dt);
+                        }
+                    }
+                }
+                catch
+                {
+                    throw;
+                }
+                
+            }
+            return tables;
+        }
     }
 }

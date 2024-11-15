@@ -10,6 +10,11 @@ namespace Spider_QAMS.Repositories.Domain
 {
     public class UserRepository : IUserRepository
     {
+        private SqlTransaction _transaction;
+        public void SetTransaction(SqlTransaction transaction)
+        {
+            _transaction = transaction;
+        }
         public async Task<ApplicationUser> GetUserByEmailAsyncRepo(string email)
         {
             ApplicationUser ActualUser = new ApplicationUser();
@@ -25,7 +30,7 @@ namespace Spider_QAMS.Repositories.Domain
                     new SqlParameter("@RowsAffected", SqlDbType.Int) { Direction = ParameterDirection.Output }
                 };
 
-                List<DataTable> dataTables = SqlDBHelper.ExecuteParameterizedNonQuery(SP_GetUserData, CommandType.StoredProcedure, sqlParameters);
+                List<DataTable> dataTables = SqlDBHelper.ExecuteParameterizedNonQueryWithTransaction(_transaction,SP_GetUserData, CommandType.StoredProcedure, sqlParameters);
                 if (dataTables.Count > 0)
                 {
                     DataTable dataTable = dataTables[0];
@@ -71,7 +76,7 @@ namespace Spider_QAMS.Repositories.Domain
                     new SqlParameter("@RowsAffected", SqlDbType.Int) { Direction = ParameterDirection.Output }
                 };
 
-                List<DataTable> dataTables = SqlDBHelper.ExecuteParameterizedNonQuery(SP_GetUserData, CommandType.StoredProcedure, sqlParameters);
+                List<DataTable> dataTables = SqlDBHelper.ExecuteParameterizedNonQueryWithTransaction(_transaction,SP_GetUserData, CommandType.StoredProcedure, sqlParameters);
                 if (dataTables.Count > 0)
                 {
                     DataTable dataTable = dataTables[0];
@@ -116,7 +121,7 @@ namespace Spider_QAMS.Repositories.Domain
                     new SqlParameter("@RowsAffected", SqlDbType.Int) { Direction = ParameterDirection.Output }
                 };
 
-                List<DataTable> dataTables = SqlDBHelper.ExecuteParameterizedNonQuery(SP_GetUserData, CommandType.StoredProcedure, sqlParameters);
+                List<DataTable> dataTables = SqlDBHelper.ExecuteParameterizedNonQueryWithTransaction(_transaction,SP_GetUserData, CommandType.StoredProcedure, sqlParameters);
                 if (dataTables.Count > 0)
                 {
                     DataTable dataTable = dataTables[0];

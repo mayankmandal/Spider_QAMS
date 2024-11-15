@@ -4,6 +4,7 @@ using Microsoft.IdentityModel.Tokens;
 using Spider_QAMS.Models;
 using Spider_QAMS.Models.ViewModels;
 using Spider_QAMS.Repositories.Domain;
+using Spider_QAMS.Repositories.Skeleton;
 using Spider_QAMS.Utilities;
 using System.IdentityModel.Tokens.Jwt;
 using System.Net.Http.Headers;
@@ -16,27 +17,28 @@ namespace Spider_QAMS.Controllers
 {
     public class ApplicationUserBusinessLogic : UserRepository
     {
+        private readonly IUnitOfWork _unitOfWork;
         private readonly IHttpContextAccessor _httpContextAccessor;
         private readonly IConfiguration _configuration;
         private readonly IDataProtector _protector;
         private readonly IHttpClientFactory _clientFactory;
-        public ApplicationUserBusinessLogic(IHttpContextAccessor httpContextAccessor, IConfiguration configuration, IDataProtectionProvider dataProtectionProvider, IHttpClientFactory clientFactory)
+        public ApplicationUserBusinessLogic(IHttpContextAccessor httpContextAccessor, IConfiguration configuration, IDataProtectionProvider dataProtectionProvider, IHttpClientFactory clientFactory, IUnitOfWork unitOfWork)
         {
             _httpContextAccessor = httpContextAccessor;
             _configuration = configuration;
             _protector = dataProtectionProvider.CreateProtector("EmailConfirmation");
             _clientFactory = clientFactory;
+            _unitOfWork = unitOfWork;
         }
         public HttpContext UserContext => _httpContextAccessor.HttpContext;
         public async Task<ApplicationUser> GetUserByEmailAsync(string email)
         {
-            return await GetUserByEmailAsyncRepo(email);
+            return await _unitOfWork.UserRepository.GetUserByEmailAsyncRepo(email);
         }
         public async Task<ApplicationUser> GetUserByIdAsync(int userId)
         {
-            return await GetUserByIdAsyncRepo(userId);
+            return await _unitOfWork.UserRepository.GetUserByIdAsyncRepo(userId);
         }
-
         public async Task<ApplicationUser> FindByIdAsync(string userId)
         {
             if(int.TryParse(userId, out int id))
@@ -44,6 +46,10 @@ namespace Spider_QAMS.Controllers
                 return await GetUserByIdAsync(id);
             }
             throw new ArgumentException("Invalid User ID");
+        }
+        public async Task<IList<string>> GetUserRolesAsync(int userId)
+        {
+            return await _unitOfWork.UserRepository.GetUserRolesAsyncRepo(userId);
         }
 
         // Method to refresh the cache on demand
@@ -72,11 +78,6 @@ namespace Spider_QAMS.Controllers
                 throw new InvalidOperationException("User is not authenticated");
             }
             return user.UserId;
-        }
-
-        public async Task<IList<string>> GetUserRolesAsync(int userId)
-        {
-            return await GetUserRolesAsyncRepo(userId);
         }
         public async Task<ApplicationUser> AuthenticateUserAsync(string email, string password)
         {

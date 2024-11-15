@@ -97,40 +97,46 @@ namespace Spider_QAMS.Controllers
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         public async Task<IActionResult> FetchRecordData([FromBody] Record record)
         {
-            try
+            using (var unitOfWork = new UnitOfWork(_configuration.GetConnectionString("DefaultConnection"), _navigationRepository))
             {
-                var jwtToken = Request.Headers["Authorization"].ToString().Replace("Bearer ", "");
-                if (string.IsNullOrEmpty(jwtToken))
+                try
                 {
-                    return Unauthorized("JWT Token is missing");
+                    var jwtToken = Request.Headers["Authorization"].ToString().Replace("Bearer ", "");
+                    if (string.IsNullOrEmpty(jwtToken))
+                    {
+                        return Unauthorized("JWT Token is missing");
+                    }
+                    var userId = await _applicationUserBusinessLogic.GetCurrentUserIdAsync(jwtToken);
+                    if (userId == null)
+                    {
+                        return Unauthorized("User is not authenticated.");
+                    }
+
+                    /*if (string.IsNullOrEmpty(record) || string.IsNullOrEmpty(input))
+                    {
+                        return BadRequest();
+                    }*/
+
+                    // Fetch the appropriate type from the repository using the RecordType
+                    object result = await _navigationRepository.FetchRecordByTypeAsync(record);
+
+                    // Get the expected type for the response
+                    Type expectedType = FetchRecordTypeMapper.GetTypeByEnum((FetchRecordByIdOrTextEnum)record.RecordType);
+
+                    // If the result is not of the expected type, throw an exception
+                    if (result != null && result.GetType() != expectedType)
+                    {
+                        throw new InvalidOperationException("Returned data does not match expected type.");
+                    }
+                    // Commit the transaction
+                    await unitOfWork.CommitAsync();
+                    return Ok(result);
                 }
-                var userId = await _applicationUserBusinessLogic.GetCurrentUserIdAsync(jwtToken);
-                if (userId == null)
+                catch (Exception ex)
                 {
-                    return Unauthorized("User is not authenticated.");
+                    unitOfWork.Rollback();
+                    return StatusCode(500, $"Internal Server Error: {ex.Message}");
                 }
-
-                /*if (string.IsNullOrEmpty(record) || string.IsNullOrEmpty(input))
-                {
-                    return BadRequest();
-                }*/
-
-                // Fetch the appropriate type from the repository using the RecordType
-                object result = await _navigationRepository.FetchRecordByTypeAsync(record);
-
-                // Get the expected type for the response
-                Type expectedType = FetchRecordTypeMapper.GetTypeByEnum((FetchRecordByIdOrTextEnum)record.RecordType);
-
-                // If the result is not of the expected type, throw an exception
-                if (result != null && result.GetType() != expectedType)
-                {
-                    throw new InvalidOperationException("Returned data does not match expected type.");
-                }
-                return Ok(result);
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, $"Internal Server Error: {ex.Message}");
             }
         }
         [HttpPost("CheckUniqueness")]
@@ -139,25 +145,32 @@ namespace Spider_QAMS.Controllers
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         public async Task<IActionResult> CheckUniqueness([FromBody] UniquenessCheckRequest uniqueRequest)
         {
-            try
+            using (var unitOfWork = new UnitOfWork(_configuration.GetConnectionString("DefaultConnection"), _navigationRepository))
             {
-                var jwtToken = Request.Headers["Authorization"].ToString().Replace("Bearer ", "");
-                if (string.IsNullOrEmpty(jwtToken))
+
+                try
                 {
-                    return Unauthorized("JWT Token is missing");
+                    var jwtToken = Request.Headers["Authorization"].ToString().Replace("Bearer ", "");
+                    if (string.IsNullOrEmpty(jwtToken))
+                    {
+                        return Unauthorized("JWT Token is missing");
+                    }
+                    var userId = await _applicationUserBusinessLogic.GetCurrentUserIdAsync(jwtToken);
+                    if (userId == null)
+                    {
+                        return Unauthorized("User is not authenticated.");
+                    }
+                    bool isUniqueValue = false;
+                    isUniqueValue = await _navigationRepository.CheckUniquenessAsync(uniqueRequest);
+                    // Commit the transaction
+                    await unitOfWork.CommitAsync();
+                    return Ok(new { IsUnique = isUniqueValue });
                 }
-                var userId = await _applicationUserBusinessLogic.GetCurrentUserIdAsync(jwtToken);
-                if (userId == null)
+                catch (Exception ex)
                 {
-                    return Unauthorized("User is not authenticated.");
+                    unitOfWork.Rollback();
+                    return StatusCode(500, $"Internal Server Error: {ex.Message}");
                 }
-                bool isUniqueValue = false;
-                isUniqueValue = await _navigationRepository.CheckUniquenessAsync(uniqueRequest);
-                return Ok(new { IsUnique = isUniqueValue });
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, $"Internal Server Error: {ex.Message}");
             }
         }
         [HttpDelete("DeleteEntity")]
@@ -166,28 +179,34 @@ namespace Spider_QAMS.Controllers
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         public async Task<IActionResult> DeleteEntity(int deleteId, string deleteType)
         {
-            try
+            using (var unitOfWork = new UnitOfWork(_configuration.GetConnectionString("DefaultConnection"), _navigationRepository))
             {
-                var jwtToken = Request.Headers["Authorization"].ToString().Replace("Bearer ", "");
-                if (string.IsNullOrEmpty(jwtToken))
+                try
                 {
-                    return Unauthorized("JWT Token is missing");
+                    var jwtToken = Request.Headers["Authorization"].ToString().Replace("Bearer ", "");
+                    if (string.IsNullOrEmpty(jwtToken))
+                    {
+                        return Unauthorized("JWT Token is missing");
+                    }
+                    var userId = await _applicationUserBusinessLogic.GetCurrentUserIdAsync(jwtToken);
+                    if (userId == null)
+                    {
+                        return Unauthorized("User is not authenticated.");
+                    }
+                    if (deleteId <= 0 || string.IsNullOrEmpty(deleteType))
+                    {
+                        return BadRequest($"{deleteType} {deleteId} is invalid.");
+                    }
+                    bool isSuccess = await _navigationRepository.DeleteEntityAsync(deleteId, deleteType);
+                    // Commit the transaction
+                    await unitOfWork.CommitAsync();
+                    return Ok(isSuccess);
                 }
-                var userId = await _applicationUserBusinessLogic.GetCurrentUserIdAsync(jwtToken);
-                if (userId == null)
+                catch (Exception ex)
                 {
-                    return Unauthorized("User is not authenticated.");
+                    unitOfWork.Rollback();
+                    return StatusCode(500, $"Internal Server Error: {ex.Message}");
                 }
-                if (deleteId <= 0 || string.IsNullOrEmpty(deleteType))
-                {
-                    return BadRequest($"{deleteType} {deleteId} is invalid.");
-                }
-                bool isSuccess = await _navigationRepository.DeleteEntityAsync(deleteId, deleteType);
-                return Ok(isSuccess);
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, $"Internal Server Error: {ex.Message}");
             }
         }
 
@@ -198,64 +217,69 @@ namespace Spider_QAMS.Controllers
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         public async Task<IActionResult> CreateUserProfile([FromBody] ProfileUserAPIVM profileUsersData)
         {
-            try
+            using (var unitOfWork = new UnitOfWork(_configuration.GetConnectionString("DefaultConnection"), _navigationRepository))
             {
-                var jwtToken = Request.Headers["Authorization"].ToString().Replace("Bearer ", "");
-                if (string.IsNullOrEmpty(jwtToken))
+                try
                 {
-                    return Unauthorized("JWT Token is missing");
-                }
-                var userId = await _applicationUserBusinessLogic.GetCurrentUserIdAsync(jwtToken);
-                if (userId == null)
-                {
-                    return Unauthorized("User is not authenticated.");
-                }
-                if (profileUsersData == null)
-                {
-                    return BadRequest();
-                }
-
-                // Validate the password
-                if (!string.IsNullOrEmpty(profileUsersData.Password) && !Regex.IsMatch(profileUsersData.Password, passwordPattern))
-                {
-                    return BadRequest("Password must be between 8 and 16 characters, and must contain at least one uppercase letter, one lowercase letter, one digit, and one special character.");
-                }
-
-                string salt = string.Empty;
-                string hashedPassword = string.Empty;
-
-                if (!string.IsNullOrEmpty(profileUsersData.Password))
-                {
-                    salt = PasswordHelper.GenerateSalt();
-                    hashedPassword = PasswordHelper.HashPassword(profileUsersData.Password, salt);
-                }
-
-                ProfileUser profileUser = new ProfileUser
-                {
-                    Designation = profileUsersData.Designation.ToString(),
-                    FullName = profileUsersData.FullName,
-                    EmailID = profileUsersData.EmailID,
-                    UserName = profileUsersData.UserName,
-                    ProfilePicName = profileUsersData.ProfilePicName,
-                    PhoneNumber = profileUsersData.PhoneNumber.ToString(),
-                    UserId = 0,
-                    PasswordHash = hashedPassword,
-                    PasswordSalt = salt,
-                    ProfileSiteData = new ProfileSite
+                    var jwtToken = Request.Headers["Authorization"].ToString().Replace("Bearer ", "");
+                    if (string.IsNullOrEmpty(jwtToken))
                     {
-                        ProfileId = profileUsersData.ProfileSiteData.ProfileId,
-                    },
-                    IsActive = profileUsersData.IsActive,
-                    IsADUser = profileUsersData.IsADUser,
-                };
+                        return Unauthorized("JWT Token is missing");
+                    }
+                    var userId = await _applicationUserBusinessLogic.GetCurrentUserIdAsync(jwtToken);
+                    if (userId == null)
+                    {
+                        return Unauthorized("User is not authenticated.");
+                    }
+                    if (profileUsersData == null)
+                    {
+                        return BadRequest();
+                    }
 
-                await _navigationRepository.CreateUserProfileAsync(profileUser, userId);
+                    // Validate the password
+                    if (!string.IsNullOrEmpty(profileUsersData.Password) && !Regex.IsMatch(profileUsersData.Password, passwordPattern))
+                    {
+                        return BadRequest("Password must be between 8 and 16 characters, and must contain at least one uppercase letter, one lowercase letter, one digit, and one special character.");
+                    }
 
-                return Ok();
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, $"Internal Server Error: {ex.Message}");
+                    string salt = string.Empty;
+                    string hashedPassword = string.Empty;
+
+                    if (!string.IsNullOrEmpty(profileUsersData.Password))
+                    {
+                        salt = PasswordHelper.GenerateSalt();
+                        hashedPassword = PasswordHelper.HashPassword(profileUsersData.Password, salt);
+                    }
+
+                    ProfileUser profileUser = new ProfileUser
+                    {
+                        Designation = profileUsersData.Designation.ToString(),
+                        FullName = profileUsersData.FullName,
+                        EmailID = profileUsersData.EmailID,
+                        UserName = profileUsersData.UserName,
+                        ProfilePicName = profileUsersData.ProfilePicName,
+                        PhoneNumber = profileUsersData.PhoneNumber.ToString(),
+                        UserId = 0,
+                        PasswordHash = hashedPassword,
+                        PasswordSalt = salt,
+                        ProfileSiteData = new ProfileSite
+                        {
+                            ProfileId = profileUsersData.ProfileSiteData.ProfileId,
+                        },
+                        IsActive = profileUsersData.IsActive,
+                        IsADUser = profileUsersData.IsADUser,
+                    };
+
+                    await _navigationRepository.CreateUserProfileAsync(profileUser, userId);
+                    // Commit the transaction
+                    await unitOfWork.CommitAsync();
+                    return Ok();
+                }
+                catch (Exception ex)
+                {
+                    unitOfWork.Rollback();
+                    return StatusCode(500, $"Internal Server Error: {ex.Message}");
+                }
             }
         }
         [HttpPost("UpdateUser")]
@@ -265,83 +289,89 @@ namespace Spider_QAMS.Controllers
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         public async Task<IActionResult> UpdateUserProfile([FromBody] ProfileUserAPIVM profileUserAPIVM)
         {
-            try
+            using (var unitOfWork = new UnitOfWork(_configuration.GetConnectionString("DefaultConnection"), _navigationRepository, _userRepository))
             {
-                var jwtToken = Request.Headers["Authorization"].ToString().Replace("Bearer ", "");
-                if (string.IsNullOrEmpty(jwtToken))
+                try
                 {
-                    return Unauthorized("JWT Token is missing");
-                }
-                var user = await _applicationUserBusinessLogic.GetCurrentUserAsync(jwtToken);
-                if (user == null || user.UserId <= 0)
-                {
-                    return Unauthorized("User is not authenticated.");
-                }
-                if (profileUserAPIVM == null || string.IsNullOrEmpty(profileUserAPIVM.EmailID))
-                {
-                    return BadRequest("Invalid user profile data");
-                }
-
-                // Fetch target user by email from profileUserAPIVM
-                var targetUser = await _applicationUserBusinessLogic.GetUserByEmailAsync(profileUserAPIVM.EmailID);
-                if (targetUser == null)
-                {
-                    return NotFound($"User with email {profileUserAPIVM.EmailID} not found.");
-                }
-
-                // Fetch the role of the target user
-                var targetUserRole = await _userRepository.GetUserRolesAsyncRepo(profileUserAPIVM.UserId);
-                if (targetUserRole == null)
-                {
-                    return NotFound("Target user does not have an associated role.");
-                }
-
-                string salt = string.Empty;
-                string hashedPassword = string.Empty;
-
-                if (!string.IsNullOrEmpty(profileUserAPIVM.Password))
-                {
-                    salt = PasswordHelper.GenerateSalt();
-                    hashedPassword = PasswordHelper.HashPassword(profileUserAPIVM.Password, salt);
-                }
-
-                ProfileUser profileUser = new ProfileUser
-                {
-                    Designation = profileUserAPIVM.Designation.ToString(),
-                    FullName = profileUserAPIVM.FullName,
-                    EmailID = profileUserAPIVM.EmailID,
-                    UserName = profileUserAPIVM.UserName,
-                    ProfilePicName = profileUserAPIVM.ProfilePicName,
-                    PhoneNumber = profileUserAPIVM.PhoneNumber.ToString(),
-                    UserId = profileUserAPIVM.UserId,
-                    PasswordHash = hashedPassword,
-                    PasswordSalt = salt,
-                    ProfileSiteData = new ProfileSite
+                    var jwtToken = Request.Headers["Authorization"].ToString().Replace("Bearer ", "");
+                    if (string.IsNullOrEmpty(jwtToken))
                     {
-                        ProfileId = profileUserAPIVM.ProfileSiteData.ProfileId,
-                    },
-                    IsActive = profileUserAPIVM.IsActive,
-                    IsADUser = profileUserAPIVM.IsADUser,
-                };
+                        return Unauthorized("JWT Token is missing");
+                    }
+                    var user = await _applicationUserBusinessLogic.GetCurrentUserAsync(jwtToken);
+                    if (user == null || user.UserId <= 0)
+                    {
+                        return Unauthorized("User is not authenticated.");
+                    }
+                    if (profileUserAPIVM == null || string.IsNullOrEmpty(profileUserAPIVM.EmailID))
+                    {
+                        return BadRequest("Invalid user profile data");
+                    }
 
-                string PreviousProfilePhotoPath = await _navigationRepository.UpdateUserProfileAsync(profileUser, user.UserId);
+                    // Fetch target user by email from profileUserAPIVM
+                    var targetUser = await _applicationUserBusinessLogic.GetUserByEmailAsync(profileUserAPIVM.EmailID);
+                    if (targetUser == null)
+                    {
+                        return NotFound($"User with email {profileUserAPIVM.EmailID} not found.");
+                    }
 
-                // Remove the cached item to force a refresh next time
-                _httpContextAccessor.HttpContext.Session.Remove(SessionKeys.CurrentUserProfileKey);
-                _httpContextAccessor.HttpContext.Session.Remove(SessionKeys.CurrentUserPagesKey);
-                _httpContextAccessor.HttpContext.Session.Remove(SessionKeys.CurrentUserCategoriesKey);
+                    // Fetch the role of the target user
+                    var targetUserRole = await _userRepository.GetUserRolesAsyncRepo(profileUserAPIVM.UserId);
+                    if (targetUserRole == null)
+                    {
+                        return NotFound("Target user does not have an associated role.");
+                    }
 
-                if (!string.IsNullOrEmpty(profileUserAPIVM.ProfilePicName) && !string.IsNullOrEmpty(PreviousProfilePhotoPath))
-                {
-                    string oldFilePath = Path.Combine(_webHostEnvironment.WebRootPath, _configuration["UserProfileImgPath"], PreviousProfilePhotoPath);
-                    bool isSucess = await DeleteFileAsync(oldFilePath);
-                    return Ok(isSucess);
+                    string salt = string.Empty;
+                    string hashedPassword = string.Empty;
+
+                    if (!string.IsNullOrEmpty(profileUserAPIVM.Password))
+                    {
+                        salt = PasswordHelper.GenerateSalt();
+                        hashedPassword = PasswordHelper.HashPassword(profileUserAPIVM.Password, salt);
+                    }
+
+                    ProfileUser profileUser = new ProfileUser
+                    {
+                        Designation = profileUserAPIVM.Designation.ToString(),
+                        FullName = profileUserAPIVM.FullName,
+                        EmailID = profileUserAPIVM.EmailID,
+                        UserName = profileUserAPIVM.UserName,
+                        ProfilePicName = profileUserAPIVM.ProfilePicName,
+                        PhoneNumber = profileUserAPIVM.PhoneNumber.ToString(),
+                        UserId = profileUserAPIVM.UserId,
+                        PasswordHash = hashedPassword,
+                        PasswordSalt = salt,
+                        ProfileSiteData = new ProfileSite
+                        {
+                            ProfileId = profileUserAPIVM.ProfileSiteData.ProfileId,
+                        },
+                        IsActive = profileUserAPIVM.IsActive,
+                        IsADUser = profileUserAPIVM.IsADUser,
+                    };
+
+                    string PreviousProfilePhotoPath = await _navigationRepository.UpdateUserProfileAsync(profileUser, user.UserId);
+
+                    // Remove the cached item to force a refresh next time
+                    _httpContextAccessor.HttpContext.Session.Remove(SessionKeys.CurrentUserProfileKey);
+                    _httpContextAccessor.HttpContext.Session.Remove(SessionKeys.CurrentUserPagesKey);
+                    _httpContextAccessor.HttpContext.Session.Remove(SessionKeys.CurrentUserCategoriesKey);
+
+                    if (!string.IsNullOrEmpty(profileUserAPIVM.ProfilePicName) && !string.IsNullOrEmpty(PreviousProfilePhotoPath))
+                    {
+                        string oldFilePath = Path.Combine(_webHostEnvironment.WebRootPath, _configuration["UserProfileImgPath"], PreviousProfilePhotoPath);
+                        bool isSucess = await DeleteFileAsync(oldFilePath);
+                        return Ok(isSucess);
+                    }
+                    // Commit the transaction
+                    await unitOfWork.CommitAsync();
+                    return Ok();
                 }
-                return Ok();
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, $"Internal Server Error: {ex.Message}");
+                catch (Exception ex)
+                {
+                    unitOfWork.Rollback();
+                    return StatusCode(500, $"Internal Server Error: {ex.Message}");
+                }
             }
         }
 
@@ -351,24 +381,30 @@ namespace Spider_QAMS.Controllers
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         public async Task<IActionResult> GetSettingsData()
         {
-            try
+            using (var unitOfWork = new UnitOfWork(_configuration.GetConnectionString("DefaultConnection"), _navigationRepository))
             {
-                var jwtToken = Request.Headers["Authorization"].ToString().Replace("Bearer ", "");
-                if (string.IsNullOrEmpty(jwtToken))
+                try
                 {
-                    return Unauthorized("JWT Token is missing");
+                    var jwtToken = Request.Headers["Authorization"].ToString().Replace("Bearer ", "");
+                    if (string.IsNullOrEmpty(jwtToken))
+                    {
+                        return Unauthorized("JWT Token is missing");
+                    }
+                    var userId = await _applicationUserBusinessLogic.GetCurrentUserIdAsync(jwtToken);
+                    if (userId == null)
+                    {
+                        return Unauthorized("User is not authenticated.");
+                    }
+                    ProfileUserAPIVM profileUserAPIVM = await _navigationRepository.GetSettingsDataAsync(userId);
+                    // Commit the transaction
+                    await unitOfWork.CommitAsync();
+                    return Ok(profileUserAPIVM);
                 }
-                var userId = await _applicationUserBusinessLogic.GetCurrentUserIdAsync(jwtToken);
-                if (userId == null)
+                catch (Exception ex)
                 {
-                    return Unauthorized("User is not authenticated.");
+                    unitOfWork.Rollback();
+                    return StatusCode(500, $"Internal Server Error: {ex.Message}");
                 }
-                ProfileUserAPIVM profileUserAPIVM = await _navigationRepository.GetSettingsDataAsync(userId);
-                return Ok(profileUserAPIVM);
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, $"Internal Server Error: {ex.Message}");
             }
         }
         [HttpPost("UpdateSettingsData")]
@@ -377,60 +413,66 @@ namespace Spider_QAMS.Controllers
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         public async Task<IActionResult> UpdateSettingsData(SettingsAPIVM userSettings)
         {
-            try
+            using (var unitOfWork = new UnitOfWork(_configuration.GetConnectionString("DefaultConnection"), _navigationRepository))
             {
-                var jwtToken = Request.Headers["Authorization"].ToString().Replace("Bearer ", "");
-                if (string.IsNullOrEmpty(jwtToken))
+                try
                 {
-                    return Unauthorized("JWT Token is missing");
+                    var jwtToken = Request.Headers["Authorization"].ToString().Replace("Bearer ", "");
+                    if (string.IsNullOrEmpty(jwtToken))
+                    {
+                        return Unauthorized("JWT Token is missing");
+                    }
+                    var currentUserId = await _applicationUserBusinessLogic.GetCurrentUserIdAsync(jwtToken);
+                    if (currentUserId == null || currentUserId <= 0)
+                    {
+                        return Unauthorized("User is not authenticated.");
+                    }
+                    // Validate the password
+                    if (!string.IsNullOrEmpty(userSettings.SettingsPassword) && (!Regex.IsMatch(userSettings.SettingsPassword, passwordPattern) || userSettings.SettingsPassword != userSettings.SettingsReTypePassword))
+                    {
+                        return BadRequest("Password must be between 8 and 16 characters, and must contain at least one uppercase letter, one lowercase letter, one digit, and one special character. Also, both passwords must match.");
+                    }
+
+                    string salt = string.Empty;
+                    string hashedPassword = string.Empty;
+
+                    if (!string.IsNullOrEmpty(userSettings.SettingsPassword) || !string.IsNullOrEmpty(userSettings.SettingsReTypePassword))
+                    {
+                        salt = PasswordHelper.GenerateSalt();
+                        hashedPassword = PasswordHelper.HashPassword(userSettings.SettingsPassword, salt);
+                    }
+
+                    ProfileUser profileUser = new ProfileUser
+                    {
+                        FullName = userSettings.SettingsFullName,
+                        EmailID = userSettings.SettingsEmailID,
+                        UserName = userSettings.SettingsUserName,
+                        ProfilePicName = userSettings.SettingsProfilePicName,
+                        UserId = userSettings.SettingsUserId,
+                        PasswordHash = hashedPassword != null ? hashedPassword : string.Empty,
+                        PasswordSalt = salt != null ? salt : string.Empty,
+                    };
+
+                    string PreviousProfilePhotoPath = await _navigationRepository.UpdateSettingsDataAsync(profileUser, currentUserId);
+
+                    // Remove the cached item to force a refresh next time
+                    _httpContextAccessor.HttpContext.Session.Remove(SessionKeys.CurrentUserProfileKey);
+
+                    if (!string.IsNullOrEmpty(userSettings.SettingsProfilePicName) && !string.IsNullOrEmpty(PreviousProfilePhotoPath))
+                    {
+                        string oldFilePath = Path.Combine(_webHostEnvironment.WebRootPath, _configuration["UserProfileImgPath"], PreviousProfilePhotoPath);
+                        bool isSucess = await DeleteFileAsync(oldFilePath);
+                        return Ok(isSucess);
+                    }
+                    // Commit the transaction
+                    await unitOfWork.CommitAsync();
+                    return Ok();
                 }
-                var currentUserId = await _applicationUserBusinessLogic.GetCurrentUserIdAsync(jwtToken);
-                if (currentUserId == null || currentUserId <= 0)
+                catch (Exception ex)
                 {
-                    return Unauthorized("User is not authenticated.");
+                    unitOfWork.Rollback();
+                    return StatusCode(500, $"Internal Server Error: {ex.Message}");
                 }
-                // Validate the password
-                if (!string.IsNullOrEmpty(userSettings.SettingsPassword) && (!Regex.IsMatch(userSettings.SettingsPassword, passwordPattern) || userSettings.SettingsPassword != userSettings.SettingsReTypePassword))
-                {
-                    return BadRequest("Password must be between 8 and 16 characters, and must contain at least one uppercase letter, one lowercase letter, one digit, and one special character. Also, both passwords must match.");
-                }
-
-                string salt = string.Empty;
-                string hashedPassword = string.Empty;
-
-                if (!string.IsNullOrEmpty(userSettings.SettingsPassword) || !string.IsNullOrEmpty(userSettings.SettingsReTypePassword))
-                {
-                    salt = PasswordHelper.GenerateSalt();
-                    hashedPassword = PasswordHelper.HashPassword(userSettings.SettingsPassword, salt);
-                }
-
-                ProfileUser profileUser = new ProfileUser
-                {
-                    FullName = userSettings.SettingsFullName,
-                    EmailID = userSettings.SettingsEmailID,
-                    UserName = userSettings.SettingsUserName,
-                    ProfilePicName = userSettings.SettingsProfilePicName,
-                    UserId = userSettings.SettingsUserId,
-                    PasswordHash = hashedPassword != null ? hashedPassword : string.Empty,
-                    PasswordSalt = salt != null ? salt : string.Empty,
-                };
-
-                string PreviousProfilePhotoPath = await _navigationRepository.UpdateSettingsDataAsync(profileUser, currentUserId);
-
-                // Remove the cached item to force a refresh next time
-                _httpContextAccessor.HttpContext.Session.Remove(SessionKeys.CurrentUserProfileKey);
-
-                if (!string.IsNullOrEmpty(userSettings.SettingsProfilePicName) && !string.IsNullOrEmpty(PreviousProfilePhotoPath))
-                {
-                    string oldFilePath = Path.Combine(_webHostEnvironment.WebRootPath, _configuration["UserProfileImgPath"], PreviousProfilePhotoPath);
-                    bool isSucess = await DeleteFileAsync(oldFilePath);
-                    return Ok(isSucess);
-                }
-                return Ok();
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, $"Internal Server Error: {ex.Message}");
             }
         }
 
@@ -440,34 +482,40 @@ namespace Spider_QAMS.Controllers
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         public async Task<IActionResult> UpdateRegionData(Region region)
         {
-            try
+            using (var unitOfWork = new UnitOfWork(_configuration.GetConnectionString("DefaultConnection"), _navigationRepository))
             {
-                var jwtToken = Request.Headers["Authorization"].ToString().Replace("Bearer ", "");
-                if (string.IsNullOrEmpty(jwtToken))
+                try
                 {
-                    return Unauthorized("JWT Token is missing");
-                }
-                var currentUserId = await _applicationUserBusinessLogic.GetCurrentUserIdAsync(jwtToken);
-                if (currentUserId == null || currentUserId <= 0)
-                {
-                    return Unauthorized("User is not authenticated.");
-                }
+                    var jwtToken = Request.Headers["Authorization"].ToString().Replace("Bearer ", "");
+                    if (string.IsNullOrEmpty(jwtToken))
+                    {
+                        return Unauthorized("JWT Token is missing");
+                    }
+                    var currentUserId = await _applicationUserBusinessLogic.GetCurrentUserIdAsync(jwtToken);
+                    if (currentUserId == null || currentUserId <= 0)
+                    {
+                        return Unauthorized("User is not authenticated.");
+                    }
 
-                bool isSuccess = false;
-                isSuccess = await _navigationRepository.UpdateRegionAsync(region);
+                    bool isSuccess = false;
+                    isSuccess = await _navigationRepository.UpdateRegionAsync(region);
 
-                if (isSuccess)
-                {
-                    return Ok(isSuccess);
+                    if (isSuccess)
+                    {
+                        // Commit the transaction
+                        await unitOfWork.CommitAsync();
+                        return Ok(isSuccess);
+                    }
+                    else
+                    {
+                        return BadRequest();
+                    }
                 }
-                else
+                catch (Exception ex)
                 {
-                    return BadRequest();
+                    unitOfWork.Rollback();
+                    return StatusCode(500, $"Internal Server Error: {ex.Message}");
                 }
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, $"Internal Server Error: {ex.Message}");
             }
         }
         [HttpPost("CreateRegion")]
@@ -476,34 +524,40 @@ namespace Spider_QAMS.Controllers
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         public async Task<IActionResult> CreateRegionData(Region region)
         {
-            try
+            using (var unitOfWork = new UnitOfWork(_configuration.GetConnectionString("DefaultConnection"), _navigationRepository))
             {
-                var jwtToken = Request.Headers["Authorization"].ToString().Replace("Bearer ", "");
-                if (string.IsNullOrEmpty(jwtToken))
+                try
                 {
-                    return Unauthorized("JWT Token is missing");
-                }
-                var currentUserId = await _applicationUserBusinessLogic.GetCurrentUserIdAsync(jwtToken);
-                if (currentUserId == null || currentUserId <= 0)
-                {
-                    return Unauthorized("User is not authenticated.");
-                }
+                    var jwtToken = Request.Headers["Authorization"].ToString().Replace("Bearer ", "");
+                    if (string.IsNullOrEmpty(jwtToken))
+                    {
+                        return Unauthorized("JWT Token is missing");
+                    }
+                    var currentUserId = await _applicationUserBusinessLogic.GetCurrentUserIdAsync(jwtToken);
+                    if (currentUserId == null || currentUserId <= 0)
+                    {
+                        return Unauthorized("User is not authenticated.");
+                    }
 
-                bool isSuccess = false;
-                isSuccess = await _navigationRepository.CreateRegionAsync(region);
+                    bool isSuccess = false;
+                    isSuccess = await _navigationRepository.CreateRegionAsync(region);
 
-                if (isSuccess)
-                {
-                    return Ok(isSuccess);
+                    if (isSuccess)
+                    {
+                        // Commit the transaction
+                        await unitOfWork.CommitAsync();
+                        return Ok(isSuccess);
+                    }
+                    else
+                    {
+                        return BadRequest();
+                    }
                 }
-                else
+                catch (Exception ex)
                 {
-                    return BadRequest();
+                    unitOfWork.Rollback();
+                    return StatusCode(500, $"Internal Server Error: {ex.Message}");
                 }
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, $"Internal Server Error: {ex.Message}");
             }
         }
 
@@ -513,34 +567,40 @@ namespace Spider_QAMS.Controllers
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         public async Task<IActionResult> UpdateCityData(City city)
         {
-            try
+            using (var unitOfWork = new UnitOfWork(_configuration.GetConnectionString("DefaultConnection"), _navigationRepository))
             {
-                var jwtToken = Request.Headers["Authorization"].ToString().Replace("Bearer ", "");
-                if (string.IsNullOrEmpty(jwtToken))
+                try
                 {
-                    return Unauthorized("JWT Token is missing");
-                }
-                var currentUserId = await _applicationUserBusinessLogic.GetCurrentUserIdAsync(jwtToken);
-                if (currentUserId == null || currentUserId <= 0)
-                {
-                    return Unauthorized("User is not authenticated.");
-                }
+                    var jwtToken = Request.Headers["Authorization"].ToString().Replace("Bearer ", "");
+                    if (string.IsNullOrEmpty(jwtToken))
+                    {
+                        return Unauthorized("JWT Token is missing");
+                    }
+                    var currentUserId = await _applicationUserBusinessLogic.GetCurrentUserIdAsync(jwtToken);
+                    if (currentUserId == null || currentUserId <= 0)
+                    {
+                        return Unauthorized("User is not authenticated.");
+                    }
 
-                bool isSuccess = false;
-                isSuccess = await _navigationRepository.UpdateCityAsync(city);
+                    bool isSuccess = false;
+                    isSuccess = await _navigationRepository.UpdateCityAsync(city);
 
-                if (isSuccess)
-                {
-                    return Ok(isSuccess);
+                    if (isSuccess)
+                    {
+                        // Commit the transaction
+                        await unitOfWork.CommitAsync();
+                        return Ok(isSuccess);
+                    }
+                    else
+                    {
+                        return BadRequest();
+                    }
                 }
-                else
+                catch (Exception ex)
                 {
-                    return BadRequest();
+                    unitOfWork.Rollback();
+                    return StatusCode(500, $"Internal Server Error: {ex.Message}");
                 }
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, $"Internal Server Error: {ex.Message}");
             }
         }
         [HttpPost("CreateCity")]
@@ -549,34 +609,40 @@ namespace Spider_QAMS.Controllers
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         public async Task<IActionResult> CreateCityData(City city)
         {
-            try
+            using (var unitOfWork = new UnitOfWork(_configuration.GetConnectionString("DefaultConnection"), _navigationRepository))
             {
-                var jwtToken = Request.Headers["Authorization"].ToString().Replace("Bearer ", "");
-                if (string.IsNullOrEmpty(jwtToken))
+                try
                 {
-                    return Unauthorized("JWT Token is missing");
-                }
-                var currentUserId = await _applicationUserBusinessLogic.GetCurrentUserIdAsync(jwtToken);
-                if (currentUserId == null || currentUserId <= 0)
-                {
-                    return Unauthorized("User is not authenticated.");
-                }
+                    var jwtToken = Request.Headers["Authorization"].ToString().Replace("Bearer ", "");
+                    if (string.IsNullOrEmpty(jwtToken))
+                    {
+                        return Unauthorized("JWT Token is missing");
+                    }
+                    var currentUserId = await _applicationUserBusinessLogic.GetCurrentUserIdAsync(jwtToken);
+                    if (currentUserId == null || currentUserId <= 0)
+                    {
+                        return Unauthorized("User is not authenticated.");
+                    }
 
-                bool isSuccess = false;
-                isSuccess = await _navigationRepository.CreateCityAsync(city);
+                    bool isSuccess = false;
+                    isSuccess = await _navigationRepository.CreateCityAsync(city);
 
-                if (isSuccess)
-                {
-                    return Ok(isSuccess);
+                    if (isSuccess)
+                    {
+                        // Commit the transaction
+                        await unitOfWork.CommitAsync();
+                        return Ok(isSuccess);
+                    }
+                    else
+                    {
+                        return BadRequest();
+                    }
                 }
-                else
+                catch (Exception ex)
                 {
-                    return BadRequest();
+                    unitOfWork.Rollback();
+                    return StatusCode(500, $"Internal Server Error: {ex.Message}");
                 }
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, $"Internal Server Error: {ex.Message}");
             }
         }
 
@@ -586,34 +652,40 @@ namespace Spider_QAMS.Controllers
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         public async Task<IActionResult> UpdateLocationData(SiteLocation siteLocation)
         {
-            try
+            using (var unitOfWork = new UnitOfWork(_configuration.GetConnectionString("DefaultConnection"), _navigationRepository))
             {
-                var jwtToken = Request.Headers["Authorization"].ToString().Replace("Bearer ", "");
-                if (string.IsNullOrEmpty(jwtToken))
+                try
                 {
-                    return Unauthorized("JWT Token is missing");
-                }
-                var currentUserId = await _applicationUserBusinessLogic.GetCurrentUserIdAsync(jwtToken);
-                if (currentUserId == null || currentUserId <= 0)
-                {
-                    return Unauthorized("User is not authenticated.");
-                }
+                    var jwtToken = Request.Headers["Authorization"].ToString().Replace("Bearer ", "");
+                    if (string.IsNullOrEmpty(jwtToken))
+                    {
+                        return Unauthorized("JWT Token is missing");
+                    }
+                    var currentUserId = await _applicationUserBusinessLogic.GetCurrentUserIdAsync(jwtToken);
+                    if (currentUserId == null || currentUserId <= 0)
+                    {
+                        return Unauthorized("User is not authenticated.");
+                    }
 
-                bool isSuccess = false;
-                isSuccess = await _navigationRepository.UpdateLocationAsync(siteLocation);
+                    bool isSuccess = false;
+                    isSuccess = await _navigationRepository.UpdateLocationAsync(siteLocation);
 
-                if (isSuccess)
-                {
-                    return Ok(isSuccess);
+                    if (isSuccess)
+                    {
+                        // Commit the transaction
+                        await unitOfWork.CommitAsync();
+                        return Ok(isSuccess);
+                    }
+                    else
+                    {
+                        return BadRequest();
+                    }
                 }
-                else
+                catch (Exception ex)
                 {
-                    return BadRequest();
+                    unitOfWork.Rollback();
+                    return StatusCode(500, $"Internal Server Error: {ex.Message}");
                 }
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, $"Internal Server Error: {ex.Message}");
             }
         }
         [HttpPost("CreateLocation")]
@@ -622,34 +694,40 @@ namespace Spider_QAMS.Controllers
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         public async Task<IActionResult> CreateLocationData(SiteLocation siteLocation)
         {
-            try
+            using (var unitOfWork = new UnitOfWork(_configuration.GetConnectionString("DefaultConnection"), _navigationRepository))
             {
-                var jwtToken = Request.Headers["Authorization"].ToString().Replace("Bearer ", "");
-                if (string.IsNullOrEmpty(jwtToken))
+                try
                 {
-                    return Unauthorized("JWT Token is missing");
-                }
-                var currentUserId = await _applicationUserBusinessLogic.GetCurrentUserIdAsync(jwtToken);
-                if (currentUserId == null || currentUserId <= 0)
-                {
-                    return Unauthorized("User is not authenticated.");
-                }
+                    var jwtToken = Request.Headers["Authorization"].ToString().Replace("Bearer ", "");
+                    if (string.IsNullOrEmpty(jwtToken))
+                    {
+                        return Unauthorized("JWT Token is missing");
+                    }
+                    var currentUserId = await _applicationUserBusinessLogic.GetCurrentUserIdAsync(jwtToken);
+                    if (currentUserId == null || currentUserId <= 0)
+                    {
+                        return Unauthorized("User is not authenticated.");
+                    }
 
-                bool isSuccess = false;
-                isSuccess = await _navigationRepository.CreateLocationAsync(siteLocation);
+                    bool isSuccess = false;
+                    isSuccess = await _navigationRepository.CreateLocationAsync(siteLocation);
 
-                if (isSuccess)
-                {
-                    return Ok(isSuccess);
+                    if (isSuccess)
+                    {
+                        // Commit the transaction
+                        await unitOfWork.CommitAsync();
+                        return Ok(isSuccess);
+                    }
+                    else
+                    {
+                        return BadRequest();
+                    }
                 }
-                else
+                catch (Exception ex)
                 {
-                    return BadRequest();
+                    unitOfWork.Rollback();
+                    return StatusCode(500, $"Internal Server Error: {ex.Message}");
                 }
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, $"Internal Server Error: {ex.Message}");
             }
         }
 
@@ -659,34 +737,40 @@ namespace Spider_QAMS.Controllers
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         public async Task<IActionResult> UpdateContactData(Contact contact)
         {
-            try
+            using (var unitOfWork = new UnitOfWork(_configuration.GetConnectionString("DefaultConnection"), _navigationRepository))
             {
-                var jwtToken = Request.Headers["Authorization"].ToString().Replace("Bearer ", "");
-                if (string.IsNullOrEmpty(jwtToken))
+                try
                 {
-                    return Unauthorized("JWT Token is missing");
-                }
-                var currentUserId = await _applicationUserBusinessLogic.GetCurrentUserIdAsync(jwtToken);
-                if (currentUserId == null || currentUserId <= 0)
-                {
-                    return Unauthorized("User is not authenticated.");
-                }
+                    var jwtToken = Request.Headers["Authorization"].ToString().Replace("Bearer ", "");
+                    if (string.IsNullOrEmpty(jwtToken))
+                    {
+                        return Unauthorized("JWT Token is missing");
+                    }
+                    var currentUserId = await _applicationUserBusinessLogic.GetCurrentUserIdAsync(jwtToken);
+                    if (currentUserId == null || currentUserId <= 0)
+                    {
+                        return Unauthorized("User is not authenticated.");
+                    }
 
-                bool isSuccess = false;
-                isSuccess = await _navigationRepository.UpdateContactAsync(contact);
+                    bool isSuccess = false;
+                    isSuccess = await _navigationRepository.UpdateContactAsync(contact);
 
-                if (isSuccess)
-                {
-                    return Ok(isSuccess);
+                    if (isSuccess)
+                    {
+                        // Commit the transaction
+                        await unitOfWork.CommitAsync();
+                        return Ok(isSuccess);
+                    }
+                    else
+                    {
+                        return BadRequest();
+                    }
                 }
-                else
+                catch (Exception ex)
                 {
-                    return BadRequest();
+                    unitOfWork.Rollback();
+                    return StatusCode(500, $"Internal Server Error: {ex.Message}");
                 }
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, $"Internal Server Error: {ex.Message}");
             }
         }
         [HttpPost("CreateContact")]
@@ -695,34 +779,40 @@ namespace Spider_QAMS.Controllers
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         public async Task<IActionResult> CreateContactData(Contact contact)
         {
-            try
+            using (var unitOfWork = new UnitOfWork(_configuration.GetConnectionString("DefaultConnection"), _navigationRepository))
             {
-                var jwtToken = Request.Headers["Authorization"].ToString().Replace("Bearer ", "");
-                if (string.IsNullOrEmpty(jwtToken))
+                try
                 {
-                    return Unauthorized("JWT Token is missing");
-                }
-                var currentUserId = await _applicationUserBusinessLogic.GetCurrentUserIdAsync(jwtToken);
-                if (currentUserId == null || currentUserId <= 0)
-                {
-                    return Unauthorized("User is not authenticated.");
-                }
+                    var jwtToken = Request.Headers["Authorization"].ToString().Replace("Bearer ", "");
+                    if (string.IsNullOrEmpty(jwtToken))
+                    {
+                        return Unauthorized("JWT Token is missing");
+                    }
+                    var currentUserId = await _applicationUserBusinessLogic.GetCurrentUserIdAsync(jwtToken);
+                    if (currentUserId == null || currentUserId <= 0)
+                    {
+                        return Unauthorized("User is not authenticated.");
+                    }
 
-                bool isSuccess = false;
-                isSuccess = await _navigationRepository.CreateContactAsync(contact);
+                    bool isSuccess = false;
+                    isSuccess = await _navigationRepository.CreateContactAsync(contact);
 
-                if (isSuccess)
-                {
-                    return Ok(isSuccess);
+                    if (isSuccess)
+                    {
+                        // Commit the transaction
+                        await unitOfWork.CommitAsync();
+                        return Ok(isSuccess);
+                    }
+                    else
+                    {
+                        return BadRequest();
+                    }
                 }
-                else
+                catch (Exception ex)
                 {
-                    return BadRequest();
+                    unitOfWork.Rollback();
+                    return StatusCode(500, $"Internal Server Error: {ex.Message}");
                 }
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, $"Internal Server Error: {ex.Message}");
             }
         }
 
@@ -732,33 +822,39 @@ namespace Spider_QAMS.Controllers
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         public async Task<IActionResult> CreateSiteDetailsData(SiteDetail siteDetail)
         {
-            try
+            using (var unitOfWork = new UnitOfWork(_configuration.GetConnectionString("DefaultConnection"), _navigationRepository))
             {
-                var jwtToken = Request.Headers["Authorization"].ToString().Replace("Bearer ", "");
-                if (string.IsNullOrEmpty(jwtToken))
+                try
                 {
-                    return Unauthorized("JWT Token is missing");
-                }
-                var currentUserId = await _applicationUserBusinessLogic.GetCurrentUserIdAsync(jwtToken);
-                if (currentUserId == null || currentUserId <= 0)
-                {
-                    return Unauthorized("User is not authenticated.");
-                }
+                    var jwtToken = Request.Headers["Authorization"].ToString().Replace("Bearer ", "");
+                    if (string.IsNullOrEmpty(jwtToken))
+                    {
+                        return Unauthorized("JWT Token is missing");
+                    }
+                    var currentUserId = await _applicationUserBusinessLogic.GetCurrentUserIdAsync(jwtToken);
+                    if (currentUserId == null || currentUserId <= 0)
+                    {
+                        return Unauthorized("User is not authenticated.");
+                    }
 
-                SiteDetail site = await _navigationRepository.CreateSiteDetailsAsync(siteDetail);
+                    SiteDetail site = await _navigationRepository.CreateSiteDetailsAsync(siteDetail);
 
-                if (site != null)
-                {
-                    return Ok(site);
+                    if (site != null)
+                    {
+                        // Commit the transaction
+                        await unitOfWork.CommitAsync();
+                        return Ok(site);
+                    }
+                    else
+                    {
+                        return BadRequest();
+                    }
                 }
-                else
+                catch (Exception ex)
                 {
-                    return BadRequest();
+                    unitOfWork.Rollback();
+                    return StatusCode(500, $"Internal Server Error: {ex.Message}");
                 }
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, $"Internal Server Error: {ex.Message}");
             }
         }
         [HttpPost("UpdateSiteDetails")]
@@ -767,34 +863,40 @@ namespace Spider_QAMS.Controllers
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         public async Task<IActionResult> UpdateSiteDetailsData(SiteDetail siteDetail)
         {
-            try
+            using (var unitOfWork = new UnitOfWork(_configuration.GetConnectionString("DefaultConnection"), _navigationRepository))
             {
-                var jwtToken = Request.Headers["Authorization"].ToString().Replace("Bearer ", "");
-                if (string.IsNullOrEmpty(jwtToken))
+                try
                 {
-                    return Unauthorized("JWT Token is missing");
-                }
-                var currentUserId = await _applicationUserBusinessLogic.GetCurrentUserIdAsync(jwtToken);
-                if (currentUserId == null || currentUserId <= 0)
-                {
-                    return Unauthorized("User is not authenticated.");
-                }
+                    var jwtToken = Request.Headers["Authorization"].ToString().Replace("Bearer ", "");
+                    if (string.IsNullOrEmpty(jwtToken))
+                    {
+                        return Unauthorized("JWT Token is missing");
+                    }
+                    var currentUserId = await _applicationUserBusinessLogic.GetCurrentUserIdAsync(jwtToken);
+                    if (currentUserId == null || currentUserId <= 0)
+                    {
+                        return Unauthorized("User is not authenticated.");
+                    }
 
-                bool isSuccess = false;
-                isSuccess = await _navigationRepository.UpdateSiteDetailsAsync(siteDetail);
+                    bool isSuccess = false;
+                    isSuccess = await _navigationRepository.UpdateSiteDetailsAsync(siteDetail);
 
-                if (isSuccess)
-                {
-                    return Ok(isSuccess);
+                    if (isSuccess)
+                    {
+                        // Commit the transaction
+                        await unitOfWork.CommitAsync();
+                        return Ok(isSuccess);
+                    }
+                    else
+                    {
+                        return BadRequest();
+                    }
                 }
-                else
+                catch (Exception ex)
                 {
-                    return BadRequest();
+                    unitOfWork.Rollback();
+                    return StatusCode(500, $"Internal Server Error: {ex.Message}");
                 }
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, $"Internal Server Error: {ex.Message}");
             }
         }
 
@@ -804,111 +906,117 @@ namespace Spider_QAMS.Controllers
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         public async Task<IActionResult> UpdateSiteImagesData(SiteImageUploaderVM siteImageUploaderVM)
         {
-            try
+            using (var unitOfWork = new UnitOfWork(_configuration.GetConnectionString("DefaultConnection"), _navigationRepository))
             {
-                var jwtToken = Request.Headers["Authorization"].ToString().Replace("Bearer ", "");
-                if (string.IsNullOrEmpty(jwtToken))
+                try
                 {
-                    return Unauthorized("JWT Token is missing");
-                }
-                var currentUserId = await _applicationUserBusinessLogic.GetCurrentUserIdAsync(jwtToken);
-                if (currentUserId == null || currentUserId <= 0)
-                {
-                    return Unauthorized("User is not authenticated.");
-                }
-
-                var SitePicturesData = new List<SitePictures>();
-
-                // Process each category and its images
-                foreach (var category in siteImageUploaderVM.SitePicCategoryList)
-                {
-                    foreach (var image in category.Images)
+                    var jwtToken = Request.Headers["Authorization"].ToString().Replace("Bearer ", "");
+                    if (string.IsNullOrEmpty(jwtToken))
                     {
-                        if (image.IsDeleted.GetValueOrDefault() && image.SitePicID > 0 && image.FilePath != null)
-                        {
-                            // Mark for Delete
-                            // Delete the physical file
-                            string oldFilePath = Path.Combine(_webHostEnvironment.WebRootPath, _configuration["SiteDetailImgPath"], category.PicCatId.ToString(), image.FileName);
-                            bool fileDeletionSuccess = await DeleteFileAsync(oldFilePath);
+                        return Unauthorized("JWT Token is missing");
+                    }
+                    var currentUserId = await _applicationUserBusinessLogic.GetCurrentUserIdAsync(jwtToken);
+                    if (currentUserId == null || currentUserId <= 0)
+                    {
+                        return Unauthorized("User is not authenticated.");
+                    }
 
-                            if (!fileDeletionSuccess)
+                    var SitePicturesData = new List<SitePictures>();
+
+                    // Process each category and its images
+                    foreach (var category in siteImageUploaderVM.SitePicCategoryList)
+                    {
+                        foreach (var image in category.Images)
+                        {
+                            if (image.IsDeleted.GetValueOrDefault() && image.SitePicID > 0 && image.FilePath != null)
                             {
-                                return BadRequest("Failed to delete image file.");
+                                // Mark for Delete
+                                // Delete the physical file
+                                string oldFilePath = Path.Combine(_webHostEnvironment.WebRootPath, _configuration["SiteDetailImgPath"], category.PicCatId.ToString(), image.FileName);
+                                bool fileDeletionSuccess = await DeleteFileAsync(oldFilePath);
+
+                                if (!fileDeletionSuccess)
+                                {
+                                    return BadRequest("Failed to delete image file.");
+                                }
+                                // Add new image data to sitePicturesData list
+                                SitePicturesData.Add(new SitePictures
+                                {
+                                    SitePicID = (int)image.SitePicID,
+                                    SiteID = siteImageUploaderVM.SiteId,
+                                    Description = image.FileDescription ?? string.Empty,
+                                    PicPath = image.FileName,
+                                    IsDeleted = image.IsDeleted.GetValueOrDefault(),
+                                    SitePicCategoryData = new SitePicCategory
+                                    {
+                                        PicCatID = category.PicCatId,
+                                        Description = category.Description
+                                    }
+                                });
                             }
-                            // Add new image data to sitePicturesData list
-                            SitePicturesData.Add(new SitePictures
+                            else if (!image.IsDeleted.GetValueOrDefault() && image.SitePicID < 0 && image.FilePath == null && image.ImageFile != null)
                             {
-                                SitePicID = (int)image.SitePicID,
-                                SiteID = siteImageUploaderVM.SiteId,
-                                Description = image.FileDescription ?? string.Empty,
-                                PicPath = image.FileName,
-                                IsDeleted = image.IsDeleted.GetValueOrDefault(),
-                                SitePicCategoryData = new SitePicCategory
-                                {
-                                    PicCatID = category.PicCatId,
-                                    Description = category.Description
-                                }
-                            });
-                        }
-                        else if (!image.IsDeleted.GetValueOrDefault() && image.SitePicID < 0 && image.FilePath == null && image.ImageFile != null)
-                        {
-                            // Mark for Add
-                            // Prepare to create a new image
-                            var uniqueFileName = $"{siteImageUploaderVM.SiteId}_{category.PicCatId}_{image.FileName}";
-                            var folderPath = Path.Combine(_webHostEnvironment.WebRootPath, _configuration["SiteDetailImgPath"], category.PicCatId.ToString());
+                                // Mark for Add
+                                // Prepare to create a new image
+                                var uniqueFileName = $"{siteImageUploaderVM.SiteId}_{category.PicCatId}_{image.FileName}";
+                                var folderPath = Path.Combine(_webHostEnvironment.WebRootPath, _configuration["SiteDetailImgPath"], category.PicCatId.ToString());
 
-                            var filePath = await CreateFileAsync(folderPath, uniqueFileName, image.ImageFile);
+                                var filePath = await CreateFileAsync(folderPath, uniqueFileName, image.ImageFile);
 
-                            // Add new image data to sitePicturesData list
-                            SitePicturesData.Add(new SitePictures
-                            {
-                                SitePicID = -1,
-                                SiteID = siteImageUploaderVM.SiteId,
-                                Description = image.FileDescription ?? string.Empty,
-                                PicPath = uniqueFileName,
-                                IsDeleted = image.IsDeleted.GetValueOrDefault(),
-                                SitePicCategoryData = new SitePicCategory
+                                // Add new image data to sitePicturesData list
+                                SitePicturesData.Add(new SitePictures
                                 {
-                                    PicCatID = category.PicCatId,
-                                    Description = category.Description
-                                }
-                            });
-                        }
-                        else if (!image.IsDeleted.GetValueOrDefault() && image.SitePicID > 0 && image.FilePath != null && image.ImageFile == null)
-                        {
-                            // Mark for Update
-                            SitePicturesData.Add(new SitePictures
+                                    SitePicID = -1,
+                                    SiteID = siteImageUploaderVM.SiteId,
+                                    Description = image.FileDescription ?? string.Empty,
+                                    PicPath = uniqueFileName,
+                                    IsDeleted = image.IsDeleted.GetValueOrDefault(),
+                                    SitePicCategoryData = new SitePicCategory
+                                    {
+                                        PicCatID = category.PicCatId,
+                                        Description = category.Description
+                                    }
+                                });
+                            }
+                            else if (!image.IsDeleted.GetValueOrDefault() && image.SitePicID > 0 && image.FilePath != null && image.ImageFile == null)
                             {
-                                SitePicID = (int)image.SitePicID,
-                                SiteID = siteImageUploaderVM.SiteId,
-                                Description = image.FileDescription ?? string.Empty,
-                                PicPath = image.FileName,
-                                IsDeleted = image.IsDeleted.GetValueOrDefault(),
-                                SitePicCategoryData = new SitePicCategory
+                                // Mark for Update
+                                SitePicturesData.Add(new SitePictures
                                 {
-                                    PicCatID = category.PicCatId,
-                                    Description = category.Description
-                                }
-                            });
+                                    SitePicID = (int)image.SitePicID,
+                                    SiteID = siteImageUploaderVM.SiteId,
+                                    Description = image.FileDescription ?? string.Empty,
+                                    PicPath = image.FileName,
+                                    IsDeleted = image.IsDeleted.GetValueOrDefault(),
+                                    SitePicCategoryData = new SitePicCategory
+                                    {
+                                        PicCatID = category.PicCatId,
+                                        Description = category.Description
+                                    }
+                                });
+                            }
                         }
                     }
-                }
 
-                bool isSuccess = false;
-                isSuccess = await _navigationRepository.UpdateSiteImagesAsync(SitePicturesData);
+                    bool isSuccess = false;
+                    isSuccess = await _navigationRepository.UpdateSiteImagesAsync(SitePicturesData);
 
-                if (!isSuccess)
-                {
-                    return BadRequest();
+                    if (!isSuccess)
+                    {
+                        return BadRequest();
+                    }
+                    else
+                    {
+                        // Commit the transaction
+                        await unitOfWork.CommitAsync();
+                        return Ok();
+                    }
                 }
-                else
+                catch (Exception ex)
                 {
-                    return Ok();
+                    unitOfWork.Rollback();
+                    return StatusCode(500, $"Internal Server Error: {ex.Message}");
                 }
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, $"Internal Server Error: {ex.Message}");
             }
         }
 
@@ -918,33 +1026,38 @@ namespace Spider_QAMS.Controllers
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         public async Task<IActionResult> GetCurrentUser()
         {
-            try
+            using (var unitOfWork = new UnitOfWork(_configuration.GetConnectionString("DefaultConnection"), _navigationRepository))
             {
-                var jwtToken = Request.Headers["Authorization"].ToString().Replace("Bearer ", "");
-                if (string.IsNullOrEmpty(jwtToken))
+                try
                 {
-                    return Unauthorized("JWT Token is missing");
-                }
-                var currentUserData = await _applicationUserBusinessLogic.GetCurrentUserAsync(jwtToken);
+                    var jwtToken = Request.Headers["Authorization"].ToString().Replace("Bearer ", "");
+                    if (string.IsNullOrEmpty(jwtToken))
+                    {
+                        return Unauthorized("JWT Token is missing");
+                    }
+                    var currentUserData = await _applicationUserBusinessLogic.GetCurrentUserAsync(jwtToken);
 
-                if (currentUserData == null)
-                {
-                    return Unauthorized("User is not authenticated.");
+                    if (currentUserData == null)
+                    {
+                        return Unauthorized("User is not authenticated.");
+                    }
+                    CurrentUser currentUser = new CurrentUser
+                    {
+                        UserId = currentUserData.UserId,
+                        ProfilePicName = Path.Combine(_configuration["BaseUrl"], _configuration["UserProfileImgPath"], currentUserData.ProfilePicName == null ? string.Empty : currentUserData.ProfilePicName),
+                        UserName = currentUserData.UserName,
+                        Designation = currentUserData.Designation,
+                        FullName = currentUserData.FullName,
+                    };
+                    // Commit the transaction
+                    await unitOfWork.CommitAsync();
+                    return Ok(currentUser);
                 }
-                CurrentUser currentUser = new CurrentUser
+                catch (Exception ex)
                 {
-                    UserId = currentUserData.UserId,
-                    ProfilePicName = Path.Combine(_configuration["BaseUrl"], _configuration["UserProfileImgPath"], currentUserData.ProfilePicName == null ? string.Empty : currentUserData.ProfilePicName),
-                    UserName = currentUserData.UserName,
-                    Designation = currentUserData.Designation,
-                    FullName = currentUserData.FullName,
-                };
-
-                return Ok(currentUser);
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, $"Internal Server Error: {ex.Message}");
+                    unitOfWork.Rollback();
+                    return StatusCode(500, $"Internal Server Error: {ex.Message}");
+                }
             }
         }
         [HttpGet("GetCurrentUserDetails")]
@@ -953,25 +1066,31 @@ namespace Spider_QAMS.Controllers
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         public async Task<IActionResult> GetCurrentUserDetails()
         {
-            try
+            using (var unitOfWork = new UnitOfWork(_configuration.GetConnectionString("DefaultConnection"), _navigationRepository))
             {
-                var jwtToken = Request.Headers["Authorization"].ToString().Replace("Bearer ", "");
-                if (string.IsNullOrEmpty(jwtToken))
+                try
                 {
-                    return Unauthorized("JWT Token is missing");
+                    var jwtToken = Request.Headers["Authorization"].ToString().Replace("Bearer ", "");
+                    if (string.IsNullOrEmpty(jwtToken))
+                    {
+                        return Unauthorized("JWT Token is missing");
+                    }
+                    var userId = await _applicationUserBusinessLogic.GetCurrentUserIdAsync(jwtToken);
+                    if (userId == null)
+                    {
+                        return Unauthorized("User is not authenticated.");
+                    }
+                    var currentUserDetails = await _navigationRepository.GetUserRecordAsync(userId);
+                    currentUserDetails.ProfilePicName = Path.Combine(_configuration["UserProfileImgPath"], currentUserDetails.ProfilePicName);
+                    // Commit the transaction
+                    await unitOfWork.CommitAsync();
+                    return Ok(currentUserDetails);
                 }
-                var userId = await _applicationUserBusinessLogic.GetCurrentUserIdAsync(jwtToken);
-                if (userId == null)
+                catch (Exception ex)
                 {
-                    return Unauthorized("User is not authenticated.");
+                    unitOfWork.Rollback();
+                    return StatusCode(500, $"Internal Server Error: {ex.Message}");
                 }
-                var currentUserDetails = await _navigationRepository.GetUserRecordAsync(userId);
-                currentUserDetails.ProfilePicName = Path.Combine(_configuration["UserProfileImgPath"], currentUserDetails.ProfilePicName);
-                return Ok(currentUserDetails);
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, $"Internal Server Error: {ex.Message}");
             }
         }
         [HttpGet("GetCurrentUserProfile")]
@@ -980,33 +1099,39 @@ namespace Spider_QAMS.Controllers
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         public async Task<IActionResult> GetCurrentUserProfile()
         {
-            try
+            using (var unitOfWork = new UnitOfWork(_configuration.GetConnectionString("DefaultConnection"), _navigationRepository))
             {
-                ProfileSite currentUserProfile = null;
-                var jwtToken = Request.Headers["Authorization"].ToString().Replace("Bearer ", "");
-                if (string.IsNullOrEmpty(jwtToken))
+                try
                 {
-                    return Unauthorized("JWT Token is missing");
+                    ProfileSite currentUserProfile = null;
+                    var jwtToken = Request.Headers["Authorization"].ToString().Replace("Bearer ", "");
+                    if (string.IsNullOrEmpty(jwtToken))
+                    {
+                        return Unauthorized("JWT Token is missing");
+                    }
+                    var userId = await _applicationUserBusinessLogic.GetCurrentUserIdAsync(jwtToken);
+                    if (userId == null)
+                    {
+                        return Unauthorized("User is not authenticated.");
+                    }
+                    if (!_httpContextAccessor.HttpContext.Session.TryGetValue(SessionKeys.CurrentUserProfileKey, out byte[] currentUserProfileData))
+                    {
+                        currentUserProfile = await _navigationRepository.GetCurrentUserProfileAsync(userId);
+                        _httpContextAccessor.HttpContext.Session.Set(SessionKeys.CurrentUserProfileKey, Encoding.UTF8.GetBytes(JsonSerializer.Serialize(currentUserProfile)));
+                    }
+                    else
+                    {
+                        currentUserProfile = JsonSerializer.Deserialize<ProfileSite>(Encoding.UTF8.GetString(currentUserProfileData), new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+                    }
+                    // Commit the transaction
+                    await unitOfWork.CommitAsync();
+                    return Ok(currentUserProfile);
                 }
-                var userId = await _applicationUserBusinessLogic.GetCurrentUserIdAsync(jwtToken);
-                if (userId == null)
+                catch (Exception ex)
                 {
-                    return Unauthorized("User is not authenticated.");
+                    unitOfWork.Rollback();
+                    return StatusCode(500, $"Internal Server Error: {ex.Message}");
                 }
-                if (!_httpContextAccessor.HttpContext.Session.TryGetValue(SessionKeys.CurrentUserProfileKey, out byte[] currentUserProfileData))
-                {
-                    currentUserProfile = await _navigationRepository.GetCurrentUserProfileAsync(userId);
-                    _httpContextAccessor.HttpContext.Session.Set(SessionKeys.CurrentUserProfileKey, Encoding.UTF8.GetBytes(JsonSerializer.Serialize(currentUserProfile)));
-                }
-                else
-                {
-                    currentUserProfile = JsonSerializer.Deserialize<ProfileSite>(Encoding.UTF8.GetString(currentUserProfileData), new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
-                }
-                return Ok(currentUserProfile);
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, $"Internal Server Error: {ex.Message}");
             }
         }
         [HttpGet("GetCurrentUserPages")]
@@ -1015,35 +1140,41 @@ namespace Spider_QAMS.Controllers
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         public async Task<IActionResult> GetCurrentUserPages()
         {
-            try
+            using (var unitOfWork = new UnitOfWork(_configuration.GetConnectionString("DefaultConnection"), _navigationRepository))
             {
-                var jwtToken = Request.Headers["Authorization"].ToString().Replace("Bearer ", "");
-                if (string.IsNullOrEmpty(jwtToken))
+                try
                 {
-                    return Unauthorized("JWT Token is missing");
-                }
-                var userId = await _applicationUserBusinessLogic.GetCurrentUserIdAsync(jwtToken);
-                if (userId == null)
-                {
-                    return Unauthorized("User is not authenticated.");
-                }
-                List<PageSiteVM> pageSites = null;
+                    var jwtToken = Request.Headers["Authorization"].ToString().Replace("Bearer ", "");
+                    if (string.IsNullOrEmpty(jwtToken))
+                    {
+                        return Unauthorized("JWT Token is missing");
+                    }
+                    var userId = await _applicationUserBusinessLogic.GetCurrentUserIdAsync(jwtToken);
+                    if (userId == null)
+                    {
+                        return Unauthorized("User is not authenticated.");
+                    }
+                    List<PageSiteVM> pageSites = null;
 
-                if (!_httpContextAccessor.HttpContext.Session.TryGetValue(SessionKeys.CurrentUserPagesKey, out byte[] pageSitesData))
-                {
-                    pageSites = await _navigationRepository.GetCurrentUserPagesAsync(userId);
+                    if (!_httpContextAccessor.HttpContext.Session.TryGetValue(SessionKeys.CurrentUserPagesKey, out byte[] pageSitesData))
+                    {
+                        pageSites = await _navigationRepository.GetCurrentUserPagesAsync(userId);
 
-                    _httpContextAccessor.HttpContext.Session.Set(SessionKeys.CurrentUserPagesKey, Encoding.UTF8.GetBytes(JsonSerializer.Serialize(pageSites)));
+                        _httpContextAccessor.HttpContext.Session.Set(SessionKeys.CurrentUserPagesKey, Encoding.UTF8.GetBytes(JsonSerializer.Serialize(pageSites)));
+                    }
+                    else
+                    {
+                        pageSites = JsonSerializer.Deserialize<List<PageSiteVM>>(Encoding.UTF8.GetString(pageSitesData), new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+                    }
+                    // Commit the transaction
+                    await unitOfWork.CommitAsync();
+                    return Ok(pageSites);
                 }
-                else
+                catch (Exception ex)
                 {
-                    pageSites = JsonSerializer.Deserialize<List<PageSiteVM>>(Encoding.UTF8.GetString(pageSitesData), new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+                    unitOfWork.Rollback();
+                    return StatusCode(500, $"Internal Server Error: {ex.Message}");
                 }
-                return Ok(pageSites);
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, $"Internal Server Error: {ex.Message}");
             }
         }
         [HttpGet("GetCurrentUserCategories")]
@@ -1052,59 +1183,65 @@ namespace Spider_QAMS.Controllers
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         public async Task<IActionResult> GetCurrentUserCategories()
         {
-            try
+            using (var unitOfWork = new UnitOfWork(_configuration.GetConnectionString("DefaultConnection"), _navigationRepository))
             {
-                var jwtToken = Request.Headers["Authorization"].ToString().Replace("Bearer ", "");
-                if (string.IsNullOrEmpty(jwtToken))
+                try
                 {
-                    return Unauthorized("JWT Token is missing");
-                }
-                var userId = await _applicationUserBusinessLogic.GetCurrentUserIdAsync(jwtToken);
-                if (userId == null)
-                {
-                    return Unauthorized("User is not authenticated.");
-                }
-                List<CategoryDisplayViewModel> StructureData;
-                if (!_httpContextAccessor.HttpContext.Session.TryGetValue(SessionKeys.CurrentUserCategoriesKey, out byte[] structureDataBytes))
-                {
-                    List<CategoriesSetDTO> categoriesSet = await _navigationRepository.GetCurrentUserCategoriesAsync(userId);
-                    var groupedCategories = categoriesSet.GroupBy(cat => string.IsNullOrEmpty(cat.CategoryName) ? Constants.CategoryType_UncategorizedPages : cat.CategoryName);
-                    StructureData = new List<CategoryDisplayViewModel>();
-
-                    foreach (var categoryGroup in groupedCategories)
+                    var jwtToken = Request.Headers["Authorization"].ToString().Replace("Bearer ", "");
+                    if (string.IsNullOrEmpty(jwtToken))
                     {
-                        var category = new CategoryDisplayViewModel
+                        return Unauthorized("JWT Token is missing");
+                    }
+                    var userId = await _applicationUserBusinessLogic.GetCurrentUserIdAsync(jwtToken);
+                    if (userId == null)
+                    {
+                        return Unauthorized("User is not authenticated.");
+                    }
+                    List<CategoryDisplayViewModel> StructureData;
+                    if (!_httpContextAccessor.HttpContext.Session.TryGetValue(SessionKeys.CurrentUserCategoriesKey, out byte[] structureDataBytes))
+                    {
+                        List<CategoriesSetDTO> categoriesSet = await _navigationRepository.GetCurrentUserCategoriesAsync(userId);
+                        var groupedCategories = categoriesSet.GroupBy(cat => string.IsNullOrEmpty(cat.CategoryName) ? Constants.CategoryType_UncategorizedPages : cat.CategoryName);
+                        StructureData = new List<CategoryDisplayViewModel>();
+
+                        foreach (var categoryGroup in groupedCategories)
                         {
-                            CategoryName = categoryGroup.Key,
-                            Pages = categoryGroup.Select(page => new PageDisplayViewModel
+                            var category = new CategoryDisplayViewModel
                             {
-                                PageDesc = page.PageDesc,
-                                PageUrl = page.PageUrl,
-                            }).ToList()
-                        };
-                        StructureData.Add(category);
-                    }
+                                CategoryName = categoryGroup.Key,
+                                Pages = categoryGroup.Select(page => new PageDisplayViewModel
+                                {
+                                    PageDesc = page.PageDesc,
+                                    PageUrl = page.PageUrl,
+                                }).ToList()
+                            };
+                            StructureData.Add(category);
+                        }
 
-                    // Sort the pages within each category
-                    foreach (var category in StructureData)
+                        // Sort the pages within each category
+                        foreach (var category in StructureData)
+                        {
+                            category.Pages = category.Pages.OrderBy(page => page.PageDesc).ToList();
+                        }
+
+                        // Sort the categories
+                        StructureData = StructureData.OrderBy(cat => cat.CategoryName).ToList();
+
+                        _httpContextAccessor.HttpContext.Session.Set(SessionKeys.CurrentUserCategoriesKey, Encoding.UTF8.GetBytes(JsonSerializer.Serialize(StructureData)));
+                    }
+                    else
                     {
-                        category.Pages = category.Pages.OrderBy(page => page.PageDesc).ToList();
+                        StructureData = JsonSerializer.Deserialize<List<CategoryDisplayViewModel>>(Encoding.UTF8.GetString(structureDataBytes), new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
                     }
-
-                    // Sort the categories
-                    StructureData = StructureData.OrderBy(cat => cat.CategoryName).ToList();
-
-                    _httpContextAccessor.HttpContext.Session.Set(SessionKeys.CurrentUserCategoriesKey, Encoding.UTF8.GetBytes(JsonSerializer.Serialize(StructureData)));
+                    // Commit the transaction
+                    await unitOfWork.CommitAsync();
+                    return Ok(StructureData);
                 }
-                else
+                catch (Exception ex)
                 {
-                    StructureData = JsonSerializer.Deserialize<List<CategoryDisplayViewModel>>(Encoding.UTF8.GetString(structureDataBytes), new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+                    unitOfWork.Rollback();
+                    return StatusCode(500, $"Internal Server Error: {ex.Message}");
                 }
-                return Ok(StructureData);
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, $"Internal Server Error: {ex.Message}");
             }
         }
 
@@ -1113,28 +1250,34 @@ namespace Spider_QAMS.Controllers
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         public async Task<IActionResult> GetAllUsers()
         {
-            try
+            using (var unitOfWork = new UnitOfWork(_configuration.GetConnectionString("DefaultConnection"), _navigationRepository))
             {
-                var jwtToken = Request.Headers["Authorization"].ToString().Replace("Bearer ", "");
-                if (string.IsNullOrEmpty(jwtToken))
+                try
                 {
-                    return Unauthorized("JWT Token is missing");
+                    var jwtToken = Request.Headers["Authorization"].ToString().Replace("Bearer ", "");
+                    if (string.IsNullOrEmpty(jwtToken))
+                    {
+                        return Unauthorized("JWT Token is missing");
+                    }
+                    var userId = await _applicationUserBusinessLogic.GetCurrentUserIdAsync(jwtToken);
+                    if (userId == null)
+                    {
+                        return Unauthorized("User is not authenticated.");
+                    }
+                    var allUsersData = await _navigationRepository.GetAllUsersDataAsync();
+                    foreach (var profileUserAPIVM in allUsersData)
+                    {
+                        profileUserAPIVM.ProfilePicName = Path.Combine(_configuration["UserProfileImgPath"], profileUserAPIVM.ProfilePicName);
+                    }
+                    // Commit the transaction
+                    await unitOfWork.CommitAsync();
+                    return Ok(allUsersData);
                 }
-                var userId = await _applicationUserBusinessLogic.GetCurrentUserIdAsync(jwtToken);
-                if (userId == null)
+                catch (Exception ex)
                 {
-                    return Unauthorized("User is not authenticated.");
+                    unitOfWork.Rollback();
+                    return StatusCode(500, $"Internal Server Error: {ex.Message}");
                 }
-                var allUsersData = await _navigationRepository.GetAllUsersDataAsync();
-                foreach (var profileUserAPIVM in allUsersData)
-                {
-                    profileUserAPIVM.ProfilePicName = Path.Combine(_configuration["UserProfileImgPath"], profileUserAPIVM.ProfilePicName);
-                }
-                return Ok(allUsersData);
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, $"Internal Server Error: {ex.Message}");
             }
         }
         [HttpGet("GetAllProfiles")]
@@ -1142,34 +1285,40 @@ namespace Spider_QAMS.Controllers
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         public async Task<IActionResult> GetAllProfiles()
         {
-            try
+            using (var unitOfWork = new UnitOfWork(_configuration.GetConnectionString("DefaultConnection"), _navigationRepository))
             {
-                var jwtToken = Request.Headers["Authorization"].ToString().Replace("Bearer ", "");
-                if (string.IsNullOrEmpty(jwtToken))
+                try
                 {
-                    return Unauthorized("JWT Token is missing");
-                }
-                var userId = await _applicationUserBusinessLogic.GetCurrentUserIdAsync(jwtToken);
-                if (userId == null)
-                {
-                    return Unauthorized("User is not authenticated.");
-                }
-                List<ProfileSiteVM> profileSiteVMs = new List<ProfileSiteVM>();
-                var allProfilesData = await _navigationRepository.GetAllProfilesAsync();
-                foreach (var profileSiteData in allProfilesData)
-                {
-                    ProfileSiteVM profileSite = new ProfileSiteVM
+                    var jwtToken = Request.Headers["Authorization"].ToString().Replace("Bearer ", "");
+                    if (string.IsNullOrEmpty(jwtToken))
                     {
-                        ProfileId = profileSiteData.ProfileId,
-                        ProfileName = profileSiteData.ProfileName,
-                    };
-                    profileSiteVMs.Add(profileSite);
+                        return Unauthorized("JWT Token is missing");
+                    }
+                    var userId = await _applicationUserBusinessLogic.GetCurrentUserIdAsync(jwtToken);
+                    if (userId == null)
+                    {
+                        return Unauthorized("User is not authenticated.");
+                    }
+                    List<ProfileSiteVM> profileSiteVMs = new List<ProfileSiteVM>();
+                    var allProfilesData = await _navigationRepository.GetAllProfilesAsync();
+                    foreach (var profileSiteData in allProfilesData)
+                    {
+                        ProfileSiteVM profileSite = new ProfileSiteVM
+                        {
+                            ProfileId = profileSiteData.ProfileId,
+                            ProfileName = profileSiteData.ProfileName,
+                        };
+                        profileSiteVMs.Add(profileSite);
+                    }
+                    // Commit the transaction
+                    await unitOfWork.CommitAsync();
+                    return Ok(profileSiteVMs);
                 }
-                return Ok(profileSiteVMs);
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, $"Internal Server Error: {ex.Message}");
+                catch (Exception ex)
+                {
+                    unitOfWork.Rollback();
+                    return StatusCode(500, $"Internal Server Error: {ex.Message}");
+                }
             }
         }
         [HttpGet("GetAllPages")]
@@ -1177,36 +1326,42 @@ namespace Spider_QAMS.Controllers
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         public async Task<IActionResult> GetAllPages()
         {
-            try
+            using (var unitOfWork = new UnitOfWork(_configuration.GetConnectionString("DefaultConnection"), _navigationRepository))
             {
-                var jwtToken = Request.Headers["Authorization"].ToString().Replace("Bearer ", "");
-                if (string.IsNullOrEmpty(jwtToken))
+                try
                 {
-                    return Unauthorized("JWT Token is missing");
-                }
-                var userId = await _applicationUserBusinessLogic.GetCurrentUserIdAsync(jwtToken);
-                if (userId == null)
-                {
-                    return Unauthorized("User is not authenticated.");
-                }
-                List<PageSiteVM> pageSiteVMs = new List<PageSiteVM>();
-                var allPagesData = await _navigationRepository.GetAllPagesAsync();
-                foreach (var page in allPagesData)
-                {
-                    PageSiteVM pageSiteVM = new PageSiteVM
+                    var jwtToken = Request.Headers["Authorization"].ToString().Replace("Bearer ", "");
+                    if (string.IsNullOrEmpty(jwtToken))
                     {
-                        PageId = page.PageId,
-                        isSelected = page.isSelected,
-                        PageDesc = page.PageDesc,
-                        PageUrl = page.PageUrl
-                    };
-                    pageSiteVMs.Add(pageSiteVM);
+                        return Unauthorized("JWT Token is missing");
+                    }
+                    var userId = await _applicationUserBusinessLogic.GetCurrentUserIdAsync(jwtToken);
+                    if (userId == null)
+                    {
+                        return Unauthorized("User is not authenticated.");
+                    }
+                    List<PageSiteVM> pageSiteVMs = new List<PageSiteVM>();
+                    var allPagesData = await _navigationRepository.GetAllPagesAsync();
+                    foreach (var page in allPagesData)
+                    {
+                        PageSiteVM pageSiteVM = new PageSiteVM
+                        {
+                            PageId = page.PageId,
+                            isSelected = page.isSelected,
+                            PageDesc = page.PageDesc,
+                            PageUrl = page.PageUrl
+                        };
+                        pageSiteVMs.Add(pageSiteVM);
+                    }
+                    // Commit the transaction
+                    await unitOfWork.CommitAsync();
+                    return Ok(pageSiteVMs);
                 }
-                return Ok(pageSiteVMs);
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, $"Internal Server Error: {ex.Message}");
+                catch (Exception ex)
+                {
+                    unitOfWork.Rollback();
+                    return StatusCode(500, $"Internal Server Error: {ex.Message}");
+                }
             }
         }
         [HttpGet("GetAllCategories")]
@@ -1214,35 +1369,41 @@ namespace Spider_QAMS.Controllers
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         public async Task<IActionResult> GetAllCategories()
         {
-            try
+            using (var unitOfWork = new UnitOfWork(_configuration.GetConnectionString("DefaultConnection"), _navigationRepository))
             {
-                var jwtToken = Request.Headers["Authorization"].ToString().Replace("Bearer ", "");
-                if (string.IsNullOrEmpty(jwtToken))
+                try
                 {
-                    return Unauthorized("JWT Token is missing");
-                }
-                var userId = await _applicationUserBusinessLogic.GetCurrentUserIdAsync(jwtToken);
-                if (userId == null)
-                {
-                    return Unauthorized("User is not authenticated.");
-                }
-                List<PageCategoryVM> pageCategoryVMs = new List<PageCategoryVM>();
-                var allPageCategoryData = await _navigationRepository.GetAllCategoriesAsync();
-                foreach (var pageCategoryData in allPageCategoryData)
-                {
-                    PageCategoryVM pageCategoryVM = new PageCategoryVM
+                    var jwtToken = Request.Headers["Authorization"].ToString().Replace("Bearer ", "");
+                    if (string.IsNullOrEmpty(jwtToken))
                     {
-                        CategoryName = pageCategoryData.CategoryName,
-                        PageCatId = pageCategoryData.PageCatId,
-                        PageId = pageCategoryData.PageId,
-                    };
-                    pageCategoryVMs.Add(pageCategoryVM);
+                        return Unauthorized("JWT Token is missing");
+                    }
+                    var userId = await _applicationUserBusinessLogic.GetCurrentUserIdAsync(jwtToken);
+                    if (userId == null)
+                    {
+                        return Unauthorized("User is not authenticated.");
+                    }
+                    List<PageCategoryVM> pageCategoryVMs = new List<PageCategoryVM>();
+                    var allPageCategoryData = await _navigationRepository.GetAllCategoriesAsync();
+                    foreach (var pageCategoryData in allPageCategoryData)
+                    {
+                        PageCategoryVM pageCategoryVM = new PageCategoryVM
+                        {
+                            CategoryName = pageCategoryData.CategoryName,
+                            PageCatId = pageCategoryData.PageCatId,
+                            PageId = pageCategoryData.PageId,
+                        };
+                        pageCategoryVMs.Add(pageCategoryVM);
+                    }
+                    // Commit the transaction
+                    await unitOfWork.CommitAsync();
+                    return Ok(pageCategoryVMs);
                 }
-                return Ok(pageCategoryVMs);
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, $"Internal Server Error: {ex.Message}");
+                catch (Exception ex)
+                {
+                    unitOfWork.Rollback();
+                    return StatusCode(500, $"Internal Server Error: {ex.Message}");
+                }
             }
         }
         [HttpGet("GetAllRegion")]
@@ -1251,24 +1412,30 @@ namespace Spider_QAMS.Controllers
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         public async Task<IActionResult> GetAllRegionData()
         {
-            try
+            using (var unitOfWork = new UnitOfWork(_configuration.GetConnectionString("DefaultConnection"), _navigationRepository))
             {
-                var jwtToken = Request.Headers["Authorization"].ToString().Replace("Bearer ", "");
-                if (string.IsNullOrEmpty(jwtToken))
+                try
                 {
-                    return Unauthorized("JWT Token is missing");
+                    var jwtToken = Request.Headers["Authorization"].ToString().Replace("Bearer ", "");
+                    if (string.IsNullOrEmpty(jwtToken))
+                    {
+                        return Unauthorized("JWT Token is missing");
+                    }
+                    var userId = await _applicationUserBusinessLogic.GetCurrentUserIdAsync(jwtToken);
+                    if (userId == null)
+                    {
+                        return Unauthorized("User is not authenticated.");
+                    }
+                    List<Region> regionsList = await _navigationRepository.GetAllRegionsAsync();
+                    // Commit the transaction
+                    await unitOfWork.CommitAsync();
+                    return Ok(regionsList);
                 }
-                var userId = await _applicationUserBusinessLogic.GetCurrentUserIdAsync(jwtToken);
-                if (userId == null)
+                catch (Exception ex)
                 {
-                    return Unauthorized("User is not authenticated.");
+                    unitOfWork.Rollback();
+                    return StatusCode(500, $"Internal Server Error: {ex.Message}");
                 }
-                List<Region> regionsList = await _navigationRepository.GetAllRegionsAsync();
-                return Ok(regionsList);
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, $"Internal Server Error: {ex.Message}");
             }
         }
         [HttpGet("GetAllCities")]
@@ -1277,24 +1444,30 @@ namespace Spider_QAMS.Controllers
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         public async Task<IActionResult> GetAllCitiesData()
         {
-            try
+            using (var unitOfWork = new UnitOfWork(_configuration.GetConnectionString("DefaultConnection"), _navigationRepository))
             {
-                var jwtToken = Request.Headers["Authorization"].ToString().Replace("Bearer ", "");
-                if (string.IsNullOrEmpty(jwtToken))
+                try
                 {
-                    return Unauthorized("JWT Token is missing");
+                    var jwtToken = Request.Headers["Authorization"].ToString().Replace("Bearer ", "");
+                    if (string.IsNullOrEmpty(jwtToken))
+                    {
+                        return Unauthorized("JWT Token is missing");
+                    }
+                    var userId = await _applicationUserBusinessLogic.GetCurrentUserIdAsync(jwtToken);
+                    if (userId == null)
+                    {
+                        return Unauthorized("User is not authenticated.");
+                    }
+                    List<City> regionsList = await _navigationRepository.GetAllCitiesAsync();
+                    // Commit the transaction
+                    await unitOfWork.CommitAsync();
+                    return Ok(regionsList);
                 }
-                var userId = await _applicationUserBusinessLogic.GetCurrentUserIdAsync(jwtToken);
-                if (userId == null)
+                catch (Exception ex)
                 {
-                    return Unauthorized("User is not authenticated.");
+                    unitOfWork.Rollback();
+                    return StatusCode(500, $"Internal Server Error: {ex.Message}");
                 }
-                List<City> regionsList = await _navigationRepository.GetAllCitiesAsync();
-                return Ok(regionsList);
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, $"Internal Server Error: {ex.Message}");
             }
         }
         [HttpGet("GetAllLocations")]
@@ -1303,24 +1476,30 @@ namespace Spider_QAMS.Controllers
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         public async Task<IActionResult> GetAllLocationsData()
         {
-            try
+            using (var unitOfWork = new UnitOfWork(_configuration.GetConnectionString("DefaultConnection"), _navigationRepository))
             {
-                var jwtToken = Request.Headers["Authorization"].ToString().Replace("Bearer ", "");
-                if (string.IsNullOrEmpty(jwtToken))
+                try
                 {
-                    return Unauthorized("JWT Token is missing");
+                    var jwtToken = Request.Headers["Authorization"].ToString().Replace("Bearer ", "");
+                    if (string.IsNullOrEmpty(jwtToken))
+                    {
+                        return Unauthorized("JWT Token is missing");
+                    }
+                    var userId = await _applicationUserBusinessLogic.GetCurrentUserIdAsync(jwtToken);
+                    if (userId == null)
+                    {
+                        return Unauthorized("User is not authenticated.");
+                    }
+                    List<SiteLocation> regionsList = await _navigationRepository.GetAllLocationsAsync();
+                    // Commit the transaction
+                    await unitOfWork.CommitAsync();
+                    return Ok(regionsList);
                 }
-                var userId = await _applicationUserBusinessLogic.GetCurrentUserIdAsync(jwtToken);
-                if (userId == null)
+                catch (Exception ex)
                 {
-                    return Unauthorized("User is not authenticated.");
+                    unitOfWork.Rollback();
+                    return StatusCode(500, $"Internal Server Error: {ex.Message}");
                 }
-                List<SiteLocation> regionsList = await _navigationRepository.GetAllLocationsAsync();
-                return Ok(regionsList);
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, $"Internal Server Error: {ex.Message}");
             }
         }
         [HttpGet("GetRegionListOfCities")]
@@ -1329,36 +1508,42 @@ namespace Spider_QAMS.Controllers
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         public async Task<IActionResult> GetRegionListOfCitiesData()
         {
-            try
+            using (var unitOfWork = new UnitOfWork(_configuration.GetConnectionString("DefaultConnection"), _navigationRepository))
             {
-                var jwtToken = Request.Headers["Authorization"].ToString().Replace("Bearer ", "");
-                if (string.IsNullOrEmpty(jwtToken))
+                try
                 {
-                    return Unauthorized("JWT Token is missing");
-                }
-                var userId = await _applicationUserBusinessLogic.GetCurrentUserIdAsync(jwtToken);
-                if (userId == null)
-                {
-                    return Unauthorized("User is not authenticated.");
-                }
-                List<CityRegionViewModel> cityRegionList = await _navigationRepository.GetRegionListOfCitiesAsync();
-                var regions = cityRegionList == null ? new List<RegionAssociatedCities>() : cityRegionList
-                    .GroupBy(cr => new { cr.RegionId, cr.RegionName }) // Group by RegionId and RegionName
-                    .Select(g => new RegionAssociatedCities
+                    var jwtToken = Request.Headers["Authorization"].ToString().Replace("Bearer ", "");
+                    if (string.IsNullOrEmpty(jwtToken))
                     {
-                        RegionId = g.Key.RegionId,
-                        RegionName = g.Key.RegionName,
-                        Cities = g.Select(city => new CityViewModel
+                        return Unauthorized("JWT Token is missing");
+                    }
+                    var userId = await _applicationUserBusinessLogic.GetCurrentUserIdAsync(jwtToken);
+                    if (userId == null)
+                    {
+                        return Unauthorized("User is not authenticated.");
+                    }
+                    List<CityRegionViewModel> cityRegionList = await _navigationRepository.GetRegionListOfCitiesAsync();
+                    var regions = cityRegionList == null ? new List<RegionAssociatedCities>() : cityRegionList
+                        .GroupBy(cr => new { cr.RegionId, cr.RegionName }) // Group by RegionId and RegionName
+                        .Select(g => new RegionAssociatedCities
                         {
-                            CityId = city.CityId,
-                            CityName = city.CityName
-                        }).ToList()
-                    }).ToList();
-                return Ok(regions);
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, $"Internal Server Error: {ex.Message}");
+                            RegionId = g.Key.RegionId,
+                            RegionName = g.Key.RegionName,
+                            Cities = g.Select(city => new CityViewModel
+                            {
+                                CityId = city.CityId,
+                                CityName = city.CityName
+                            }).ToList()
+                        }).ToList();
+                    // Commit the transaction
+                    await unitOfWork.CommitAsync();
+                    return Ok(regions);
+                }
+                catch (Exception ex)
+                {
+                    unitOfWork.Rollback();
+                    return StatusCode(500, $"Internal Server Error: {ex.Message}");
+                }
             }
         }
         [HttpGet("GetAllSponsors")]
@@ -1367,24 +1552,30 @@ namespace Spider_QAMS.Controllers
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         public async Task<IActionResult> GetAllSponsorsData()
         {
-            try
+            using (var unitOfWork = new UnitOfWork(_configuration.GetConnectionString("DefaultConnection"), _navigationRepository))
             {
-                var jwtToken = Request.Headers["Authorization"].ToString().Replace("Bearer ", "");
-                if (string.IsNullOrEmpty(jwtToken))
+                try
                 {
-                    return Unauthorized("JWT Token is missing");
+                    var jwtToken = Request.Headers["Authorization"].ToString().Replace("Bearer ", "");
+                    if (string.IsNullOrEmpty(jwtToken))
+                    {
+                        return Unauthorized("JWT Token is missing");
+                    }
+                    var userId = await _applicationUserBusinessLogic.GetCurrentUserIdAsync(jwtToken);
+                    if (userId == null)
+                    {
+                        return Unauthorized("User is not authenticated.");
+                    }
+                    List<Sponsor> sponsors = await _navigationRepository.GetAllSponsorsAsync();
+                    // Commit the transaction
+                    await unitOfWork.CommitAsync();
+                    return Ok(sponsors);
                 }
-                var userId = await _applicationUserBusinessLogic.GetCurrentUserIdAsync(jwtToken);
-                if (userId == null)
+                catch (Exception ex)
                 {
-                    return Unauthorized("User is not authenticated.");
+                    unitOfWork.Rollback();
+                    return StatusCode(500, $"Internal Server Error: {ex.Message}");
                 }
-                List<Sponsor> sponsors = await _navigationRepository.GetAllSponsorsAsync();
-                return Ok(sponsors);
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, $"Internal Server Error: {ex.Message}");
             }
         }
         [HttpGet("GetAllContacts")]
@@ -1393,24 +1584,30 @@ namespace Spider_QAMS.Controllers
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         public async Task<IActionResult> GetAllContactsData()
         {
-            try
+            using (var unitOfWork = new UnitOfWork(_configuration.GetConnectionString("DefaultConnection"), _navigationRepository))
             {
-                var jwtToken = Request.Headers["Authorization"].ToString().Replace("Bearer ", "");
-                if (string.IsNullOrEmpty(jwtToken))
+                try
                 {
-                    return Unauthorized("JWT Token is missing");
+                    var jwtToken = Request.Headers["Authorization"].ToString().Replace("Bearer ", "");
+                    if (string.IsNullOrEmpty(jwtToken))
+                    {
+                        return Unauthorized("JWT Token is missing");
+                    }
+                    var userId = await _applicationUserBusinessLogic.GetCurrentUserIdAsync(jwtToken);
+                    if (userId == null)
+                    {
+                        return Unauthorized("User is not authenticated.");
+                    }
+                    List<Contact> contacts = await _navigationRepository.GetAllContactsAsync();
+                    // Commit the transaction
+                    await unitOfWork.CommitAsync();
+                    return Ok(contacts);
                 }
-                var userId = await _applicationUserBusinessLogic.GetCurrentUserIdAsync(jwtToken);
-                if (userId == null)
+                catch (Exception ex)
                 {
-                    return Unauthorized("User is not authenticated.");
+                    unitOfWork.Rollback();
+                    return StatusCode(500, $"Internal Server Error: {ex.Message}");
                 }
-                List<Contact> contacts = await _navigationRepository.GetAllContactsAsync();
-                return Ok(contacts);
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, $"Internal Server Error: {ex.Message}");
             }
         }
         [HttpGet("GetAllSiteTypes")]
@@ -1419,24 +1616,30 @@ namespace Spider_QAMS.Controllers
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         public async Task<IActionResult> GetAllSiteTypesData()
         {
-            try
+            using (var unitOfWork = new UnitOfWork(_configuration.GetConnectionString("DefaultConnection"), _navigationRepository))
             {
-                var jwtToken = Request.Headers["Authorization"].ToString().Replace("Bearer ", "");
-                if (string.IsNullOrEmpty(jwtToken))
+                try
                 {
-                    return Unauthorized("JWT Token is missing");
+                    var jwtToken = Request.Headers["Authorization"].ToString().Replace("Bearer ", "");
+                    if (string.IsNullOrEmpty(jwtToken))
+                    {
+                        return Unauthorized("JWT Token is missing");
+                    }
+                    var userId = await _applicationUserBusinessLogic.GetCurrentUserIdAsync(jwtToken);
+                    if (userId == null)
+                    {
+                        return Unauthorized("User is not authenticated.");
+                    }
+                    List<SiteType> siteTypes = await _navigationRepository.GetAllSiteTypesAsync();
+                    // Commit the transaction
+                    await unitOfWork.CommitAsync();
+                    return Ok(siteTypes);
                 }
-                var userId = await _applicationUserBusinessLogic.GetCurrentUserIdAsync(jwtToken);
-                if (userId == null)
+                catch (Exception ex)
                 {
-                    return Unauthorized("User is not authenticated.");
+                    unitOfWork.Rollback();
+                    return StatusCode(500, $"Internal Server Error: {ex.Message}");
                 }
-                List<SiteType> siteTypes = await _navigationRepository.GetAllSiteTypesAsync();
-                return Ok(siteTypes);
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, $"Internal Server Error: {ex.Message}");
             }
         }
         [HttpGet("GetAllBranchTypes")]
@@ -1445,24 +1648,30 @@ namespace Spider_QAMS.Controllers
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         public async Task<IActionResult> GetAllBranchTypesData()
         {
-            try
+            using (var unitOfWork = new UnitOfWork(_configuration.GetConnectionString("DefaultConnection"), _navigationRepository))
             {
-                var jwtToken = Request.Headers["Authorization"].ToString().Replace("Bearer ", "");
-                if (string.IsNullOrEmpty(jwtToken))
+                try
                 {
-                    return Unauthorized("JWT Token is missing");
+                    var jwtToken = Request.Headers["Authorization"].ToString().Replace("Bearer ", "");
+                    if (string.IsNullOrEmpty(jwtToken))
+                    {
+                        return Unauthorized("JWT Token is missing");
+                    }
+                    var userId = await _applicationUserBusinessLogic.GetCurrentUserIdAsync(jwtToken);
+                    if (userId == null)
+                    {
+                        return Unauthorized("User is not authenticated.");
+                    }
+                    List<BranchType> branchTypes = await _navigationRepository.GetAllBranchTypesAsync();
+                    // Commit the transaction
+                    await unitOfWork.CommitAsync();
+                    return Ok(branchTypes);
                 }
-                var userId = await _applicationUserBusinessLogic.GetCurrentUserIdAsync(jwtToken);
-                if (userId == null)
+                catch (Exception ex)
                 {
-                    return Unauthorized("User is not authenticated.");
+                    unitOfWork.Rollback();
+                    return StatusCode(500, $"Internal Server Error: {ex.Message}");
                 }
-                List<BranchType> branchTypes = await _navigationRepository.GetAllBranchTypesAsync();
-                return Ok(branchTypes);
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, $"Internal Server Error: {ex.Message}");
             }
         }
         [HttpGet("GetAllVisitStatuses")]
@@ -1471,24 +1680,30 @@ namespace Spider_QAMS.Controllers
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         public async Task<IActionResult> GetAllVisitStatusesData()
         {
-            try
+            using (var unitOfWork = new UnitOfWork(_configuration.GetConnectionString("DefaultConnection"), _navigationRepository))
             {
-                var jwtToken = Request.Headers["Authorization"].ToString().Replace("Bearer ", "");
-                if (string.IsNullOrEmpty(jwtToken))
+                try
                 {
-                    return Unauthorized("JWT Token is missing");
+                    var jwtToken = Request.Headers["Authorization"].ToString().Replace("Bearer ", "");
+                    if (string.IsNullOrEmpty(jwtToken))
+                    {
+                        return Unauthorized("JWT Token is missing");
+                    }
+                    var userId = await _applicationUserBusinessLogic.GetCurrentUserIdAsync(jwtToken);
+                    if (userId == null)
+                    {
+                        return Unauthorized("User is not authenticated.");
+                    }
+                    List<VisitStatusModel> visitStatuses = await _navigationRepository.GetAllVisitStatusesAsync();
+                    // Commit the transaction
+                    await unitOfWork.CommitAsync();
+                    return Ok(visitStatuses);
                 }
-                var userId = await _applicationUserBusinessLogic.GetCurrentUserIdAsync(jwtToken);
-                if (userId == null)
+                catch (Exception ex)
                 {
-                    return Unauthorized("User is not authenticated.");
+                    unitOfWork.Rollback();
+                    return StatusCode(500, $"Internal Server Error: {ex.Message}");
                 }
-                List<VisitStatusModel> visitStatuses = await _navigationRepository.GetAllVisitStatusesAsync();
-                return Ok(visitStatuses);
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, $"Internal Server Error: {ex.Message}");
             }
         }
         [HttpGet("GetAllATMClasses")]
@@ -1497,24 +1712,30 @@ namespace Spider_QAMS.Controllers
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         public async Task<IActionResult> GetAllATMClassesData()
         {
-            try
+            using (var unitOfWork = new UnitOfWork(_configuration.GetConnectionString("DefaultConnection"), _navigationRepository))
             {
-                var jwtToken = Request.Headers["Authorization"].ToString().Replace("Bearer ", "");
-                if (string.IsNullOrEmpty(jwtToken))
+                try
                 {
-                    return Unauthorized("JWT Token is missing");
+                    var jwtToken = Request.Headers["Authorization"].ToString().Replace("Bearer ", "");
+                    if (string.IsNullOrEmpty(jwtToken))
+                    {
+                        return Unauthorized("JWT Token is missing");
+                    }
+                    var userId = await _applicationUserBusinessLogic.GetCurrentUserIdAsync(jwtToken);
+                    if (userId == null)
+                    {
+                        return Unauthorized("User is not authenticated.");
+                    }
+                    List<string> atmClasses = await _navigationRepository.GetAllATMClassesAsync();
+                    // Commit the transaction
+                    await unitOfWork.CommitAsync();
+                    return Ok(atmClasses);
                 }
-                var userId = await _applicationUserBusinessLogic.GetCurrentUserIdAsync(jwtToken);
-                if (userId == null)
+                catch (Exception ex)
                 {
-                    return Unauthorized("User is not authenticated.");
+                    unitOfWork.Rollback();
+                    return StatusCode(500, $"Internal Server Error: {ex.Message}");
                 }
-                List<string> atmClasses = await _navigationRepository.GetAllATMClassesAsync();
-                return Ok(atmClasses);
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, $"Internal Server Error: {ex.Message}");
             }
         }
         [HttpGet("GetAllPicCategories")]
@@ -1523,24 +1744,30 @@ namespace Spider_QAMS.Controllers
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         public async Task<IActionResult> GetAllPicCategoriesData()
         {
-            try
+            using (var unitOfWork = new UnitOfWork(_configuration.GetConnectionString("DefaultConnection"), _navigationRepository))
             {
-                var jwtToken = Request.Headers["Authorization"].ToString().Replace("Bearer ", "");
-                if (string.IsNullOrEmpty(jwtToken))
+                try
                 {
-                    return Unauthorized("JWT Token is missing");
+                    var jwtToken = Request.Headers["Authorization"].ToString().Replace("Bearer ", "");
+                    if (string.IsNullOrEmpty(jwtToken))
+                    {
+                        return Unauthorized("JWT Token is missing");
+                    }
+                    var userId = await _applicationUserBusinessLogic.GetCurrentUserIdAsync(jwtToken);
+                    if (userId == null)
+                    {
+                        return Unauthorized("User is not authenticated.");
+                    }
+                    List<SitePicCategory> sitePicCategories = await _navigationRepository.GetAllPicCategoriesAsync();
+                    // Commit the transaction
+                    await unitOfWork.CommitAsync();
+                    return Ok(sitePicCategories);
                 }
-                var userId = await _applicationUserBusinessLogic.GetCurrentUserIdAsync(jwtToken);
-                if (userId == null)
+                catch (Exception ex)
                 {
-                    return Unauthorized("User is not authenticated.");
+                    unitOfWork.Rollback();
+                    return StatusCode(500, $"Internal Server Error: {ex.Message}");
                 }
-                List<SitePicCategory> sitePicCategories = await _navigationRepository.GetAllPicCategoriesAsync();
-                return Ok(sitePicCategories);
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, $"Internal Server Error: {ex.Message}");
             }
         }
         [HttpGet("GetAllSiteDetails")]
@@ -1549,24 +1776,30 @@ namespace Spider_QAMS.Controllers
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         public async Task<IActionResult> GetAllSiteDetailsData()
         {
-            try
+            using (var unitOfWork = new UnitOfWork(_configuration.GetConnectionString("DefaultConnection"), _navigationRepository))
             {
-                var jwtToken = Request.Headers["Authorization"].ToString().Replace("Bearer ", "");
-                if (string.IsNullOrEmpty(jwtToken))
+                try
                 {
-                    return Unauthorized("JWT Token is missing");
+                    var jwtToken = Request.Headers["Authorization"].ToString().Replace("Bearer ", "");
+                    if (string.IsNullOrEmpty(jwtToken))
+                    {
+                        return Unauthorized("JWT Token is missing");
+                    }
+                    var userId = await _applicationUserBusinessLogic.GetCurrentUserIdAsync(jwtToken);
+                    if (userId == null)
+                    {
+                        return Unauthorized("User is not authenticated.");
+                    }
+                    List<SiteDetail> sites = await _navigationRepository.GetAllSiteDetailsAsync();
+                    // Commit the transaction
+                    await unitOfWork.CommitAsync();
+                    return Ok(sites);
                 }
-                var userId = await _applicationUserBusinessLogic.GetCurrentUserIdAsync(jwtToken);
-                if (userId == null)
+                catch (Exception ex)
                 {
-                    return Unauthorized("User is not authenticated.");
+                    unitOfWork.Rollback();
+                    return StatusCode(500, $"Internal Server Error: {ex.Message}");
                 }
-                List<SiteDetail> sites = await _navigationRepository.GetAllSiteDetailsAsync();
-                return Ok(sites);
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, $"Internal Server Error: {ex.Message}");
             }
         }
 

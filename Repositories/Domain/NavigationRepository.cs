@@ -11,6 +11,11 @@ namespace Spider_QAMS.Repositories.Domain
 {
     public class NavigationRepository : INavigationRepository
     {
+        private SqlTransaction _transaction;
+        public void SetTransaction(SqlTransaction transaction)
+        {
+            _transaction = transaction;
+        }
         private static string GetString(object value) => value == DBNull.Value ? string.Empty : value.ToString();
         private static int? GetNullableInt(object value) => value == DBNull.Value ? (int?)null : Convert.ToInt32(value);
         private static long? GetNullableLong(object value) => value == DBNull.Value ? (long?)null : Convert.ToInt64(value);
@@ -102,7 +107,7 @@ namespace Spider_QAMS.Repositories.Domain
                 };
 
                 // Execute the command
-                List<DataTable> tables = SqlDBHelper.ExecuteParameterizedNonQuery(SP_CheckUniqueness, CommandType.StoredProcedure, sqlParameters);
+                List<DataTable> tables = SqlDBHelper.ExecuteParameterizedNonQueryWithTransaction(_transaction,SP_CheckUniqueness, CommandType.StoredProcedure, sqlParameters);
                 if (tables.Count > 0)
                 {
                     DataTable dataTable = tables[0];
@@ -143,7 +148,7 @@ namespace Spider_QAMS.Repositories.Domain
                     new SqlParameter("@RowsAffected", SqlDbType.Int) { Direction = ParameterDirection.Output }
                 };
 
-                bool isSuccess = SqlDBHelper.ExecuteNonQuery(SP_DeleteEntityRecord, CommandType.StoredProcedure, sqlParameters);
+                bool isSuccess = SqlDBHelper.ExecuteNonQueryWithTransaction(_transaction,SP_DeleteEntityRecord, CommandType.StoredProcedure, sqlParameters);
 
                 int RowsAffected = (sqlParameters[2].Value != DBNull.Value) ? (int)sqlParameters[2].Value : -1;
 
@@ -188,7 +193,7 @@ namespace Spider_QAMS.Repositories.Domain
                 };
 
                 // Execute the command
-                List<DataTable> tables = SqlDBHelper.ExecuteParameterizedNonQuery(SP_AddNewUser, CommandType.StoredProcedure, sqlParameters);
+                List<DataTable> tables = SqlDBHelper.ExecuteParameterizedNonQueryWithTransaction(_transaction,SP_AddNewUser, CommandType.StoredProcedure, sqlParameters);
                 if (tables.Count > 0)
                 {
                     DataTable dataTable = tables[0];
@@ -230,7 +235,7 @@ namespace Spider_QAMS.Repositories.Domain
                     new SqlParameter("@InputInt", SqlDbType.Int) { Value = CurrentUserId },
                     new SqlParameter("@RowsAffected", SqlDbType.Int) { Direction = ParameterDirection.Output }
                 };
-                List<DataTable> dataTables = SqlDBHelper.ExecuteParameterizedNonQuery(SP_FetchRecordByIdOrText, CommandType.StoredProcedure, sqlParameters);
+                List<DataTable> dataTables = SqlDBHelper.ExecuteParameterizedNonQueryWithTransaction(_transaction,SP_FetchRecordByIdOrText, CommandType.StoredProcedure, sqlParameters);
                 if (dataTables.Count > 0)
                 {
                     DataTable dataTab = dataTables[0];
@@ -287,7 +292,7 @@ namespace Spider_QAMS.Repositories.Domain
                 };
 
                 // Execute the command
-                List<DataTable> tables = SqlDBHelper.ExecuteParameterizedNonQuery(SP_UpdateUser, CommandType.StoredProcedure, sqlParameters);
+                List<DataTable> tables = SqlDBHelper.ExecuteParameterizedNonQueryWithTransaction(_transaction,SP_UpdateUser, CommandType.StoredProcedure, sqlParameters);
                 if (tables.Count > 0)
                 {
                     DataTable dataTable = tables[0];
@@ -333,7 +338,7 @@ namespace Spider_QAMS.Repositories.Domain
                     new SqlParameter("@InputInt", SqlDbType.Int) { Value = CurrentUserId },
                     new SqlParameter("@RowsAffected", SqlDbType.Int) { Direction = ParameterDirection.Output }
                 };
-                List<DataTable> dataTables = SqlDBHelper.ExecuteParameterizedNonQuery(SP_FetchRecordByIdOrText, CommandType.StoredProcedure, sqlParameters);
+                List<DataTable> dataTables = SqlDBHelper.ExecuteParameterizedNonQueryWithTransaction(_transaction,SP_FetchRecordByIdOrText, CommandType.StoredProcedure, sqlParameters);
                 if (dataTables.Count > 0)
                 {
                     DataTable dataTab = dataTables[0];
@@ -376,7 +381,7 @@ namespace Spider_QAMS.Repositories.Domain
                 };
 
                 // Execute the command
-                List<DataTable> tables = SqlDBHelper.ExecuteParameterizedNonQuery(SP_UpdateUserSettings, CommandType.StoredProcedure, sqlParameters);
+                List<DataTable> tables = SqlDBHelper.ExecuteParameterizedNonQueryWithTransaction(_transaction,SP_UpdateUserSettings, CommandType.StoredProcedure, sqlParameters);
                 if (tables.Count > 0)
                 {
                     DataTable dataTable = tables[0];
@@ -418,7 +423,7 @@ namespace Spider_QAMS.Repositories.Domain
                     new SqlParameter("@RowsAffected", SqlDbType.Int) { Direction = ParameterDirection.Output }
                 };
 
-                bool isFailure = SqlDBHelper.ExecuteNonQuery(SP_UpdateEntityRecord, CommandType.StoredProcedure, sqlParameters);
+                bool isFailure = SqlDBHelper.ExecuteNonQueryWithTransaction(_transaction,SP_UpdateEntityRecord, CommandType.StoredProcedure, sqlParameters);
 
                 int RowsAffected = (sqlParameters[3].Value != DBNull.Value) ? (int)sqlParameters[3].Value : -1;
 
@@ -449,7 +454,7 @@ namespace Spider_QAMS.Repositories.Domain
                     new SqlParameter("@NewID", SqlDbType.Int) { Direction = ParameterDirection.Output }
                 };
 
-                bool isFailure = SqlDBHelper.ExecuteNonQuery(SP_CreateEntityRecord, CommandType.StoredProcedure, sqlParameters);
+                bool isFailure = SqlDBHelper.ExecuteNonQueryWithTransaction(_transaction,SP_CreateEntityRecord, CommandType.StoredProcedure, sqlParameters);
 
                 newId = (sqlParameters[2].Value != DBNull.Value) ? (int)sqlParameters[2].Value : -1;
                 // Validate if the newId is greater than 0
@@ -482,7 +487,7 @@ namespace Spider_QAMS.Repositories.Domain
                     new SqlParameter("@RowsAffected", SqlDbType.Int) { Direction = ParameterDirection.Output }
                 };
 
-                bool isFailure = SqlDBHelper.ExecuteNonQuery(SP_UpdateEntityRecord, CommandType.StoredProcedure, sqlParameters);
+                bool isFailure = SqlDBHelper.ExecuteNonQueryWithTransaction(_transaction,SP_UpdateEntityRecord, CommandType.StoredProcedure, sqlParameters);
 
                 int RowsAffected = (sqlParameters[4].Value != DBNull.Value) ? (int)sqlParameters[4].Value : -1;
 
@@ -514,7 +519,7 @@ namespace Spider_QAMS.Repositories.Domain
                     new SqlParameter("@NewID", SqlDbType.Int) { Direction = ParameterDirection.Output }
                 };
 
-                bool isFailure = SqlDBHelper.ExecuteNonQuery(SP_CreateEntityRecord, CommandType.StoredProcedure, sqlParameters);
+                bool isFailure = SqlDBHelper.ExecuteNonQueryWithTransaction(_transaction,SP_CreateEntityRecord, CommandType.StoredProcedure, sqlParameters);
 
                 newId = (sqlParameters[3].Value != DBNull.Value) ? (int)sqlParameters[3].Value : -1;
                 // Validate if the newId is greater than 0
@@ -553,7 +558,7 @@ namespace Spider_QAMS.Repositories.Domain
                     new SqlParameter("@RowsAffected", SqlDbType.Int) { Direction = ParameterDirection.Output }
                 };
 
-                bool isFailure = SqlDBHelper.ExecuteNonQuery(SP_UpdateEntityRecord, CommandType.StoredProcedure, sqlParameters);
+                bool isFailure = SqlDBHelper.ExecuteNonQueryWithTransaction(_transaction,SP_UpdateEntityRecord, CommandType.StoredProcedure, sqlParameters);
 
                 int RowsAffected = (sqlParameters[10].Value != DBNull.Value) ? (int)sqlParameters[10].Value : -1;
 
@@ -591,7 +596,7 @@ namespace Spider_QAMS.Repositories.Domain
                     new SqlParameter("@NewID", SqlDbType.Int) { Direction = ParameterDirection.Output }
                 };
 
-                bool isFailure = SqlDBHelper.ExecuteNonQuery(SP_CreateEntityRecord, CommandType.StoredProcedure, sqlParameters);
+                bool isFailure = SqlDBHelper.ExecuteNonQueryWithTransaction(_transaction,SP_CreateEntityRecord, CommandType.StoredProcedure, sqlParameters);
 
                 newId = (sqlParameters[9].Value != DBNull.Value) ? (int)sqlParameters[9].Value : -1;
                 // Validate if the newId is greater than 0
@@ -629,7 +634,7 @@ namespace Spider_QAMS.Repositories.Domain
                     new SqlParameter("@RowsAffected", SqlDbType.Int) { Direction = ParameterDirection.Output }
                 };
 
-                bool isFailure = SqlDBHelper.ExecuteNonQuery(SP_UpdateEntityRecord, CommandType.StoredProcedure, sqlParameters);
+                bool isFailure = SqlDBHelper.ExecuteNonQueryWithTransaction(_transaction,SP_UpdateEntityRecord, CommandType.StoredProcedure, sqlParameters);
 
                 int RowsAffected = (sqlParameters[9].Value != DBNull.Value) ? (int)sqlParameters[9].Value : -1;
 
@@ -666,7 +671,7 @@ namespace Spider_QAMS.Repositories.Domain
                     new SqlParameter("@NewID", SqlDbType.Int) { Direction = ParameterDirection.Output }
                 };
 
-                bool isFailure = SqlDBHelper.ExecuteNonQuery(SP_CreateEntityRecord, CommandType.StoredProcedure, sqlParameters);
+                bool isFailure = SqlDBHelper.ExecuteNonQueryWithTransaction(_transaction,SP_CreateEntityRecord, CommandType.StoredProcedure, sqlParameters);
 
                 newId = (sqlParameters[3].Value != DBNull.Value) ? (int)sqlParameters[3].Value : -1;
                 // Validate if the newId is greater than 0
@@ -783,7 +788,7 @@ namespace Spider_QAMS.Repositories.Domain
                     new SqlParameter("@NewSiteID", SqlDbType.BigInt) { Direction = ParameterDirection.Output }
                 };
 
-                bool isFailure = SqlDBHelper.ExecuteNonQuery(SP_CreateSiteDetails, CommandType.StoredProcedure, sqlParameters);
+                bool isFailure = SqlDBHelper.ExecuteNonQueryWithTransaction(_transaction,SP_CreateSiteDetails, CommandType.StoredProcedure, sqlParameters);
 
                 siteDetail.SiteID = (sqlParameters[73].Value != DBNull.Value) ? (long)sqlParameters[73].Value : -1;
 
@@ -902,7 +907,7 @@ namespace Spider_QAMS.Repositories.Domain
                     new SqlParameter("@RowsAffected", SqlDbType.Int) { Direction = ParameterDirection.Output }
                 };
 
-                bool isFailure = SqlDBHelper.ExecuteNonQuery(SP_UpdateSiteDetails, CommandType.StoredProcedure, sqlParameters);
+                bool isFailure = SqlDBHelper.ExecuteNonQueryWithTransaction(_transaction,SP_UpdateSiteDetails, CommandType.StoredProcedure, sqlParameters);
 
                 int RowsAffected = (sqlParameters[74].Value != DBNull.Value) ? (int)sqlParameters[74].Value : -1;
 
@@ -941,7 +946,7 @@ namespace Spider_QAMS.Repositories.Domain
                         new SqlParameter("@RowsAffected", SqlDbType.Int) { Direction = ParameterDirection.Output }
                     };
 
-                    bool isFailure = SqlDBHelper.ExecuteNonQuery(SP_UpsertDeleteSitePictures, CommandType.StoredProcedure, sqlParameters);
+                    bool isFailure = SqlDBHelper.ExecuteNonQueryWithTransaction(_transaction,SP_UpsertDeleteSitePictures, CommandType.StoredProcedure, sqlParameters);
 
                     // Get the output values from the stored procedure
                     image.SitePicID = sqlParameters[6].Value != DBNull.Value ? Convert.ToInt32(sqlParameters[6].Value) : -1;
@@ -976,7 +981,7 @@ namespace Spider_QAMS.Repositories.Domain
                     new SqlParameter("@InputInt", SqlDbType.Int) { Value = newUserId },
                     new SqlParameter("@RowsAffected", SqlDbType.Int) { Direction = ParameterDirection.Output }
                 };
-                List<DataTable> dataTables = SqlDBHelper.ExecuteParameterizedNonQuery(SP_FetchRecordByIdOrText, CommandType.StoredProcedure, sqlParameters);
+                List<DataTable> dataTables = SqlDBHelper.ExecuteParameterizedNonQueryWithTransaction(_transaction,SP_FetchRecordByIdOrText, CommandType.StoredProcedure, sqlParameters);
                 if (dataTables.Count > 0)
                 {
                     DataTable dataTable = dataTables[0];
@@ -1037,7 +1042,7 @@ namespace Spider_QAMS.Repositories.Domain
                     new SqlParameter("@InputInt", SqlDbType.Int) { Value = CurrentUserId },
                     new SqlParameter("@RowsAffected", SqlDbType.Int) { Direction = ParameterDirection.Output }
                 };
-                List<DataTable> dataTables = SqlDBHelper.ExecuteParameterizedNonQuery(SP_FetchRecordByIdOrText, CommandType.StoredProcedure, sqlParameters);
+                List<DataTable> dataTables = SqlDBHelper.ExecuteParameterizedNonQueryWithTransaction(_transaction,SP_FetchRecordByIdOrText, CommandType.StoredProcedure, sqlParameters);
                 if (dataTables.Count > 0)
                 {
                     DataTable dataTable = dataTables[0];
@@ -1085,7 +1090,7 @@ namespace Spider_QAMS.Repositories.Domain
                     new SqlParameter("@InputInt", SqlDbType.Int) { Value = CurrentUserId },
                     new SqlParameter("@RowsAffected", SqlDbType.Int) { Direction = ParameterDirection.Output }
                 };
-                List<DataTable> dataTables = SqlDBHelper.ExecuteParameterizedNonQuery(SP_FetchRecordByIdOrText, CommandType.StoredProcedure, sqlParameters);
+                List<DataTable> dataTables = SqlDBHelper.ExecuteParameterizedNonQueryWithTransaction(_transaction,SP_FetchRecordByIdOrText, CommandType.StoredProcedure, sqlParameters);
                 if (dataTables.Count > 0)
                 {
                     DataTable dataTable = dataTables[0];
@@ -1136,7 +1141,7 @@ namespace Spider_QAMS.Repositories.Domain
                     new SqlParameter("@InputInt", SqlDbType.Int) { Value = CurrentUserId },
                     new SqlParameter("@RowsAffected", SqlDbType.Int) { Direction = ParameterDirection.Output }
                 };
-                List<DataTable> dataTables = SqlDBHelper.ExecuteParameterizedNonQuery(SP_FetchRecordByIdOrText, CommandType.StoredProcedure, sqlParameters);
+                List<DataTable> dataTables = SqlDBHelper.ExecuteParameterizedNonQueryWithTransaction(_transaction,SP_FetchRecordByIdOrText, CommandType.StoredProcedure, sqlParameters);
                 if (dataTables.Count > 0)
                 {
                     DataTable dataTable = dataTables[0];
@@ -1188,7 +1193,7 @@ namespace Spider_QAMS.Repositories.Domain
                     new SqlParameter("@InputInt", SqlDbType.Int) { Value = CurrentUserId },
                     new SqlParameter("@RowsAffected", SqlDbType.Int) { Direction = ParameterDirection.Output }
                 };
-                List<DataTable> dataTables = SqlDBHelper.ExecuteParameterizedNonQuery(SP_FetchRecordByIdOrText, CommandType.StoredProcedure, sqlParameters);
+                List<DataTable> dataTables = SqlDBHelper.ExecuteParameterizedNonQueryWithTransaction(_transaction,SP_FetchRecordByIdOrText, CommandType.StoredProcedure, sqlParameters);
                 if (dataTables.Count > 0)
                 {
                     DataTable dataTable = dataTables[0];
@@ -1239,7 +1244,7 @@ namespace Spider_QAMS.Repositories.Domain
                     new SqlParameter("@InputInt", SqlDbType.Int) { Value = newUserId },
                     new SqlParameter("@RowsAffected", SqlDbType.Int) { Direction = ParameterDirection.Output }
                 };
-                List<DataTable> dataTables = SqlDBHelper.ExecuteParameterizedNonQuery(SP_FetchRecordByIdOrText, CommandType.StoredProcedure, sqlParameters);
+                List<DataTable> dataTables = SqlDBHelper.ExecuteParameterizedNonQueryWithTransaction(_transaction,SP_FetchRecordByIdOrText, CommandType.StoredProcedure, sqlParameters);
                 if (dataTables.Count > 0)
                 {
                     DataTable dataTable = dataTables[0];
@@ -1285,7 +1290,7 @@ namespace Spider_QAMS.Repositories.Domain
                     new SqlParameter("@InputInt", SqlDbType.Int) { Value = newUserId },
                     new SqlParameter("@RowsAffected", SqlDbType.Int) { Direction = ParameterDirection.Output }
                 };
-                List<DataTable> dataTables = SqlDBHelper.ExecuteParameterizedNonQuery(SP_FetchRecordByIdOrText, CommandType.StoredProcedure, sqlParameters);
+                List<DataTable> dataTables = SqlDBHelper.ExecuteParameterizedNonQueryWithTransaction(_transaction,SP_FetchRecordByIdOrText, CommandType.StoredProcedure, sqlParameters);
                 if (dataTables.Count > 0)
                 {
                     DataTable dataTable = dataTables[0];
@@ -1332,7 +1337,7 @@ namespace Spider_QAMS.Repositories.Domain
                     new SqlParameter("@InputInt", SqlDbType.Int) { Value = newUserId },
                     new SqlParameter("@RowsAffected", SqlDbType.Int) { Direction = ParameterDirection.Output }
                 };
-                List<DataTable> dataTables = SqlDBHelper.ExecuteParameterizedNonQuery(SP_FetchRecordByIdOrText, CommandType.StoredProcedure, sqlParameters);
+                List<DataTable> dataTables = SqlDBHelper.ExecuteParameterizedNonQueryWithTransaction(_transaction,SP_FetchRecordByIdOrText, CommandType.StoredProcedure, sqlParameters);
                 if (dataTables.Count > 0)
                 {
                     DataTable dataTable = dataTables[0];
@@ -1378,7 +1383,7 @@ namespace Spider_QAMS.Repositories.Domain
                     new SqlParameter("@InputInt", SqlDbType.Int) { Value = newUserId },
                     new SqlParameter("@RowsAffected", SqlDbType.Int) { Direction = ParameterDirection.Output }
                 };
-                List<DataTable> dataTables = SqlDBHelper.ExecuteParameterizedNonQuery(SP_FetchRecordByIdOrText, CommandType.StoredProcedure, sqlParameters);
+                List<DataTable> dataTables = SqlDBHelper.ExecuteParameterizedNonQueryWithTransaction(_transaction,SP_FetchRecordByIdOrText, CommandType.StoredProcedure, sqlParameters);
                 if (dataTables.Count > 0)
                 {
                     DataTable dataTable = dataTables[0];
@@ -1429,7 +1434,7 @@ namespace Spider_QAMS.Repositories.Domain
                     new SqlParameter("@InputInt", SqlDbType.Int) { Value = newUserId },
                     new SqlParameter("@RowsAffected", SqlDbType.Int) { Direction = ParameterDirection.Output }
                 };
-                List<DataTable> dataTables = SqlDBHelper.ExecuteParameterizedNonQuery(SP_FetchRecordByIdOrText, CommandType.StoredProcedure, sqlParameters);
+                List<DataTable> dataTables = SqlDBHelper.ExecuteParameterizedNonQueryWithTransaction(_transaction,SP_FetchRecordByIdOrText, CommandType.StoredProcedure, sqlParameters);
                 if (dataTables.Count > 0)
                 {
                     DataTable dataTable = dataTables[0];
@@ -1493,7 +1498,7 @@ namespace Spider_QAMS.Repositories.Domain
                     new SqlParameter("@InputInt", SqlDbType.Int) { Value = newUserId },
                     new SqlParameter("@RowsAffected", SqlDbType.Int) { Direction = ParameterDirection.Output }
                 };
-                List<DataTable> dataTables = SqlDBHelper.ExecuteParameterizedNonQuery(SP_FetchRecordByIdOrText, CommandType.StoredProcedure, sqlParameters);
+                List<DataTable> dataTables = SqlDBHelper.ExecuteParameterizedNonQueryWithTransaction(_transaction,SP_FetchRecordByIdOrText, CommandType.StoredProcedure, sqlParameters);
                 if (dataTables.Count > 0)
                 {
                     DataTable dataTable = dataTables[0];
@@ -1551,7 +1556,7 @@ namespace Spider_QAMS.Repositories.Domain
                     new SqlParameter("@InputText", SqlDbType.VarChar, 100) { Value = record.RecordText != string.Empty ? record.RecordText : Constants.SitePicCategory_SiteProfilePicture },
                     new SqlParameter("@RowsAffected", SqlDbType.Int) { Direction = ParameterDirection.Output }
                 };
-                List<DataTable> dataTables = SqlDBHelper.ExecuteParameterizedNonQuery(SP_FetchRecordByIdOrText, CommandType.StoredProcedure, sqlParameters);
+                List<DataTable> dataTables = SqlDBHelper.ExecuteParameterizedNonQueryWithTransaction(_transaction,SP_FetchRecordByIdOrText, CommandType.StoredProcedure, sqlParameters);
                 if (dataTables.Count > 0)
                 {
                     DataTable dataTable1 = dataTables[0];
@@ -1748,7 +1753,7 @@ namespace Spider_QAMS.Repositories.Domain
                     new SqlParameter("@InputText", SqlDbType.VarChar, 100) { Value = record.RecordText != string.Empty ? record.RecordText : DBNull.Value },
                     new SqlParameter("@RowsAffected", SqlDbType.Int) { Direction = ParameterDirection.Output }
                 };
-                List<DataTable> dataTables = SqlDBHelper.ExecuteParameterizedNonQuery(SP_FetchRecordByIdOrText, CommandType.StoredProcedure, sqlParameters);
+                List<DataTable> dataTables = SqlDBHelper.ExecuteParameterizedNonQueryWithTransaction(_transaction,SP_FetchRecordByIdOrText, CommandType.StoredProcedure, sqlParameters);
                 if (dataTables.Count > 0)
                 {
                     DataTable dataTable = dataTables[0];
@@ -1812,7 +1817,7 @@ namespace Spider_QAMS.Repositories.Domain
                     new SqlParameter("@InputText", SqlDbType.VarChar, 100) { Value = record.RecordText != string.Empty ? record.RecordText : DBNull.Value },
                     new SqlParameter("@RowsAffected", SqlDbType.Int) { Direction = ParameterDirection.Output }
                 };
-                List<DataTable> dataTables = SqlDBHelper.ExecuteParameterizedNonQuery(SP_FetchRecordByIdOrText, CommandType.StoredProcedure, sqlParameters);
+                List<DataTable> dataTables = SqlDBHelper.ExecuteParameterizedNonQueryWithTransaction(_transaction,SP_FetchRecordByIdOrText, CommandType.StoredProcedure, sqlParameters);
                 if (dataTables.Count > 0)
                 {
                     DataTable dataTable = dataTables[0];
@@ -1872,7 +1877,7 @@ namespace Spider_QAMS.Repositories.Domain
                     new SqlParameter("@TextCriteria", SqlDbType.Int) { Value = GetTableData.GetAllUsersData },
                     new SqlParameter("@RowsAffected", SqlDbType.Int) { Direction = ParameterDirection.Output }
                 };
-                List<DataTable> dataTables = SqlDBHelper.ExecuteParameterizedNonQuery(SP_GetTableAllData, CommandType.StoredProcedure, sqlParameters);
+                List<DataTable> dataTables = SqlDBHelper.ExecuteParameterizedNonQueryWithTransaction(_transaction,SP_GetTableAllData, CommandType.StoredProcedure, sqlParameters);
                 if (dataTables.Count > 0)
                 {
                     DataTable dataTable = dataTables[0];
@@ -1933,7 +1938,7 @@ namespace Spider_QAMS.Repositories.Domain
                     new SqlParameter("@TextCriteria", SqlDbType.Int) { Value = GetTableData.GetAllProfiles },
                     new SqlParameter("@RowsAffected", SqlDbType.Int) { Direction = ParameterDirection.Output }
                 };
-                List<DataTable> dataTables = SqlDBHelper.ExecuteParameterizedNonQuery(SP_GetTableAllData, CommandType.StoredProcedure, sqlParameters);
+                List<DataTable> dataTables = SqlDBHelper.ExecuteParameterizedNonQueryWithTransaction(_transaction,SP_GetTableAllData, CommandType.StoredProcedure, sqlParameters);
                 if (dataTables.Count > 0)
                 {
                     DataTable dataTable = dataTables[0];
@@ -1981,7 +1986,7 @@ namespace Spider_QAMS.Repositories.Domain
                     new SqlParameter("@TextCriteria", SqlDbType.Int) { Value = GetTableData.GetAllProfiles },
                     new SqlParameter("@RowsAffected", SqlDbType.Int) { Direction = ParameterDirection.Output }
                 };
-                List<DataTable> dataTables = SqlDBHelper.ExecuteParameterizedNonQuery(SP_GetTableAllData, CommandType.StoredProcedure, sqlParameters);
+                List<DataTable> dataTables = SqlDBHelper.ExecuteParameterizedNonQueryWithTransaction(_transaction,SP_GetTableAllData, CommandType.StoredProcedure, sqlParameters);
                 if (dataTables.Count > 0)
                 {
                     DataTable dataTable = dataTables[0];
@@ -2034,7 +2039,7 @@ namespace Spider_QAMS.Repositories.Domain
                     new SqlParameter("@TextCriteria", SqlDbType.Int) { Value = GetTableData.GetAllProfiles },
                     new SqlParameter("@RowsAffected", SqlDbType.Int) { Direction = ParameterDirection.Output }
                 };
-                List<DataTable> dataTables = SqlDBHelper.ExecuteParameterizedNonQuery(SP_GetTableAllData, CommandType.StoredProcedure, sqlParameters);
+                List<DataTable> dataTables = SqlDBHelper.ExecuteParameterizedNonQueryWithTransaction(_transaction,SP_GetTableAllData, CommandType.StoredProcedure, sqlParameters);
                 if (dataTables.Count > 0)
                 {
                     DataTable dataTable = dataTables[0];
@@ -2083,7 +2088,7 @@ namespace Spider_QAMS.Repositories.Domain
                     new SqlParameter("@TextCriteria", SqlDbType.Int) { Value = GetTableData.GetAllRegions },
                     new SqlParameter("@RowsAffected", SqlDbType.Int) { Direction = ParameterDirection.Output }
                 };
-                List<DataTable> dataTables = SqlDBHelper.ExecuteParameterizedNonQuery(SP_GetTableAllData, CommandType.StoredProcedure, sqlParameters);
+                List<DataTable> dataTables = SqlDBHelper.ExecuteParameterizedNonQueryWithTransaction(_transaction,SP_GetTableAllData, CommandType.StoredProcedure, sqlParameters);
                 if (dataTables.Count > 0)
                 {
                     DataTable dataTable = dataTables[0];
@@ -2131,7 +2136,7 @@ namespace Spider_QAMS.Repositories.Domain
                     new SqlParameter("@TextCriteria", SqlDbType.Int) { Value = GetTableData.GetAllCities },
                     new SqlParameter("@RowsAffected", SqlDbType.Int) { Direction = ParameterDirection.Output }
                 };
-                List<DataTable> dataTables = SqlDBHelper.ExecuteParameterizedNonQuery(SP_GetTableAllData, CommandType.StoredProcedure, sqlParameters);
+                List<DataTable> dataTables = SqlDBHelper.ExecuteParameterizedNonQueryWithTransaction(_transaction,SP_GetTableAllData, CommandType.StoredProcedure, sqlParameters);
                 if (dataTables.Count > 0)
                 {
                     DataTable dataTable = dataTables[0];
@@ -2184,7 +2189,7 @@ namespace Spider_QAMS.Repositories.Domain
                     new SqlParameter("@TextCriteria", SqlDbType.Int) { Value = GetTableData.GetAllLocations },
                     new SqlParameter("@RowsAffected", SqlDbType.Int) { Direction = ParameterDirection.Output }
                 };
-                List<DataTable> dataTables = SqlDBHelper.ExecuteParameterizedNonQuery(SP_GetTableAllData, CommandType.StoredProcedure, sqlParameters);
+                List<DataTable> dataTables = SqlDBHelper.ExecuteParameterizedNonQueryWithTransaction(_transaction,SP_GetTableAllData, CommandType.StoredProcedure, sqlParameters);
                 if (dataTables.Count > 0)
                 {
                     DataTable dataTable = dataTables[0];
@@ -2250,7 +2255,7 @@ namespace Spider_QAMS.Repositories.Domain
                     new SqlParameter("@TextCriteria", SqlDbType.Int) { Value = GetTableData.GetRegionListOfCities },
                     new SqlParameter("@RowsAffected", SqlDbType.Int) { Direction = ParameterDirection.Output }
                 };
-                List<DataTable> dataTables = SqlDBHelper.ExecuteParameterizedNonQuery(SP_GetTableAllData, CommandType.StoredProcedure, sqlParameters);
+                List<DataTable> dataTables = SqlDBHelper.ExecuteParameterizedNonQueryWithTransaction(_transaction,SP_GetTableAllData, CommandType.StoredProcedure, sqlParameters);
                 if (dataTables.Count > 0)
                 {
                     DataTable dataTable = dataTables[0];
@@ -2300,7 +2305,7 @@ namespace Spider_QAMS.Repositories.Domain
                     new SqlParameter("@TextCriteria", SqlDbType.Int) { Value = GetTableData.GetAllSponsors },
                     new SqlParameter("@RowsAffected", SqlDbType.Int) { Direction = ParameterDirection.Output }
                 };
-                List<DataTable> dataTables = SqlDBHelper.ExecuteParameterizedNonQuery(SP_GetTableAllData, CommandType.StoredProcedure, sqlParameters);
+                List<DataTable> dataTables = SqlDBHelper.ExecuteParameterizedNonQueryWithTransaction(_transaction,SP_GetTableAllData, CommandType.StoredProcedure, sqlParameters);
                 if (dataTables.Count > 0)
                 {
                     DataTable dataTable = dataTables[0];
@@ -2348,7 +2353,7 @@ namespace Spider_QAMS.Repositories.Domain
                     new SqlParameter("@TextCriteria", SqlDbType.Int) { Value = GetTableData.GetAllContacts },
                     new SqlParameter("@RowsAffected", SqlDbType.Int) { Direction = ParameterDirection.Output }
                 };
-                List<DataTable> dataTables = SqlDBHelper.ExecuteParameterizedNonQuery(SP_GetTableAllData, CommandType.StoredProcedure, sqlParameters);
+                List<DataTable> dataTables = SqlDBHelper.ExecuteParameterizedNonQueryWithTransaction(_transaction,SP_GetTableAllData, CommandType.StoredProcedure, sqlParameters);
                 if (dataTables.Count > 0)
                 {
                     DataTable dataTable = dataTables[0];
@@ -2407,7 +2412,7 @@ namespace Spider_QAMS.Repositories.Domain
                     new SqlParameter("@TextCriteria", SqlDbType.Int) { Value = GetTableData.GetAllSiteTypes },
                     new SqlParameter("@RowsAffected", SqlDbType.Int) { Direction = ParameterDirection.Output }
                 };
-                List<DataTable> dataTables = SqlDBHelper.ExecuteParameterizedNonQuery(SP_GetTableAllData, CommandType.StoredProcedure, sqlParameters);
+                List<DataTable> dataTables = SqlDBHelper.ExecuteParameterizedNonQueryWithTransaction(_transaction,SP_GetTableAllData, CommandType.StoredProcedure, sqlParameters);
                 if (dataTables.Count > 0)
                 {
                     DataTable dataTable = dataTables[0];
@@ -2460,7 +2465,7 @@ namespace Spider_QAMS.Repositories.Domain
                     new SqlParameter("@TextCriteria", SqlDbType.Int) { Value = GetTableData.GetAllBranchTypes },
                     new SqlParameter("@RowsAffected", SqlDbType.Int) { Direction = ParameterDirection.Output }
                 };
-                List<DataTable> dataTables = SqlDBHelper.ExecuteParameterizedNonQuery(SP_GetTableAllData, CommandType.StoredProcedure, sqlParameters);
+                List<DataTable> dataTables = SqlDBHelper.ExecuteParameterizedNonQueryWithTransaction(_transaction,SP_GetTableAllData, CommandType.StoredProcedure, sqlParameters);
                 if (dataTables.Count > 0)
                 {
                     DataTable dataTable = dataTables[0];
@@ -2519,7 +2524,7 @@ namespace Spider_QAMS.Repositories.Domain
                     new SqlParameter("@TextCriteria", SqlDbType.Int) { Value = GetTableData.GetAllVisitStatuses },
                     new SqlParameter("@RowsAffected", SqlDbType.Int) { Direction = ParameterDirection.Output }
                 };
-                List<DataTable> dataTables = SqlDBHelper.ExecuteParameterizedNonQuery(SP_GetTableAllData, CommandType.StoredProcedure, sqlParameters);
+                List<DataTable> dataTables = SqlDBHelper.ExecuteParameterizedNonQueryWithTransaction(_transaction,SP_GetTableAllData, CommandType.StoredProcedure, sqlParameters);
                 if (dataTables.Count > 0)
                 {
                     DataTable dataTable = dataTables[0];
@@ -2567,7 +2572,7 @@ namespace Spider_QAMS.Repositories.Domain
                     new SqlParameter("@TextCriteria", SqlDbType.Int) { Value = GetTableData.GetAllATMClasses },
                     new SqlParameter("@RowsAffected", SqlDbType.Int) { Direction = ParameterDirection.Output }
                 };
-                List<DataTable> dataTables = SqlDBHelper.ExecuteParameterizedNonQuery(SP_GetTableAllData, CommandType.StoredProcedure, sqlParameters);
+                List<DataTable> dataTables = SqlDBHelper.ExecuteParameterizedNonQueryWithTransaction(_transaction,SP_GetTableAllData, CommandType.StoredProcedure, sqlParameters);
                 if (dataTables.Count > 0)
                 {
                     DataTable dataTable = dataTables[0];
@@ -2611,7 +2616,7 @@ namespace Spider_QAMS.Repositories.Domain
                     new SqlParameter("@TextCriteria", SqlDbType.Int) { Value = GetTableData.GetAllPicCategories },
                     new SqlParameter("@RowsAffected", SqlDbType.Int) { Direction = ParameterDirection.Output }
                 };
-                List<DataTable> dataTables = SqlDBHelper.ExecuteParameterizedNonQuery(SP_GetTableAllData, CommandType.StoredProcedure, sqlParameters);
+                List<DataTable> dataTables = SqlDBHelper.ExecuteParameterizedNonQueryWithTransaction(_transaction,SP_GetTableAllData, CommandType.StoredProcedure, sqlParameters);
                 if (dataTables.Count > 0)
                 {
                     DataTable dataTable = dataTables[0];
@@ -2659,7 +2664,7 @@ namespace Spider_QAMS.Repositories.Domain
                     new SqlParameter("@TextCriteria", SqlDbType.Int) { Value = GetTableData.GetAllSiteDetails },
                     new SqlParameter("@RowsAffected", SqlDbType.Int) { Direction = ParameterDirection.Output }
                 };
-                List<DataTable> dataTables = SqlDBHelper.ExecuteParameterizedNonQuery(SP_GetTableAllData, CommandType.StoredProcedure, sqlParameters);
+                List<DataTable> dataTables = SqlDBHelper.ExecuteParameterizedNonQueryWithTransaction(_transaction,SP_GetTableAllData, CommandType.StoredProcedure, sqlParameters);
                 if (dataTables.Count > 0)
                 {
                     DataTable dataTable = dataTables[0];

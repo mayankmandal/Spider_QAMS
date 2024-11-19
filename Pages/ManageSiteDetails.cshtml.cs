@@ -1,7 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Spider_QAMS.Models;
-using Spider_QAMS.Models.ViewModels;
 using static Spider_QAMS.Utilities.Constants;
 using System.Net.Http.Headers;
 using System.Text.Json;
@@ -12,13 +11,11 @@ namespace Spider_QAMS.Pages
     {
         private readonly IConfiguration _configuration;
         private readonly IHttpClientFactory _clientFactory;
-        private readonly IWebHostEnvironment _webHostEnvironment;
         
-        public ManageSiteDetailsModel(IConfiguration configuration, IHttpClientFactory httpClientFactory, IWebHostEnvironment webHostEnvironment)
+        public ManageSiteDetailsModel(IConfiguration configuration, IHttpClientFactory httpClientFactory)
         {
             _configuration = configuration;
             _clientFactory = httpClientFactory;
-            _webHostEnvironment = webHostEnvironment;
         }
         public List<SiteDetail> Sites { get; set; }
         public async Task<IActionResult> OnGetAsync()

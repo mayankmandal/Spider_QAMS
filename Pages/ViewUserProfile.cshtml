@@ -34,7 +34,7 @@
                     <!-- Profile Picture Field -->
                     <div class="text-center">
                         <div class="position-relative d-inline-block mx-auto mb-4">
-                            <img src="@Model.CurrentUserDetailsData.ProfilePicName" class="rounded-circle img-thumbnail" style="width: 150px; height: 150px;" id="loadedProfilePicture">
+                            <img src="@Model.CurrentUserDetailsData.ProfilePictureFile" class="rounded-circle img-thumbnail" style="width: 150px; height: 150px;" id="loadedProfilePicture">
                             <div class="position-absolute bottom-0 end-0 rounded-circle bg-light p-1" style="transform: translate(20%, 20%);">
                                 <label for="profile-img-file-input" class="rounded-circle bg-gradient-gray p-2" style="cursor: pointer; width: 40px; height: 40px;">
                                     <i class="fas fa-camera" style="font-size: 1.5rem;"></i>
@@ -43,7 +43,7 @@
                         </div>
                         <h5 class="fs-16 mb-1">@Model.CurrentUserDetailsData.FullName</h5>
                         <p class="text-muted mb-0">@Model.CurrentUserDetailsData.UserName (@Model.CurrentUserDetailsData.EmailID)</p>
-                        <span asp-validation-for="@Model.CurrentUserDetailsData.ProfilePicName" class="text-danger fw-bold"></span>
+                        <span asp-validation-for="@Model.CurrentUserDetailsData.ProfilePictureFile" class="text-danger fw-bold"></span>
                     </div>
 
                     <!-- User ID and ID Number on one line -->

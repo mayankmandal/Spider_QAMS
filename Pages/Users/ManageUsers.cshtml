@@ -1,0 +1,59 @@
+﻿@page
+@using System.Text.Json
+@model Spider_QAMS.Pages.Users.ManageUsersModel
+@{
+    ViewData["Title"] = "Manage Users";
+    TempData["NavigationalPageName"] = "Manage User";
+}
+
+
+<div style="display:flex; flex-direction:column; align-items:center; min-height:20vh;">
+    <!-- Title and Action Buttons -->
+    <div class="row pt-1 mb-3" style="width:100%;">
+        <div class="col text-start">
+            <h4 class="rb-header">Manage Users</h4>
+        </div>
+        <div class="col text-end">
+            <button id="exportExcelBtn" class="btn create-btn" style="background: linear-gradient(to bottom, #ffffff, #e0e0e0); color: #71797E;">
+                <i class="fas fa-file-excel"></i> Export to Excel
+            </button>
+            <button id="exportPdfBtn" class="btn create-btn" style="background: linear-gradient(to bottom, #ffffff, #e0e0e0); color: #71797E;">
+                <i class="fas fa-file-pdf"></i> Export to PDF
+            </button>
+            <a asp-page="/Users/CreateUser" class="btn create-btn" style="background: linear-gradient(to bottom, #ffffff, #e0e0e0); color: #71797E;">
+                <i class="fas fa-plus-circle"></i> Create New User
+            </a>
+        </div>
+    </div>
+
+    <!-- Search Filters -->
+    <div class="d-flex mb-3 mt-2" style="width: 100%;">
+        <label for="searchBy" class="me-2">Search by:</label>
+        <select id="searchBy" class="form-select me-2" style="width:200px;">
+            <option value="FullName">Full Name</option>
+            <option value="EmailID">Email Address</option>
+            <option value="PhoneNumber">Phone Number</option>
+            <option value="Designation">Designation</option>
+            <option value="UserName">Username</option>
+        </select>
+        <input type="text" id="searchInput" class="form-control me-2" style="width: 300px;" />
+        <button type="button" class="btn btn-outline-secondary me-2" id="searchBtn">Search</button>
+        <button type="button" class="btn btn-outline-secondary" id="resetBtn">Reset</button>
+    </div>
+
+    <!-- jsGrid for Users -->
+    <div id="jsGridUsers" style="width:100%;"></div>
+</div>
+
+
+@section scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script src="~/plugins/jsgrid/jsgrid.min.js"></script>
+    <script src="~/plugins/sheetjs/xlsx.full.min.js"></script>
+    <script src="~/plugins/pdfmake/pdfmake.min.js"></script>
+    <script src="~/plugins/pdfmake/vfs_fonts.js"></script>
+    <script>
+        const usersData = @Html.Raw(JsonSerializer.Serialize(Model.Users));
+    </script>
+    <script src="~/js/manage-users.js" asp-append-version="true"></script>
+}

@@ -999,7 +999,7 @@ namespace Spider_QAMS.Repositories.Domain
                             FullName = dataRow["FullName"] != DBNull.Value ? dataRow["FullName"].ToString() : string.Empty,
                             EmailID = dataRow["EmailID"] != DBNull.Value ? dataRow["EmailID"].ToString() : string.Empty,
                             UserName = dataRow["UserName"] != DBNull.Value ? dataRow["UserName"].ToString() : string.Empty,
-                            ProfilePicName = dataRow["ProfilePicName"] != DBNull.Value ? dataRow["ProfilePicName"].ToString() : string.Empty,
+                            ProfilePictureFile = dataRow["ProfilePicName"] != DBNull.Value ? dataRow["ProfilePicName"].ToString() : string.Empty,
                             Designation = dataRow["Designation"] != DBNull.Value ? dataRow["Designation"].ToString() : string.Empty,
                             PhoneNumber = dataRow["PhoneNumber"] != DBNull.Value ? dataRow["PhoneNumber"].ToString() : string.Empty,
                             IsActive = dataRow["IsActive"] != DBNull.Value ? Convert.ToBoolean(dataRow["IsActive"]) : false,
@@ -1206,7 +1206,7 @@ namespace Spider_QAMS.Repositories.Domain
                             FullName = dataRow["FullName"] != DBNull.Value ? dataRow["FullName"].ToString() : string.Empty,
                             EmailID = dataRow["EmailID"] != DBNull.Value ? dataRow["EmailID"].ToString() : string.Empty,
                             UserName = dataRow["UserName"] != DBNull.Value ? dataRow["UserName"].ToString() : string.Empty,
-                            ProfilePicName = dataRow["ProfilePicName"] != DBNull.Value ? dataRow["ProfilePicName"].ToString() : string.Empty,
+                            ProfilePictureFile = dataRow["ProfilePicName"] != DBNull.Value ? dataRow["ProfilePicName"].ToString() : string.Empty,
                             Designation = dataRow["Designation"] != DBNull.Value ? dataRow["Designation"].ToString() : string.Empty,
                             PhoneNumber = dataRow["PhoneNumber"] != DBNull.Value ? dataRow["PhoneNumber"].ToString() : string.Empty,
                         };
@@ -1898,7 +1898,7 @@ namespace Spider_QAMS.Repositories.Domain
                                     ProfileName = dataRow["ProfileName"].ToString()
                                 },
                                 UserName = dataRow["UserName"].ToString(),
-                                ProfilePicName = dataRow["ProfilePicName"].ToString(),
+                                ProfilePictureFile = dataRow["ProfilePicName"].ToString(),
                                 IsActive = Convert.ToBoolean(dataRow["IsActive"]),
                                 IsADUser = Convert.ToBoolean(dataRow["IsADUser"]),
                                 IsDeleted = Convert.ToBoolean(dataRow["IsDeleted"]),

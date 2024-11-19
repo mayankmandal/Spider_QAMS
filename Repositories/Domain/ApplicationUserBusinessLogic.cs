@@ -3,7 +3,6 @@ using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.IdentityModel.Tokens;
 using Spider_QAMS.Models;
 using Spider_QAMS.Models.ViewModels;
-using Spider_QAMS.Repositories.Domain;
 using Spider_QAMS.Repositories.Skeleton;
 using Spider_QAMS.Utilities;
 using System.IdentityModel.Tokens.Jwt;
@@ -13,7 +12,7 @@ using System.Text;
 using System.Text.Json;
 using static Spider_QAMS.Utilities.Constants;
 
-namespace Spider_QAMS.Controllers
+namespace Spider_QAMS.Repositories.Domain
 {
     public class ApplicationUserBusinessLogic : UserRepository
     {
@@ -39,24 +38,12 @@ namespace Spider_QAMS.Controllers
         {
             return await _unitOfWork.UserRepository.GetUserByIdAsyncRepo(userId);
         }
-        public async Task<ApplicationUser> FindByIdAsync(string userId)
-        {
-            if(int.TryParse(userId, out int id))
-            {
-                return await GetUserByIdAsync(id);
-            }
-            throw new ArgumentException("Invalid User ID");
-        }
         public async Task<IList<string>> GetUserRolesAsync(int userId)
         {
             return await _unitOfWork.UserRepository.GetUserRolesAsyncRepo(userId);
         }
 
-        // Method to refresh the cache on demand
-        public async Task RefreshCurrentUserAsync()
-        {
-            _httpContextAccessor.HttpContext.Session.Remove(SessionKeys.CurrentUserKey);
-        }
+        
         public async Task<ApplicationUser> GetCurrentUserAsync(string jwtToken)
         {
             if (!string.IsNullOrEmpty(jwtToken))
@@ -102,11 +89,7 @@ namespace Spider_QAMS.Controllers
             }
             return null;
         }
-        public async Task<bool> CheckUserExistsAsync(string email)
-        {
-            var user = await GetUserByEmailAsync(email);
-            return user != null;
-        }
+        
         public string GenerateJSONWebToken(IEnumerable<Claim> claims, bool rememberMe)
         {
             var tokenHandler = new JwtSecurityTokenHandler();
@@ -154,40 +137,7 @@ namespace Spider_QAMS.Controllers
             var categories = JsonSerializer.Deserialize<List<CategoryDisplayViewModel>>(categoriesResponse, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
             _httpContextAccessor.HttpContext.Session.Set(SessionKeys.CurrentUserCategoriesKey, Encoding.UTF8.GetBytes(JsonSerializer.Serialize(categories)));
         }
-        public string GenerateEmailConfirmationToken(ApplicationUser user)
-        {
-            // User-specific data for token generation
-            var userId = user.UserId.ToString();
-            var timestamp = DateTime.UtcNow.AddHours(24); // Token valid for 24 hours
-
-            // Combine data into a single string
-            var tokenData = $"{userId}|{timestamp:o}";
-
-            // Protect (encrypt) the token data
-            var protectedToken = _protector.Protect(tokenData);
-
-            // Encode the token to make it URL-safe
-            var encodedToken = WebEncoders.Base64UrlEncode(Encoding.UTF8.GetBytes(protectedToken));
-
-            return encodedToken;
-        }
-        public string[] DecodeEmailConfirmationToken(string token)
-        {
-            // Decode the token from Base64
-            var decodedTokenBytes = WebEncoders.Base64UrlDecode(token);
-            var decodedToken = Encoding.UTF8.GetString(decodedTokenBytes);
-
-            // Unprotect (decrypt) the token data
-            var unprotectedToken = _protector.Unprotect(decodedToken);
-
-            // Extract the token data
-            var tokenParts = unprotectedToken.Split('|');
-            if(tokenParts.Length != 2)
-            {
-                return null;
-            }
-            return tokenParts;
-        }
+        
         public async Task<OperationResult> SignOutAsync()
         {
             try
@@ -207,7 +157,7 @@ namespace Spider_QAMS.Controllers
                 // Token is successfully removed, proceed
                 return OperationResult.Success();
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 return OperationResult.Failure("Failed to sign out user.", ex.Message);
             }
@@ -246,13 +196,13 @@ namespace Spider_QAMS.Controllers
             else
             {
                 // Retrieve and deserialize the user data from the session
-                user = JsonSerializer.Deserialize<ApplicationUser>(Encoding.UTF8.GetString(currentUserData),new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+                user = JsonSerializer.Deserialize<ApplicationUser>(Encoding.UTF8.GetString(currentUserData), new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
             }
             return user;
         }
         public async Task<IList<Claim>> GetCurrentUserClaimsAsync(ApplicationUser user)
         {
-            if (!_httpContextAccessor.HttpContext.Session.TryGetValue(Constants.SessionKeys.CurrentUserClaimsKey, out byte[] claimsData))
+            if (!_httpContextAccessor.HttpContext.Session.TryGetValue(SessionKeys.CurrentUserClaimsKey, out byte[] claimsData))
             {
                 if (user != null)
                 {
@@ -268,7 +218,7 @@ namespace Spider_QAMS.Controllers
                         claims.Add(new Claim(ClaimTypes.Role, role));
                     }
 
-                    _httpContextAccessor.HttpContext.Session.Set(Constants.SessionKeys.CurrentUserClaimsKey, Encoding.UTF8.GetBytes(JsonSerializer.Serialize(claims)));
+                    _httpContextAccessor.HttpContext.Session.Set(SessionKeys.CurrentUserClaimsKey, Encoding.UTF8.GetBytes(JsonSerializer.Serialize(claims)));
                     await GetCurrentUserAsync(user);
 
                     return claims;
@@ -302,6 +252,59 @@ namespace Spider_QAMS.Controllers
             {
                 throw new SecurityTokenException("Invalid token");
             }
+        }
+
+        // Method to refresh the cache on demand
+        public async Task RefreshCurrentUserAsync()
+        {
+            _httpContextAccessor.HttpContext.Session.Remove(SessionKeys.CurrentUserKey);
+        }
+        public async Task<bool> CheckUserExistsAsync(string email)
+        {
+            var user = await GetUserByEmailAsync(email);
+            return user != null;
+        }
+        public async Task<ApplicationUser> FindByIdAsync(string userId)
+        {
+            if (int.TryParse(userId, out int id))
+            {
+                return await GetUserByIdAsync(id);
+            }
+            throw new ArgumentException("Invalid User ID");
+        }
+        public string GenerateEmailConfirmationToken(ApplicationUser user)
+        {
+            // User-specific data for token generation
+            var userId = user.UserId.ToString();
+            var timestamp = DateTime.UtcNow.AddHours(24); // Token valid for 24 hours
+
+            // Combine data into a single string
+            var tokenData = $"{userId}|{timestamp:o}";
+
+            // Protect (encrypt) the token data
+            var protectedToken = _protector.Protect(tokenData);
+
+            // Encode the token to make it URL-safe
+            var encodedToken = WebEncoders.Base64UrlEncode(Encoding.UTF8.GetBytes(protectedToken));
+
+            return encodedToken;
+        }
+        public string[] DecodeEmailConfirmationToken(string token)
+        {
+            // Decode the token from Base64
+            var decodedTokenBytes = WebEncoders.Base64UrlDecode(token);
+            var decodedToken = Encoding.UTF8.GetString(decodedTokenBytes);
+
+            // Unprotect (decrypt) the token data
+            var unprotectedToken = _protector.Unprotect(decodedToken);
+
+            // Extract the token data
+            var tokenParts = unprotectedToken.Split('|');
+            if (tokenParts.Length != 2)
+            {
+                return null;
+            }
+            return tokenParts;
         }
     }
 }

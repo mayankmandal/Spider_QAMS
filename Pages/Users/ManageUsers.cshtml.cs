@@ -9,7 +9,7 @@ using static Spider_QAMS.Utilities.Constants;
 namespace Spider_QAMS.Pages.Users
 {
     [Authorize(Policy = "PageAccess")]
-    public class ManageUserModel : PageModel
+    public class ManageUsersModel : PageModel
     {
         private readonly IConfiguration _configuration;
         private readonly IHttpClientFactory _clientFactory;
@@ -18,7 +18,7 @@ namespace Spider_QAMS.Pages.Users
         public List<ProfileUserVM> Users { get; set; }
         [BindProperty]
         public string SearchTerm { get; set; }
-        public ManageUserModel(IConfiguration configuration, IHttpClientFactory httpClientFactory)
+        public ManageUsersModel(IConfiguration configuration, IHttpClientFactory httpClientFactory)
         {
             _configuration = configuration;
             _clientFactory = httpClientFactory;

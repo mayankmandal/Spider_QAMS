@@ -1,5 +1,4 @@
 using Spider_QAMS.DAL;
-using Spider_QAMS.Controllers;
 using Spider_QAMS.Repositories.Domain;
 using Spider_QAMS.Repositories.Skeleton;
 using Spider_QAMS.Models;
@@ -8,7 +7,6 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.Extensions.DependencyInjection;
 
 var builder = WebApplication.CreateBuilder(args);
 

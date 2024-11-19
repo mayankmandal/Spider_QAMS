@@ -1,6 +1,6 @@
 ﻿using Microsoft.AspNetCore.Authorization;
-using Spider_QAMS.Controllers;
 using Spider_QAMS.Models.ViewModels;
+using Spider_QAMS.Repositories.Domain;
 using System.Text.Json;
 using static Spider_QAMS.Utilities.Constants;
 

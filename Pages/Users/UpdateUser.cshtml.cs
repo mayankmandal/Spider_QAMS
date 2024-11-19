@@ -1,14 +1,12 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
-using Microsoft.VisualBasic;
 using Spider_QAMS.Models;
 using Spider_QAMS.Models.ViewModels;
 using System.Net.Http.Headers;
 using System.Text;
 using System.Text.Json;
 using static Spider_QAMS.Utilities.Constants;
-using static System.Net.Mime.MediaTypeNames;
 
 namespace Spider_QAMS.Pages.Users
 {
@@ -42,7 +40,7 @@ namespace Spider_QAMS.Pages.Users
 
                 ProfileUsersData = await GetUserProfileDataAsync(userId);
                 await LoadAllProfilesData();
-                UserProfilePathUrl = Path.Combine( _configuration["BaseUrl"], _configuration["UserProfileImgPath"], _profileUserData.ProfilePicName ?? string.Empty);
+                UserProfilePathUrl = Path.Combine( _configuration["BaseUrl"], _configuration["UserProfileImgPath"], _profileUserData.ProfilePictureFile ?? string.Empty);
                return Page();
             }
             catch (Exception ex)
@@ -171,7 +169,7 @@ namespace Spider_QAMS.Pages.Users
             {
                 await LoadAllProfilesData(); // Reload ProfilesData if there's a validation error
                 TempData["error"] = "Model State Validation Failed.";
-                UserProfilePathUrl = Path.Combine(_configuration["UserProfileImgPath"], _profileUserData.ProfilePicName);
+                UserProfilePathUrl = Path.Combine(_configuration["UserProfileImgPath"], _profileUserData.ProfilePictureFile);
                 if (isProfilePhotoReUpload)
                 {
                     ModelState.AddModelError("ProfileUsersData.PhotoFile", "Please upload profile picture again.");
@@ -180,28 +178,15 @@ namespace Spider_QAMS.Pages.Users
             }
             try
             {
-                string uniqueFileName = null;
-                string filePath = null;
-                string uploadFolder = null;
-
+                string base64String = null;
                 if (ProfileUsersData.PhotoFile != null)
                 {
-                    uploadFolder = Path.Combine(_webHostEnvironment.WebRootPath, _configuration["UserProfileImgPath"]);
-                    uniqueFileName = Guid.NewGuid().ToString() + "_" + ProfileUsersData.PhotoFile.FileName;
-                    filePath = Path.Combine(uploadFolder, uniqueFileName);
-
-                    // FileStream is properly disposed of after use
-                    using (var fileStream = new FileStream(filePath, FileMode.Create))
+                    using (var memoryStream = new MemoryStream())
                     {
-                        await ProfileUsersData.PhotoFile.CopyToAsync(fileStream);
+                        await ProfileUsersData.PhotoFile.CopyToAsync(memoryStream);
+                        base64String = Convert.ToBase64String(memoryStream.ToArray());
                     }
                 }
-
-                ProfileSite ProfileSiteData = new ProfileSite
-                {
-                    ProfileId = ProfileUsersData.ProfileSiteData.ProfileId,
-                    ProfileName = ProfileUsersData.ProfileSiteData.ProfileName,
-                };
 
                 ProfileUserAPIVM profileUserAPIVM = new ProfileUserAPIVM
                 {
@@ -212,8 +197,13 @@ namespace Spider_QAMS.Pages.Users
                     FullName = ProfileUsersData.FullName,
                     Password = ProfileUsersData.Password ?? string.Empty,
                     UserName = ProfileUsersData.UserName,
-                    ProfilePicName = ProfileUsersData.PhotoFile != null ? uniqueFileName : "",
-                    ProfileSiteData = ProfileSiteData,
+                    ProfilePictureFile = ProfileUsersData.PhotoFile != null ? base64String : string.Empty,
+                    ProfilePictureName = ProfileUsersData.PhotoFile.FileName,
+                    ProfileSiteData = new ProfileSite
+                    {
+                        ProfileId = ProfileUsersData.ProfileSiteData.ProfileId,
+                        ProfileName = ProfileUsersData.ProfileSiteData.ProfileName,
+                    },
                     IsActive = ProfileUsersData.IsActive,
                     IsADUser = ProfileUsersData.IsADUser,
                     Location = string.Empty,
@@ -235,15 +225,9 @@ namespace Spider_QAMS.Pages.Users
                 }
                 else
                 {
-                    // Delete the uploaded image if the update fails
-                    if (ProfileUsersData.PhotoFile != null && !string.IsNullOrEmpty(filePath) && System.IO.File.Exists(filePath))
-                    {
-                        System.IO.File.Delete(filePath);
-                    }
-
                     await LoadAllProfilesData();
                     TempData["error"] = $"{ProfileUsersData.FullName} - Error occurred in response with status: {response.StatusCode} - {response.ReasonPhrase}";
-                    UserProfilePathUrl = Path.Combine(_configuration["UserProfileImgPath"], _profileUserData.ProfilePicName);
+                    UserProfilePathUrl = Path.Combine(_configuration["UserProfileImgPath"], _profileUserData.ProfilePictureFile);
                     return Page();
                 }
             }

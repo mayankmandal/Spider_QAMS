@@ -92,6 +92,36 @@ namespace Spider_QAMS.Controllers
                 throw new Exception("Error while creating the file.", ex);
             }
         }
+        public async Task<string> ReadFileAsync(string filePath)
+        {
+            try
+            {
+                if (System.IO.File.Exists(filePath))
+                {
+                    // Read the file content as a byte array
+                    byte[] fileBytes;
+                    using (var stream = new FileStream(filePath, FileMode.Open, FileAccess.Read, FileShare.None))
+                    {
+                        fileBytes = new byte[stream.Length];
+                        await stream.ReadAsync(fileBytes, 0, fileBytes.Length);
+                    }
+
+                    // Convert the byte array to a base64 string
+                    string base64Content = Convert.ToBase64String(fileBytes);
+
+                    // Return the base64 content
+                    return base64Content;
+                }
+                else
+                {
+                    throw new FileNotFoundException("File does not exist at the specified path.");
+                }
+            }
+            catch (Exception ex)
+            {
+                throw new Exception("Error while deleting the file.", ex);
+            }
+        }
         [HttpPost("FetchRecord")]
         [ProducesResponseType(typeof(object), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
@@ -219,6 +249,8 @@ namespace Spider_QAMS.Controllers
         {
             using (var unitOfWork = new UnitOfWork(_configuration.GetConnectionString("DefaultConnection"), _navigationRepository))
             {
+                string uniqueFileName = null;
+                string filePath = null;
                 try
                 {
                     var jwtToken = Request.Headers["Authorization"].ToString().Replace("Bearer ", "");
@@ -241,6 +273,13 @@ namespace Spider_QAMS.Controllers
                     {
                         return BadRequest("Password must be between 8 and 16 characters, and must contain at least one uppercase letter, one lowercase letter, one digit, and one special character.");
                     }
+                    
+                    if (!string.IsNullOrEmpty(profileUsersData.ProfilePictureFile))
+                    {
+                        uniqueFileName = $"{Guid.NewGuid()}_{profileUsersData.ProfilePictureName}.jpg";
+                        var folderPath = Path.Combine(_webHostEnvironment.WebRootPath, _configuration["UserProfileImgPath"]);
+                        filePath = await CreateFileAsync(folderPath, uniqueFileName, profileUsersData.ProfilePictureFile);
+                    }
 
                     string salt = string.Empty;
                     string hashedPassword = string.Empty;
@@ -253,13 +292,13 @@ namespace Spider_QAMS.Controllers
 
                     ProfileUser profileUser = new ProfileUser
                     {
+                        UserId = 0,
                         Designation = profileUsersData.Designation.ToString(),
                         FullName = profileUsersData.FullName,
                         EmailID = profileUsersData.EmailID,
                         UserName = profileUsersData.UserName,
-                        ProfilePicName = profileUsersData.ProfilePicName,
+                        ProfilePicName = uniqueFileName, // Save unique file name
                         PhoneNumber = profileUsersData.PhoneNumber.ToString(),
-                        UserId = 0,
                         PasswordHash = hashedPassword,
                         PasswordSalt = salt,
                         ProfileSiteData = new ProfileSite
@@ -278,6 +317,11 @@ namespace Spider_QAMS.Controllers
                 catch (Exception ex)
                 {
                     unitOfWork.Rollback();
+                    // Delete the file if it was created
+                    if(!string.IsNullOrEmpty(filePath))
+                    {
+                        await DeleteFileAsync(filePath);
+                    }
                     return StatusCode(500, $"Internal Server Error: {ex.Message}");
                 }
             }
@@ -291,6 +335,8 @@ namespace Spider_QAMS.Controllers
         {
             using (var unitOfWork = new UnitOfWork(_configuration.GetConnectionString("DefaultConnection"), _navigationRepository, _userRepository))
             {
+                string uniqueFileName = null;
+                string filePath = null;
                 try
                 {
                     var jwtToken = Request.Headers["Authorization"].ToString().Replace("Bearer ", "");
@@ -322,6 +368,13 @@ namespace Spider_QAMS.Controllers
                         return NotFound("Target user does not have an associated role.");
                     }
 
+                    if (!string.IsNullOrEmpty(profileUserAPIVM.ProfilePictureFile))
+                    {
+                        uniqueFileName = $"{Guid.NewGuid()}_{profileUserAPIVM.ProfilePictureName}.jpg";
+                        var folderPath = Path.Combine(_webHostEnvironment.WebRootPath, _configuration["UserProfileImgPath"]);
+                        filePath = await CreateFileAsync(folderPath, uniqueFileName, profileUserAPIVM.ProfilePictureFile);
+                    }
+
                     string salt = string.Empty;
                     string hashedPassword = string.Empty;
 
@@ -337,7 +390,7 @@ namespace Spider_QAMS.Controllers
                         FullName = profileUserAPIVM.FullName,
                         EmailID = profileUserAPIVM.EmailID,
                         UserName = profileUserAPIVM.UserName,
-                        ProfilePicName = profileUserAPIVM.ProfilePicName,
+                        ProfilePicName = uniqueFileName,
                         PhoneNumber = profileUserAPIVM.PhoneNumber.ToString(),
                         UserId = profileUserAPIVM.UserId,
                         PasswordHash = hashedPassword,
@@ -350,6 +403,7 @@ namespace Spider_QAMS.Controllers
                         IsADUser = profileUserAPIVM.IsADUser,
                     };
 
+                    // Update profile in the database and get previous profile photo path
                     string PreviousProfilePhotoPath = await _navigationRepository.UpdateUserProfileAsync(profileUser, user.UserId);
 
                     // Remove the cached item to force a refresh next time
@@ -357,14 +411,14 @@ namespace Spider_QAMS.Controllers
                     _httpContextAccessor.HttpContext.Session.Remove(SessionKeys.CurrentUserPagesKey);
                     _httpContextAccessor.HttpContext.Session.Remove(SessionKeys.CurrentUserCategoriesKey);
 
-                    if (!string.IsNullOrEmpty(profileUserAPIVM.ProfilePicName) && !string.IsNullOrEmpty(PreviousProfilePhotoPath))
-                    {
-                        string oldFilePath = Path.Combine(_webHostEnvironment.WebRootPath, _configuration["UserProfileImgPath"], PreviousProfilePhotoPath);
-                        bool isSucess = await DeleteFileAsync(oldFilePath);
-                        return Ok(isSucess);
-                    }
                     // Commit the transaction
                     await unitOfWork.CommitAsync();
+
+                    if (!string.IsNullOrEmpty(profileUserAPIVM.ProfilePictureFile) && !string.IsNullOrEmpty(PreviousProfilePhotoPath))
+                    {
+                        string oldFilePath = Path.Combine(_webHostEnvironment.WebRootPath, _configuration["UserProfileImgPath"], PreviousProfilePhotoPath);
+                        await DeleteFileAsync(oldFilePath);
+                    }
                     return Ok();
                 }
                 catch (Exception ex)
@@ -415,6 +469,8 @@ namespace Spider_QAMS.Controllers
         {
             using (var unitOfWork = new UnitOfWork(_configuration.GetConnectionString("DefaultConnection"), _navigationRepository))
             {
+                string uniqueFileName = null;
+                string filePath = null;
                 try
                 {
                     var jwtToken = Request.Headers["Authorization"].ToString().Replace("Bearer ", "");
@@ -433,6 +489,13 @@ namespace Spider_QAMS.Controllers
                         return BadRequest("Password must be between 8 and 16 characters, and must contain at least one uppercase letter, one lowercase letter, one digit, and one special character. Also, both passwords must match.");
                     }
 
+                    if (!string.IsNullOrEmpty(userSettings.SettingsProfilePictureFile))
+                    {
+                        uniqueFileName = $"{Guid.NewGuid()}_{userSettings.SettingsProfilePictureName}.jpg";
+                        var folderPath = Path.Combine(_webHostEnvironment.WebRootPath, _configuration["UserProfileImgPath"]);
+                        filePath = await CreateFileAsync(folderPath, uniqueFileName, userSettings.SettingsProfilePictureFile);
+                    }
+
                     string salt = string.Empty;
                     string hashedPassword = string.Empty;
 
@@ -447,7 +510,7 @@ namespace Spider_QAMS.Controllers
                         FullName = userSettings.SettingsFullName,
                         EmailID = userSettings.SettingsEmailID,
                         UserName = userSettings.SettingsUserName,
-                        ProfilePicName = userSettings.SettingsProfilePicName,
+                        ProfilePicName = uniqueFileName,
                         UserId = userSettings.SettingsUserId,
                         PasswordHash = hashedPassword != null ? hashedPassword : string.Empty,
                         PasswordSalt = salt != null ? salt : string.Empty,
@@ -458,14 +521,14 @@ namespace Spider_QAMS.Controllers
                     // Remove the cached item to force a refresh next time
                     _httpContextAccessor.HttpContext.Session.Remove(SessionKeys.CurrentUserProfileKey);
 
-                    if (!string.IsNullOrEmpty(userSettings.SettingsProfilePicName) && !string.IsNullOrEmpty(PreviousProfilePhotoPath))
-                    {
-                        string oldFilePath = Path.Combine(_webHostEnvironment.WebRootPath, _configuration["UserProfileImgPath"], PreviousProfilePhotoPath);
-                        bool isSucess = await DeleteFileAsync(oldFilePath);
-                        return Ok(isSucess);
-                    }
                     // Commit the transaction
                     await unitOfWork.CommitAsync();
+
+                    if (!string.IsNullOrEmpty(userSettings.SettingsProfilePictureFile) && !string.IsNullOrEmpty(PreviousProfilePhotoPath))
+                    {
+                        string oldFilePath = Path.Combine(_webHostEnvironment.WebRootPath, _configuration["UserProfileImgPath"], PreviousProfilePhotoPath);
+                        await DeleteFileAsync(oldFilePath);
+                    }
                     return Ok();
                 }
                 catch (Exception ex)
@@ -908,6 +971,10 @@ namespace Spider_QAMS.Controllers
         {
             using (var unitOfWork = new UnitOfWork(_configuration.GetConnectionString("DefaultConnection"), _navigationRepository))
             {
+                // Track created and deleted files
+                var createdFiles = new List<string>();
+                var deletedFiles = new List<(string FilePath, string OriginalContent)>();
+
                 try
                 {
                     var jwtToken = Request.Headers["Authorization"].ToString().Replace("Bearer ", "");
@@ -933,6 +1000,14 @@ namespace Spider_QAMS.Controllers
                                 // Mark for Delete
                                 // Delete the physical file
                                 string oldFilePath = Path.Combine(_webHostEnvironment.WebRootPath, _configuration["SiteDetailImgPath"], category.PicCatId.ToString(), image.FileName);
+
+                                // Get original file content in base64 format for rollback
+                                if (System.IO.File.Exists(oldFilePath))
+                                {
+                                    var originalContent = await ReadFileAsync(oldFilePath);
+                                    deletedFiles.Add((oldFilePath, originalContent));
+                                }
+
                                 bool fileDeletionSuccess = await DeleteFileAsync(oldFilePath);
 
                                 if (!fileDeletionSuccess)
@@ -962,6 +1037,9 @@ namespace Spider_QAMS.Controllers
                                 var folderPath = Path.Combine(_webHostEnvironment.WebRootPath, _configuration["SiteDetailImgPath"], category.PicCatId.ToString());
 
                                 var filePath = await CreateFileAsync(folderPath, uniqueFileName, image.ImageFile);
+
+                                // Track the newly created file for rollback purposes
+                                createdFiles.Add(filePath);
 
                                 // Add new image data to sitePicturesData list
                                 SitePicturesData.Add(new SitePictures
@@ -1003,7 +1081,7 @@ namespace Spider_QAMS.Controllers
 
                     if (!isSuccess)
                     {
-                        return BadRequest();
+                        return BadRequest("Failed to update site images in database.");
                     }
                     else
                     {
@@ -1014,7 +1092,31 @@ namespace Spider_QAMS.Controllers
                 }
                 catch (Exception ex)
                 {
+                    // Rollback the transaction
                     unitOfWork.Rollback();
+
+                    // Rollback file operations
+                    foreach(var createdFile in createdFiles)
+                    {
+                        await DeleteFileAsync(createdFile); // Delete any files created during the operation
+                    }
+
+                    foreach(var (filePath, originalContent) in deletedFiles)
+                    {
+                        // Restore deleted files using the original content
+                        var folderPath = Path.GetDirectoryName(filePath);
+                        var fileName = Path.GetFileName(filePath);
+
+                        try
+                        {
+                            await CreateFileAsync(folderPath, fileName, originalContent);
+                        }
+                        catch (Exception e)
+                        {
+                            throw new FileLoadException($"Failed to restore file at {filePath}: {ex.Message}");
+                        }
+
+                    }
                     return StatusCode(500, $"Internal Server Error: {ex.Message}");
                 }
             }
@@ -1081,7 +1183,7 @@ namespace Spider_QAMS.Controllers
                         return Unauthorized("User is not authenticated.");
                     }
                     var currentUserDetails = await _navigationRepository.GetUserRecordAsync(userId);
-                    currentUserDetails.ProfilePicName = Path.Combine(_configuration["UserProfileImgPath"], currentUserDetails.ProfilePicName);
+                    currentUserDetails.ProfilePictureFile = Path.Combine(_configuration["UserProfileImgPath"], currentUserDetails.ProfilePictureFile);
                     // Commit the transaction
                     await unitOfWork.CommitAsync();
                     return Ok(currentUserDetails);
@@ -1267,7 +1369,7 @@ namespace Spider_QAMS.Controllers
                     var allUsersData = await _navigationRepository.GetAllUsersDataAsync();
                     foreach (var profileUserAPIVM in allUsersData)
                     {
-                        profileUserAPIVM.ProfilePicName = Path.Combine(_configuration["UserProfileImgPath"], profileUserAPIVM.ProfilePicName);
+                        profileUserAPIVM.ProfilePictureFile = Path.Combine(_configuration["UserProfileImgPath"], profileUserAPIVM.ProfilePictureFile);
                     }
                     // Commit the transaction
                     await unitOfWork.CommitAsync();

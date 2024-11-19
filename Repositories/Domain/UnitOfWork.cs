@@ -1,5 +1,4 @@
-﻿using Spider_QAMS.Controllers;
-using Spider_QAMS.Repositories.Skeleton;
+﻿using Spider_QAMS.Repositories.Skeleton;
 using System.Data.SqlClient;
 
 namespace Spider_QAMS.Repositories.Domain
@@ -14,7 +13,7 @@ namespace Spider_QAMS.Repositories.Domain
 
         public UnitOfWork(
             string connectionString,
-            INavigationRepository navigationRepository,
+            INavigationRepository navigationRepository = null,
             IUserRepository userRepository = null)
         {
             _connection = new SqlConnection(connectionString);
@@ -24,7 +23,7 @@ namespace Spider_QAMS.Repositories.Domain
             NavigationRepository = navigationRepository;
             UserRepository = userRepository;
 
-            // Inject the transaction into repositories
+            // Inject the transaction only if the repository is provided
             (NavigationRepository as NavigationRepository)?.SetTransaction(_transaction);
             (UserRepository as UserRepository)?.SetTransaction(_transaction);
         }

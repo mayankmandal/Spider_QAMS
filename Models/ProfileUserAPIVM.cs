@@ -10,7 +10,8 @@ namespace Spider_QAMS.Models
         public string Password { get; set; }
         public string EmailID { get; set; }
         public string PhoneNumber { get; set; }
-        public string ProfilePicName { get; set; }
+        public string ProfilePictureFile { get; set; }
+        public string ProfilePictureName { get; set; }
         public ProfileSite ProfileSiteData { get; set; }
         public string Designation { get; set; }
         public string Location { get; set; }

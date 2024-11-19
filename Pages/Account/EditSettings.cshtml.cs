@@ -6,7 +6,6 @@ using System.Net.Http.Headers;
 using System.Text;
 using Spider_QAMS.Models.ViewModels;
 using System.Text.Json;
-using Microsoft.AspNetCore.Authorization;
 
 namespace Spider_QAMS.Pages.Account
 {
@@ -50,7 +49,7 @@ namespace Spider_QAMS.Pages.Account
                     SettingEmailID = _userSettings.EmailID,
                     SettingPhotoFile = null,
                 };
-                UserProfilePathUrl = Path.Combine(_configuration["BaseUrl"], _configuration["UserProfileImgPath"], _userSettings.ProfilePicName ?? string.Empty);
+                UserProfilePathUrl = Path.Combine(_configuration["BaseUrl"], _configuration["UserProfileImgPath"], _userSettings.ProfilePictureFile ?? string.Empty);
             };
         }
         public async Task<IActionResult> OnPostAsync()
@@ -87,69 +86,76 @@ namespace Spider_QAMS.Pages.Account
             {
                 TempData["error"] = "Model State Validation Failed.";
                 TempData["UserSettings"] = JsonSerializer.Serialize(_userSettings);
-                UserProfilePathUrl = Path.Combine(_configuration["UserProfileImgPath"], _userSettings.ProfilePicName);
+                UserProfilePathUrl = Path.Combine(_configuration["UserProfileImgPath"], _userSettings.ProfilePictureFile);
                 if (isProfilePhotoReUpload)
                 {
                     ModelState.AddModelError("SettingsData.SettingPhotoFile", "Please upload profile picture again.");
                 }
                 return Page();
             }
-
-            string uniqueFileName = null;
-            string filePath = null;
-            string uploadFolder = null;
-
-            if (SettingsData.SettingPhotoFile != null)
+            try
             {
-                uploadFolder = Path.Combine(_webHostEnvironment.WebRootPath, _configuration["UserProfileImgPath"]);
-                uniqueFileName = Guid.NewGuid().ToString() + "_" + SettingsData.SettingPhotoFile.FileName;
-                filePath = Path.Combine(uploadFolder, uniqueFileName);
-
-                // FileStream is properly disposed of after use
-                using (var fileStream = new FileStream(filePath, FileMode.Create))
+                string base64String = null;
+                if (SettingsData.SettingPhotoFile != null)
                 {
-                    await SettingsData.SettingPhotoFile.CopyToAsync(fileStream);
-                }
-            }
-
-            SettingsAPIVM userSettings = new SettingsAPIVM
-            {
-                SettingsUserId = SettingsData.SettingUserId,
-                SettingsFullName = SettingsData.SettingFullName,
-                SettingsEmailID = SettingsData.SettingEmailID,
-                SettingsProfilePicName = SettingsData.SettingPhotoFile != null ? uniqueFileName : "",
-                SettingsUserName = SettingsData.SettingUserName,
-                SettingsPassword = SettingsData.Password != null ? SettingsData.Password : "",
-                SettingsReTypePassword = SettingsData.ReTypePassword != null ? SettingsData.ReTypePassword : ""
-            };
-
-            var client = _clientFactory.CreateClient();
-            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", JWTCookieHelper.GetJWTCookie(HttpContext));
-            var apiUrl = $"{_configuration["ApiBaseUrl"]}/Navigation/UpdateSettingsData";
-            var jsonContent = JsonSerializer.Serialize(userSettings);
-            var httpContent = new StringContent(jsonContent, Encoding.UTF8, "application/json");
-            HttpResponseMessage response;
-            response = await client.PostAsync(apiUrl, httpContent);
-
-            if (response.IsSuccessStatusCode)
-            {
-                TempData["success"] = $"{SettingsData.SettingFullName} - Profile Updated Successfully";
-                TempData.Remove("UserSettings");
-                return RedirectToPage();
-            }
-            else
-            {
-                // Delete the uploaded image if the update fails
-                if (SettingsData.SettingPhotoFile != null && !string.IsNullOrEmpty(filePath) && System.IO.File.Exists(filePath))
-                {
-                    System.IO.File.Delete(filePath);
+                    using (var memoryStream = new MemoryStream())
+                    {
+                        await SettingsData.SettingPhotoFile.CopyToAsync(memoryStream);
+                        base64String = Convert.ToBase64String(memoryStream.ToArray());
+                    }
                 }
 
-                TempData["error"] = $"{SettingsData.SettingFullName} - Error occurred in response with status: {response.StatusCode} - {response.ReasonPhrase}";
-                TempData["UserSettings"] = JsonSerializer.Serialize(_userSettings);
-                UserProfilePathUrl = Path.Combine(_configuration["UserProfileImgPath"], _userSettings.ProfilePicName);
-                return Page();
+                SettingsAPIVM userSettings = new SettingsAPIVM
+                {
+                    SettingsUserId = SettingsData.SettingUserId,
+                    SettingsFullName = SettingsData.SettingFullName,
+                    SettingsEmailID = SettingsData.SettingEmailID,
+                    SettingsProfilePictureFile = SettingsData.SettingPhotoFile != null ? base64String : "",
+                    SettingsProfilePictureName = SettingsData.SettingPhotoFile.FileName,
+                    SettingsUserName = SettingsData.SettingUserName,
+                    SettingsPassword = SettingsData.Password != null ? SettingsData.Password : "",
+                    SettingsReTypePassword = SettingsData.ReTypePassword != null ? SettingsData.ReTypePassword : ""
+                };
+
+                var client = _clientFactory.CreateClient();
+                client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", JWTCookieHelper.GetJWTCookie(HttpContext));
+                var apiUrl = $"{_configuration["ApiBaseUrl"]}/Navigation/UpdateSettingsData";
+                var jsonContent = JsonSerializer.Serialize(userSettings);
+                var httpContent = new StringContent(jsonContent, Encoding.UTF8, "application/json");
+                HttpResponseMessage response;
+                response = await client.PostAsync(apiUrl, httpContent);
+
+                if (response.IsSuccessStatusCode)
+                {
+                    TempData["success"] = $"{SettingsData.SettingFullName} - Profile Updated Successfully";
+                    TempData.Remove("UserSettings");
+                    return RedirectToPage();
+                }
+                else
+                {
+                    TempData["error"] = $"{SettingsData.SettingFullName} - Error occurred in response with status: {response.StatusCode} - {response.ReasonPhrase}";
+                    TempData["UserSettings"] = JsonSerializer.Serialize(_userSettings);
+                    UserProfilePathUrl = Path.Combine(_configuration["UserProfileImgPath"], _userSettings.ProfilePictureFile);
+                    return Page();
+                }
             }
+            catch (HttpRequestException ex)
+            {
+                return HandleError(ex, "Error occurred during HTTP request.");
+            }
+            catch (JsonException ex)
+            {
+                return HandleError(ex, "Error occurred while parsing JSON.");
+            }
+            catch (Exception ex)
+            {
+                return HandleError(ex, "An unexpected error occurred.");
+            }
+        }
+        private IActionResult HandleError(Exception ex, string errorMessage)
+        {
+            TempData["error"] = $"{SettingsData.SettingFullName} - " + errorMessage + ". Error details: " + ex.Message;
+            return Page();
         }
     }
 }

@@ -1,15 +1,15 @@
 ﻿@page
-@model Spider_QAMS.Pages.Users.UpdateUserModel
+@model Spider_QAMS.Pages.Users.ReadUserModel
 @{
-    ViewData["Title"] = "Update User";
-    TempData["NavigationalPageName"] = "Update User";
+    ViewData["Title"] = "Read User";
+    TempData["NavigationalPageName"] = "Read User";
 }
 
-<div style="display:flex; flex-direction:column; justify-content:center; align-items:center; min-height:100vh;">
-    <form id="updateProfileForm" method="post" enctype="multipart/form-data">
+<div style="display:flex; flex-direction:column; justify-content:center; align-items:center; min-height:20vh;">
+    <form id="deleteUserForm" method="post" enctype="multipart/form-data">
         <div class="container form-control border-2 mb-2" style="display:flex; justify-content:space-around; height:auto; flex-direction:column; width: 45rem;">
             <div class="row pb-1 pt-2">
-                <div style="color:#17a2b8; text-align:center; font-size:1.7rem; font-weight:500">UPDATE USER</div>
+                <div style="color:#17a2b8; text-align:center; font-size:1.7rem; font-weight:500">USER</div>
                 <div>
                     <hr />
                 </div>
@@ -37,7 +37,7 @@
                             {
                                 <img src="@Model.UserProfilePathUrl" class="rounded-circle img-thumbnail" style="width: 150px; height: 150px;" id="loadedProfilePicture">
                                 <div class="position-absolute bottom-0 end-0 rounded-circle bg-light p-1" style="transform: translate(20%, 20%);">
-                                    <input class="d-none" asp-for="ProfileUsersData.PhotoFile" type="file" id="profile-img-file-input" />
+                                    <input class="d-none" asp-for="ProfileUsersData.PhotoFile" type="file" id="profile-img-file-input" disabled />
                                     <label for="profile-img-file-input" class="rounded-circle bg-gradient-blue p-2" style="cursor: pointer; width: 40px; height: 40px;">
                                         <i class="fas fa-camera" style="font-size: 1.5rem;"></i>
                                     </label>
@@ -65,7 +65,7 @@
                                 <div class="input-group-prepend">
                                     <span class="input-group-text"><i class="fas fa-briefcase"></i></span>
                                 </div>
-                                <input type="text" asp-for="ProfileUsersData.Designation" placeholder="Designation" class="form-control" />
+                                <input type="text" asp-for="ProfileUsersData.Designation" placeholder="Designation" class="form-control" disabled />
                             </div>
                             <span asp-validation-for="ProfileUsersData.Designation" class="text-danger fw-bold"></span>
                         </div>
@@ -78,7 +78,7 @@
                             <div class="input-group-prepend">
                                 <span class="input-group-text"><i class="fas fa-id-card"></i></span>
                             </div>
-                            <input type="text" asp-for="ProfileUsersData.FullName" placeholder="Full Name" class="form-control" />
+                            <input type="text" asp-for="ProfileUsersData.FullName" placeholder="Full Name" class="form-control" disabled />
                         </div>
                         <span asp-validation-for="ProfileUsersData.FullName" class="text-danger fw-bold"></span>
                     </div>
@@ -91,7 +91,7 @@
                                 <div class="input-group-prepend">
                                     <span class="input-group-text"><i class="fas fa-envelope"></i></span>
                                 </div>
-                                <input type="email" asp-for="ProfileUsersData.EmailID" placeholder="Email Address" class="form-control" readonly />
+                                <input type="email" asp-for="ProfileUsersData.EmailID" placeholder="Email Address" class="form-control" disabled />
                             </div>
                             <span asp-validation-for="ProfileUsersData.EmailID" class="text-danger fw-bold"></span>
                         </div>
@@ -101,7 +101,7 @@
                                 <div class="input-group-prepend">
                                     <span class="input-group-text"><i class="fas fa-phone"></i></span>
                                 </div>
-                                <input type="tel" asp-for="ProfileUsersData.PhoneNumber" placeholder="Mobile Number" class="form-control" />
+                                <input type="tel" asp-for="ProfileUsersData.PhoneNumber" placeholder="Mobile Number" class="form-control" disabled />
                             </div>
                             <span asp-validation-for="ProfileUsersData.PhoneNumber" class="text-danger fw-bold"></span>
                         </div>
@@ -114,44 +114,9 @@
                             <div class="input-group-prepend">
                                 <span class="input-group-text"><i class="fas fa-user-cog"></i></span>
                             </div>
-                            <input type="text" asp-for="ProfileUsersData.UserName" placeholder="Username" class="form-control" />
+                            <input type="text" asp-for="ProfileUsersData.UserName" placeholder="Username" class="form-control" disabled />
                         </div>
                         <span asp-validation-for="ProfileUsersData.UserName" class="text-danger fw-bold"></span>
-                    </div>
-
-                    <!-- Change Password Section -->
-                    <!-- New Password and ReType New Password ld -->
-                    <div class="mb-3" style="display: flex; justify-content: space-between;">
-                        <div style="flex: 1; margin-right: 10px;">
-                            <label asp-for="ProfileUsersData.Password" class="form-label"></label>
-                            <div class="input-group mb-3">
-                                <div class="input-group-prepend">
-                                    <span class="input-group-text"><i class="fas fa-lock"></i></span>
-                                </div>
-                                <input type="password" asp-for="ProfileUsersData.Password" placeholder="New Password" class="form-control password-toggle-input" />
-                                <div class="input-group-append">
-                                    <span class="input-group-text">
-                                        <i class="fas fa-eye-slash password-toggle-icon" data-toggle="password"></i>
-                                    </span>
-                                </div>
-                            </div>
-                            <span asp-validation-for="ProfileUsersData.Password" class="text-danger fw-bold"></span>
-                        </div>
-                        <div style="flex: 1;">
-                            <label asp-for="ProfileUsersData.ReTypePassword" class="form-label"></label>
-                            <div class="input-group mb-3">
-                                <div class="input-group-prepend">
-                                    <span class="input-group-text"><i class="fas fa-lock"></i></span>
-                                </div>
-                                <input type="password" asp-for="ProfileUsersData.ReTypePassword" placeholder="Retype New Password" class="form-control password-toggle-input" />
-                                <div class="input-group-append">
-                                    <span class="input-group-text">
-                                        <i class="fas fa-eye-slash password-toggle-icon" data-toggle="password"></i>
-                                    </span>
-                                </div>
-                            </div>
-                            <span asp-validation-for="ProfileUsersData.ReTypePassword" class="text-danger fw-bold"></span>
-                        </div>
                     </div>
 
                     <!-- Dropdown to Select Profile Name -->
@@ -162,30 +127,16 @@
                                 <span class="input-group-text"><i class="fas fa-user"></i></span>
                             </div>
                             <select asp-for="ProfileUsersData.ProfileSiteData.ProfileName" class="form-select striped-select" id="profileSelect">
-                                @foreach (var profile in Model.ProfilesData)
-                                {
-                                    @if (profile.ProfileId == Model.ProfileUsersData.ProfileSiteData.ProfileId)
-                                    {
-                                        <option value="@profile.ProfileName" data-profileid="@profile.ProfileId" selected>@profile.ProfileName</option>
-
-                                    }
-                                    else
-                                    {
-                                        <option value="@profile.ProfileName" data-profileid="@profile.ProfileId">@profile.ProfileName</option>
-                                    }
-                                }
+                                <option value="@Model.ProfileUsersData.ProfileSiteData.ProfileName" data-profileid="@Model.ProfileUsersData.ProfileSiteData.ProfileId" selected disabled>@Model.ProfileUsersData.ProfileSiteData.ProfileName</option>
                             </select>
                         </div>
                         <span asp-validation-for="ProfileUsersData.ProfileSiteData.ProfileName" class="text-danger fw-bold"></span>
                     </div>
 
-                    <!-- Hidden fields Profile Id -->
-                    <input type="hidden" asp-for="ProfileUsersData.ProfileSiteData.ProfileId" id="profileIdHidden" />
-
                     <!-- Is Active -->
                     <div class="mb-3">
                         <div class="form-check">
-                            <input class="form-check-input" type="checkbox" asp-for="ProfileUsersData.IsActive" id="isActiveCheckbox" />
+                            <input class="form-check-input" type="checkbox" asp-for="ProfileUsersData.IsActive" id="isActiveCheckbox" disabled />
                             <label class="form-check-label" for="isActiveCheckbox">
                                 Active User
                             </label>
@@ -195,7 +146,7 @@
                     <!-- Is Active Directory User -->
                     <div class="mb-3">
                         <div class="form-check">
-                            <input class="form-check-input" type="checkbox" asp-for="ProfileUsersData.IsADUser" id="isActiveDirectoryUserCheckbox" />
+                            <input class="form-check-input" type="checkbox" asp-for="ProfileUsersData.IsADUser" id="isActiveDirectoryUserCheckbox" disabled />
                             <label class="form-check-label" for="isActiveDirectoryUserCheckbox">
                                 Active Directory User
                             </label>
@@ -205,9 +156,8 @@
                     <!-- Buttons for Edit -->
                     <div style="display: flex; justify-content: center; align-items: center; margin-top: 20px;">
                         <div class="column" style="width: 100%; max-width: 600px; display: flex; justify-content: space-around;">
-                            <button type="submit" onclick="prepareFormSubmission()" class="btn update-btn">Update User</button>
-                            <a asp-page="/Users/ReadUser" asp-route-userId="@Model.ProfileUsersData.UserId" type="button" class="btn btn-warning"><i class="fas fa-arrow-circle-left"></i> Read User</a>
-                            <a asp-page="/Users/ManageUsers" type="button" class="btn btn-secondary">Back to All Users</a>
+                            <a asp-page="/Users/UpdateUser" asp-route-userId="@Model.ProfileUsersData.UserId" type="button" class="btn btn-warning"><i class="fas fa-arrow-circle-left"></i> Edit User</a>
+                            <a asp-page="/Users/ManageUsers" type="button" class="btn btn-secondary"><i class="fas fa-arrow-circle-left"></i> Back to All Users</a>
                         </div>
                     </div>
                 </div>
@@ -218,24 +168,4 @@
 
 @section scripts {
     <partial name="_ValidationScriptsPartial" />
-    <script>
-        $('#profile-img-file-input').change(function () {
-            // Get the selected file
-            var file = this.files[0];
-
-            if (file) {
-                // Create a file reader object
-                var reader = new FileReader();
-
-                // Set up the FileReader Onload event
-                reader.onload = function (e) {
-                    // Set the SRC attribute of the image element to the data URL of the selected file
-                    $('#loadedProfilePicture').attr('src', e.target.result);
-                };
-
-                // Read the selected file as a data URL
-                reader.readAsDataURL(file);
-            }
-        });
-    </script>
 }

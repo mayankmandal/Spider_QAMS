@@ -211,6 +211,8 @@ namespace Spider_QAMS.Controllers
         {
             using (var unitOfWork = new UnitOfWork(_configuration.GetConnectionString("DefaultConnection"), _navigationRepository))
             {
+                // Deleted files
+                var deletedFiles = new List<(string FilePath, string OriginalContent)>();
                 try
                 {
                     var jwtToken = Request.Headers["Authorization"].ToString().Replace("Bearer ", "");
@@ -227,14 +229,74 @@ namespace Spider_QAMS.Controllers
                     {
                         return BadRequest($"{deleteType} {deleteId} is invalid.");
                     }
-                    bool isSuccess = await _navigationRepository.DeleteEntityAsync(deleteId, deleteType);
-                    // Commit the transaction
-                    await unitOfWork.CommitAsync();
-                    return Ok(isSuccess);
+
+                    (bool, List<string>) isSuccessPaths = await _navigationRepository.DeleteEntityAsync(deleteId, deleteType);
+
+                    if(isSuccessPaths.Item1 && isSuccessPaths.Item2.Count > 0)
+                    {
+                        if (deleteType == DeleteEntityType.User)
+                        {
+                            foreach(var path in isSuccessPaths.Item2)
+                            {
+                                string oldFilePath = Path.Combine(_webHostEnvironment.WebRootPath, _configuration["UserProfileImgPath"], path);
+
+                                // Get original file content in base64 format for rollback
+                                if (System.IO.File.Exists(oldFilePath))
+                                {
+                                    var originalContent = await ReadFileAsync(oldFilePath);
+                                    deletedFiles.Add((oldFilePath, originalContent));
+                                }
+                                isSuccessPaths.Item1 &= await DeleteFileAsync(oldFilePath);
+                            }
+                        }
+                        else if(deleteType == DeleteEntityType.SiteDetail)
+                        {
+                            foreach (var path in isSuccessPaths.Item2)
+                            {
+                                string oldFilePath = Path.Combine(_webHostEnvironment.WebRootPath, _configuration["SiteDetailImgPath"], path);
+
+                                // Get original file content in base64 format for rollback
+                                if (System.IO.File.Exists(oldFilePath))
+                                {
+                                    var originalContent = await ReadFileAsync(oldFilePath);
+                                    deletedFiles.Add((oldFilePath, originalContent));
+                                }
+                                isSuccessPaths.Item1 &=  await DeleteFileAsync(oldFilePath);
+                            }
+                        }
+                    }
+
+                    if (!isSuccessPaths.Item1)
+                    {
+                        return BadRequest("Failed to delete in database.");
+                    }
+                    else
+                    {
+                        // Commit the transaction
+                        await unitOfWork.CommitAsync();
+                        return Ok(isSuccessPaths.Item1);
+                    }
                 }
                 catch (Exception ex)
                 {
+                    // Rollback the transaction
                     unitOfWork.Rollback();
+
+                    // Rollback file operations
+                    foreach (var (filePath, originalContent) in deletedFiles)
+                    {
+                        // Restore deleted files using the original content
+                        var folderPath = Path.GetDirectoryName(filePath);
+                        var fileName = Path.GetFileName(filePath);
+                        try
+                        {
+                            await CreateFileAsync(folderPath, fileName, originalContent);
+                        }
+                        catch (Exception e)
+                        {
+                            throw new FileLoadException($"Failed to restore file at {filePath}: {ex.Message}");
+                        }
+                    }
                     return StatusCode(500, $"Internal Server Error: {ex.Message}");
                 }
             }
@@ -1033,7 +1095,7 @@ namespace Spider_QAMS.Controllers
                             {
                                 // Mark for Add
                                 // Prepare to create a new image
-                                var uniqueFileName = $"{siteImageUploaderVM.SiteId}_{category.PicCatId}_{image.FileName}";
+                                var uniqueFileName = $"{Guid.NewGuid()}_{siteImageUploaderVM.SiteId}_{category.PicCatId}_{image.FileName}";
                                 var folderPath = Path.Combine(_webHostEnvironment.WebRootPath, _configuration["SiteDetailImgPath"], category.PicCatId.ToString());
 
                                 var filePath = await CreateFileAsync(folderPath, uniqueFileName, image.ImageFile);

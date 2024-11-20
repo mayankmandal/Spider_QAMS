@@ -137,10 +137,13 @@ namespace Spider_QAMS.Repositories.Domain
             }
             return isUnique > 0;
         }
-        public async Task<bool> DeleteEntityAsync(int deleteId, string deleteType)
+        public async Task<(bool, List<string>)> DeleteEntityAsync(int deleteId, string deleteType)
         {
             try
             {
+                int RowsAffected = -1;
+                List<string> paths = new List<string>();
+
                 SqlParameter[] sqlParameters = new SqlParameter[]
                 {
                     new SqlParameter("@Id", SqlDbType.Int){Value = deleteId},
@@ -148,15 +151,36 @@ namespace Spider_QAMS.Repositories.Domain
                     new SqlParameter("@RowsAffected", SqlDbType.Int) { Direction = ParameterDirection.Output }
                 };
 
-                bool isSuccess = SqlDBHelper.ExecuteNonQueryWithTransaction(_transaction,SP_DeleteEntityRecord, CommandType.StoredProcedure, sqlParameters);
+                // Execute the command
+                List<DataTable> tables = SqlDBHelper.ExecuteParameterizedNonQueryWithTransaction(_transaction,SP_DeleteEntityRecord, CommandType.StoredProcedure, sqlParameters);
+                if (tables.Count > 0)
+                {
+                    DataTable dataTable = tables[0];
+                    if (dataTable.Rows.Count > 0)
+                    {
+                        foreach (DataRow row in dataTable.Rows)
+                        {
+                            paths.Add(row["FilePath"].ToString());
+                        }
+                    }
+                    else
+                    {
+                        return (false, paths);
+                    }
 
-                int RowsAffected = (sqlParameters[2].Value != DBNull.Value) ? (int)sqlParameters[2].Value : -1;
+                }
+                else
+                {
+                    return (false, paths);
+                }
+
+                RowsAffected = (sqlParameters[2].Value != DBNull.Value) ? (int)sqlParameters[2].Value : -1;
 
                 if (RowsAffected < 0)
                 {
-                    return false;
+                    return (false,paths);
                 }
-                return true;
+                return (true, paths);
             }
             catch (SqlException sqlEx)
             {

@@ -8,7 +8,7 @@ namespace Spider_QAMS.Repositories.Skeleton
     {
         Task<object> FetchRecordByTypeAsync(Record record);
         Task<bool> CheckUniquenessAsync(UniquenessCheckRequest uniqueRequest);
-        Task<bool> DeleteEntityAsync(int deleteId, string deleteType);
+        Task<(bool, List<string>)> DeleteEntityAsync(int deleteId, string deleteType);
 
         Task<bool> CreateUserProfileAsync(ProfileUser profileUsersData, int CurrentUserId);
         Task<string> UpdateUserProfileAsync(ProfileUser profileUsersData, int CurrentUserId);

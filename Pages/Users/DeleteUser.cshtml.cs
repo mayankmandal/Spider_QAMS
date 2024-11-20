@@ -103,7 +103,7 @@ namespace Spider_QAMS.Pages.Users
                 if (response.IsSuccessStatusCode)
                 {
                     TempData["success"] = $"{DeleteEntityType.User} - {userId} deleted Successfully";
-                    return RedirectToPage("/Users/ManageUser");
+                    return RedirectToPage("/Users/ManageUsers");
                 }
                 else
                 {

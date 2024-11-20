@@ -198,7 +198,7 @@ namespace Spider_QAMS.Pages.Users
                     Password = ProfileUsersData.Password ?? string.Empty,
                     UserName = ProfileUsersData.UserName,
                     ProfilePictureFile = ProfileUsersData.PhotoFile != null ? base64String : string.Empty,
-                    ProfilePictureName = ProfileUsersData.PhotoFile.FileName,
+                    ProfilePictureName = ProfileUsersData.PhotoFile != null ? ProfileUsersData.PhotoFile.FileName: string.Empty,
                     ProfileSiteData = new ProfileSite
                     {
                         ProfileId = ProfileUsersData.ProfileSiteData.ProfileId,
@@ -208,7 +208,7 @@ namespace Spider_QAMS.Pages.Users
                     IsADUser = ProfileUsersData.IsADUser,
                     Location = string.Empty,
                     CreateUserId = ProfileUsersData.CreateUserId,
-                    UpdateUserId = ProfileUsersData.UpdateUserId
+                    UpdateUserId = ProfileUsersData.UpdateUserId,
                 };
 
                 var client = _clientFactory.CreateClient();
@@ -221,7 +221,7 @@ namespace Spider_QAMS.Pages.Users
                 if (response.IsSuccessStatusCode)
                 {
                     TempData["success"] = $"{ProfileUsersData.FullName} - Profile Updated Successfully";
-                    return RedirectToPage("/Users/ManageUser");
+                    return RedirectToPage("/Users/ManageUsers");
                 }
                 else
                 {

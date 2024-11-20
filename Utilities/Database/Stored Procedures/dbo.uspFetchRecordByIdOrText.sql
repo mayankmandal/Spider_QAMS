@@ -37,7 +37,7 @@ BEGIN
 		BEGIN
 			select u.*, u.ProfileId,tp.ProfileName from Users u WITH (NOLOCK) 
 			LEFT JOIN UserProfile tup WITH (NOLOCK) on tup.UserId = u.UserId 
-			LEFT JOIN Profiles tp WITH (NOLOCK) on tp.ProfileID = tup.ProfileID WHERE U.UserId = @InputInt
+			LEFT JOIN Profiles tp WITH (NOLOCK) on tp.ProfileID = tup.ProfileID WHERE U.UserId = @InputInt AND u.IsDeleted != 1
 		END
 
 		-- GetCurrentUserProfile
@@ -62,7 +62,7 @@ BEGIN
 		 -- GetSettingsData
 		ELSE IF @TextCriteria = 5
 		BEGIN
-			SELECT u.UserId, u.FullName, u.UserName, u.PasswordHash, u.PasswordSalt, u.EmailID, u.PhoneNumber, u.ProfilePicName, u.ProfileId, u.Designation, u.Location, u.IsADUser, u.IsActive, u.CreateDate, u.CreateUserId, u.UpdateDate, u.UpdateUserId, u.IsDeleted from Users u WITH (NOLOCK) where u.UserId = @InputInt;
+			SELECT u.UserId, u.FullName, u.UserName, u.PasswordHash, u.PasswordSalt, u.EmailID, u.PhoneNumber, u.ProfilePicName, u.ProfileId, u.Designation, u.[Location], u.IsADUser, u.IsActive, u.CreateDate, u.CreateUserId, u.UpdateDate, u.UpdateUserId, u.IsDeleted from Users u WITH (NOLOCK) where u.UserId = @InputInt;
 		END
 
 		-- GetProfileData
@@ -94,7 +94,7 @@ BEGIN
 		-- GetLocationData
 		ELSE IF @TextCriteria = 10
 		BEGIN
-			SELECT l.LocationID, l.Location, l.StreetName, l.DistrictName, l.BranchName, l.CityID, c.CityName, c.RegionID, r.RegionName, l.SponsorId, s.SponsorName from [LOCATION] l WITH (NOLOCK)
+			SELECT l.LocationID, l.[Location], l.StreetName, l.DistrictName, l.BranchName, l.CityID, c.CityName, c.RegionID, r.RegionName, l.SponsorId, s.SponsorName from [LOCATION] l WITH (NOLOCK)
 			INNER JOIN City c WITH (NOLOCK) ON l.CityID = c.CityID
 			INNER JOIN Region r WITH (NOLOCK) ON c.RegionID = r.RegionID
 			INNER JOIN Sponsor s WITH (NOLOCK) ON l.SponsorId = s.SponsorId

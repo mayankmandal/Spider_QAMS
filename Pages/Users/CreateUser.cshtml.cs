@@ -107,7 +107,7 @@ namespace Spider_QAMS.Pages.Users
                 if (response.IsSuccessStatusCode)
                 {
                     TempData["success"] = $"{ProfileUsersData.FullName} - Profile Created Successfully";
-                    return RedirectToPage("/Users/ManageUser");
+                    return RedirectToPage("/Users/ManageUsers");
                 }
                 else
                 {

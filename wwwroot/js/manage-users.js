@@ -1,180 +1,127 @@
-﻿
-$(function () {
-    $("#jsGridUsers").jsGrid({
-        width: "100%",
-        height: "auto",
-        inserting: false,
-        editing: false,
-        sorting: true,
-        paging: true,
-        autoload: true,
-        pageSize: 10,
-        pageButtonCount: 5,
+﻿$(document).ready(function () {
+    $('#datatables').DataTable({
         data: usersData,
-        controller: {
-            loadData: function (filter) {
-                return $.grep(usersData, function (user) {
-                    if (!filter.searchInput) return true;
-                    let searchValue = filter.searchInput.toLowerCase();
-                    return user[filter.searchBy]?.toString().toLowerCase().includes(searchValue);
-                });
+        columns: [
+            { data: 'Designation' },
+            { data: 'FullName' },
+            {
+                data: 'EmailID',
+                render: function (data) {
+                    return `<div style="word-break: break-word; white-space: normal;">${data}</div>`;
+                },
+                width: "10rem"
+            },
+            {
+                data: 'UserName',
+                render: function (data) {
+                    return `<div style="word-break: break-word; white-space: normal;">${data}</div>`;
+                },
+                width: "10rem"
+            },
+            { data: 'ProfileSiteData.ProfileName' },
+            { data: 'PhoneNumber' },
+            {
+                data: 'IsActive',
+                render: function (data) {
+                    return `<input type="checkbox" ${data ? "checked" : ""} disabled>`;
+                }
+            },
+            {
+                data: 'IsADUser',
+                render: function (data) {
+                    return `<input type="checkbox" ${data ? "checked" : ""} disabled>`;
+                }
+            },
+            {
+                data: null,
+                className: "text-right",
+                render: function (data, type, row) {
+                    return `
+                        <a href="/Users/ReadUser?userId=${row.UserId}" class="btn btn-link btn-info btn-just-icon like"><i class="material-icons">visibility</i></a>
+                        <a href="/Users/UpdateUser?userId=${row.UserId}" class="btn btn-link btn-success btn-just-icon edit"><i class="material-icons">drive_file_rename_outline</i></a>
+                        <a href="/Users/DeleteUser?userId=${row.UserId}" class="btn btn-link btn-danger btn-just-icon remove"><i class="material-icons">delete_outline</i></a>
+                    `;
+                }
             }
+        ],
+        pagingType: "full_numbers",
+        pageLength: 10,
+        lengthMenu: [
+            [10, 25, 50, -1],
+            [10, 25, 50, "All"]
+        ],
+        responsive: true,
+        language: {
+            search: "Search:",
+            searchPlaceholder: "Enter value..."
         },
-        fields: [
-            { name: "Designation", title: "Designation", type: "text", width: 50 },
+        paging: true,
+        ordering: true,
+        autoWidth: true,
+        dom: 'Bfrtip',
+        buttons: [
             {
-                name: "FullName", title: "Full Name", type: "text", width: 100, css: { 'word-wrap': 'break-word' }, filtering: true, sorting: true, itemTemplate: function (value) {
-                    return $("<div>").text(value).css({
-                        'word-wrap': 'break-word',
-                        'white-space': 'normal' // Ensures wrapping within the cell
-                    });
+                extend: 'copy',
+                title: 'User Data Copy',
+                filename: `User_Data_Copy_${new Date().toISOString().slice(0, 19).replace(/[-T:]/g, '')}`,
+                exportOptions: {
+                    columns: ':not(:last-child)' // Exclude last column in export
                 }
             },
             {
-                name: "EmailID", title: "Email", type: "text", width: 100, css: { 'word-wrap': 'break-word' }, filtering: true, sorting: true, itemTemplate: function (value) {
-                    return $("<div>").text(value).css({
-                        'word-wrap': 'break-word',
-                        'white-space': 'normal' // Ensures wrapping within the cell
-                    });
+                extend: 'csv',
+                title: 'User Data CSV',
+                filename: `User_Data_CSV_${new Date().toISOString().slice(0, 19).replace(/[-T:]/g, '')}`,
+                exportOptions: {
+                    columns: ':not(:last-child)' // Exclude last column in export
                 }
             },
             {
-                name: "UserName", title: "Username", type: "text", width: 100, css: { 'word-wrap': 'break-word' }, filtering: true, sorting: true, itemTemplate: function (value) {
-                    return $("<div>").text(value).css({
-                        'word-wrap': 'break-word',
-                        'white-space': 'normal' // Ensures wrapping within the cell
-                    });
+                extend: 'excel',
+                title: 'User Data Excel',
+                filename: `User_Data_Excel_${new Date().toISOString().slice(0, 19).replace(/[-T:]/g, '')}`,
+                exportOptions: {
+                    columns: ':not(:last-child)' // Exclude last column in export
                 }
             },
-            { name: "ProfileSiteData.ProfileName", title: "Profile Name", type: "text", width: 80 },
-            { name: "PhoneNumber", title: "Phone Number", type: "text", width: 90 },
             {
-                name: "IsActive", title: "Is Active", type: "checkbox", sorting: false,
-                itemTemplate: function (value) { return `<input type="checkbox" ${value ? "checked" : ""} disabled>`; }
-            },
-            {
-                name: "IsADUser", title: "Is ADUser", type: "checkbox", sorting: false,
-                itemTemplate: function (value) { return `<input type="checkbox" ${value ? "checked" : ""} disabled>`; }
-            },
-            {
-                title: "Actions",
-                width: 80,
-                align: "center",
-                itemTemplate: function (_, item) {
-                    let readButton = $("<button>")
-                        .addClass("btn btn-warning btn-sm me-1")
-                        .html('<i class="fas fa-eye"></i>')
-                        .on("click", function () {
-                            window.location.href = `/Users/ReadUser?userId=${item.UserId}`
+                extend: 'pdf',
+                title: 'User Data PDF',
+                filename: `User_Data_PDF_${new Date().toISOString().slice(0, 19).replace(/[-T:]/g, '')}`,
+                exportOptions: {
+                    columns: ':not(:last-child)'  // Exclude the last column (Actions) from exports
+                },
+                customize: function (doc) {
+                    // Set orientation and page size
+                    doc.pageOrientation = 'landscape';
+                    doc.pageSize = 'A4';
+
+                    // Style table borders
+                    doc.styles.tableBodyEven = { fillColor: '#FFFFFF' };
+                    doc.styles.tableBodyOdd = { fillColor: '#F3F3F3' };
+
+                    // Add table border style
+                    doc.content[1].table.body.forEach(row => {
+                        row.forEach(cell => {
+                            cell.border = [true, true, true, true]; // Top, Left, Bottom, Right
                         });
-                    let editButton = $("<a>")
-                        .addClass("btn btn-primary btn-sm me-1")
-                        .attr("href", `/Users/UpdateUser?userId=${item.UserId}`)
-                        .html('<i class="fas fa-edit"></i>');
-                    let deleteButton = $("<a>")
-                        .addClass("btn btn-danger btn-sm")
-                        .attr("href", `/Users/DeleteUser?userId=${item.UserId}`)
-                        .html('<i class="fas fa-trash-alt"></i>');
-                    return $("<div>").append(readButton).append(editButton).append(deleteButton);
+                    });
                 }
+            },
+            {
+                extend: 'print',
+                title: 'User Data Print',
+                filename: `User_Data_Print_${new Date().toISOString().slice(0, 19).replace(/[-T:]/g, '')}`,
+                exportOptions: {
+                    columns: ':not(:last-child)' // Exclude last column in export
+                }
+            }
+        ],
+        columnDefs: [
+            {
+                targets: -1,
+                orderable: false, // Make the last column non-sortable
             }
         ]
-    });
-
-    // Search button event handler
-    $('#searchBtn').on('click', function () {
-        $("#jsGridUsers").jsGrid("loadData", {
-            searchBy: $('#searchBy').val(),
-            searchInput: $('#searchInput').val()
-        });
-    });
-
-    // Reset button event handler
-    $('#resetBtn').on('click', function () {
-        $('#searchInput').val('');
-        $("#jsGridUsers").jsGrid("loadData", {});
-    });
-
-    $("#exportExcelBtn").on("click", function () {
-        const gridData = $("#jsGridUsers").jsGrid("option", "data"); // Get Current Grid Data
-
-        // Pre-process the data to replace nulls and handle ProfileSiteData
-        const processedData = gridData.map(row => {
-            // Replace `ProfileSiteData` with `ProfileSiteData.ProfileName` and handle nulls
-            return {
-                Designation: row.Designation || '',
-                FullName: row.FullName || '',
-                EmailID: row.EmailID || '',
-                UserName: row.UserName || '',
-                ProfileName: row.ProfileSiteData?.ProfileName || '',
-                PhoneNumber: row.PhoneNumber || '',
-                IsActive: row.IsActive ? "Yes" : "No",
-                IsADUser: row.IsADUser ? "Yes" : "No"
-            };
-        });
-
-        const worksheet = XLSX.utils.json_to_sheet(processedData);
-        const workbook = XLSX.utils.book_new();
-        XLSX.utils.book_append_sheet(workbook, worksheet, "Users");
-
-        // Export the workbook
-        XLSX.writeFile(workbook, "UsersData.xlsx");
-    });
-
-    $("#exportPdfBtn").on("click", function () {
-        const gridData = $("#jsGridUsers").jsGrid("option", "data");
-
-        // Pre-process the data to replace nulls and handle ProfileSiteData
-        const processedData = gridData.map(row => {
-            // Replace `ProfileSiteData` with `ProfileSiteData.ProfileName` and handle nulls
-            return {
-                Designation: row.Designation || '',
-                FullName: row.FullName || '',
-                EmailID: row.EmailID || '',
-                UserName: row.UserName || '',
-                ProfileName: row.ProfileSiteData?.ProfileName || '',
-                PhoneNumber: row.PhoneNumber || '',
-                IsActive: row.IsActive ? "Yes" : "No",
-                IsADUser: row.IsADUser ? "Yes" : "No"
-            };
-        });
-
-        // Define the table headers and body for pdfMake
-        const headers = ["Designation", "FullName", "EmailID", "Username", "ProfileName", "PhoneNumber", "Is Active", "Is ADUser"];
-        const body = processedData.map(row => [
-            row.Designation,
-            row.FullName,
-            row.EmailID,
-            row.UserName,
-            row.ProfileName,
-            row.PhoneNumber,
-            row.IsActive,
-            row.IsADUser
-        ]);
-
-        // Define document structure for pdfmake
-        const docDefinition = {
-            pageOrientation: 'landscape',
-            pageSize: 'B4',
-            content: [
-                { text: "Users Data", style: "header" },
-                {
-                    table: {
-                        headerRows: 1,
-                        widths: Array(headers.length).fill("auto"),
-                        body: [
-                            headers,
-                            ...body
-                        ]
-                    }
-                }
-            ],
-            styles: {
-                header: { fontSize: 18, bold: true, margin: [0, 0, 0, 10]}
-            }
-        };
-
-        // Generate PDF
-        pdfMake.createPdf(docDefinition).download("UsersData.pdf");
     });
 });

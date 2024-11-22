@@ -245,3 +245,14 @@ img.img-thumbnail {
 .delete-image-btn i {
     font-size: 1.2rem; /* Adjust the icon size */
 }
+
+.logo .img-circle {
+    border-radius: 50%; /* Makes the image circular */
+    width: 25px; /* Adjust based on your required size */
+    height: 25px; /* Ensure height matches width for a perfect circle */
+    object-fit: cover; /* Ensures the image fills the circle without distortion */
+    border: 2px solid #fff; /* Optional: Add a border for a cleaner look */
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2); /* Optional: Add shadow for better visibility */
+}
+
+

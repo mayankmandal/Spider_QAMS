@@ -5,275 +5,152 @@
     TempData["NavigationalPageName"] = "Manage Region";
 }
 
-<div style="display:flex; flex-direction:column; align-items:center; min-height:20vh;">
-    <!-- Title and Action Buttons -->
-    <div class="row pt-1 mb-3" style="width:100%;">
-        <div class="col text-start">
-            <h4 class="rb-header">Manage Regions</h4>
+<div class="row">
+    <div class="col-md-12">
+        <div class="card">
+            <div class="card-header card-header-primary card-header-icon">
+                <div class="card-icon">
+                    <i class="material-icons">assignment</i>
+                </div>
+                <h4 class="card-title">Regions Management</h4>
+            </div>
+            <div class="card-body">
+                <div class="toolbar row d-flex justify-content-between">
+                    <div class="d-flex">
+                    </div>
+                    <button onclick="showCreateForm()" class="btn btn-round btn-warning">
+                        <i class="material-icons">
+                            add_to_photos
+                        </i> Create Region
+                    </button>
+                </div>
+                <div class="material-datatables">
+                    <table id="regionsTable" class="table table-striped table-no-bordered table-hover" cellspacing="0" width="100%" style="width:100%">
+                        <thead>
+                            <tr>
+                                <th>Region Name</th>
+                                <th class="text-right">Actions</th>
+                            </tr>
+                        </thead>
+                        <tfoot>
+                            <tr>
+                                <th>Region Name</th>
+                                <th class="text-right">Actions</th>
+                            </tr>
+                        </tfoot>
+                        <tbody>
+                            <!-- Data is loaded dynamically via JavaScript -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
         </div>
-        <div class="col text-end">
-            <button class="btn create-btn" onclick="showCreateForm()" style="background: linear-gradient(to bottom, #ffffff, #e0e0e0); color: #71797E;">
-                <i class="fas fa-plus-circle"></i>
-                &nbsp;Create New Region
-            </button>
-        </div>
     </div>
-
-    <div class="mb-3 mt-2 d-flex" style="justify-content: flex-start; width: 100%;">
-        <label for="searchBy" class="me-2">Search by:</label>
-        <select id="searchBy" class="form-select me-2" style="width:200px;">
-            <option value="regionName">Region Name</option>
-        </select>
-        <label for="searchInput" class="me-2">Search value:</label>
-        <input type="text" id="searchInput" class="form-control me-2" style="width: 300px;" />
-        <button type="button" class="btn btn-outline-secondary me-2" id="searchBtn">Search</button>
-
-        <!-- Reset button -->
-        <button type="button" class="btn btn-outline-secondary me-2" id="resetBtn">Reset</button>
-    </div>
-
-    <div id="jsGridRegions" class="mb-4"></div>
-
-    <!-- Create New Region Form (Hidden Initially) -->
-    <div id="createFormDiv" style="display:none; flex-direction: column; align-items: center; min-height: 20vh;">
-        <form method="post" asp-page-handler="Create" id="createRegionForm">
-            <div class="container form-control border-2 mb-2" style="display:flex; justify-content:space-around; height:auto; flex-direction:column;width: 45rem;">
-                <div class="row pb-1 pt-2">
-                    <div style="color:#17a2b8; text-align:center; font-size:1.7rem; font-weight:500">CREATE NEW REGION</div>
-                    <div>
-                        <hr />
-                    </div>
-                </div>
-                <div class="card">
-                    <div class="card-header" style="background:#f8f8f8;">
-                        <div class="card-title fw-bold" style="font-size:1.2rem">Region Details</div>
-                        <div class="card-tools">
-                            <button type="button" class="btn btn-tool" data-card-widget="collapse">
-                                <i class="fas fa-minus"></i>
-                            </button>
-                            <button type="button" class="btn btn-tool" data-card-widget="remove">
-                                <i class="fas fa-times"></i>
-                            </button>
-                        </div>
-                    </div>
-                    <div class="card-body">
-                        <!-- Validation Summary -->
-                        <div asp-validation-summary="All" class="text-danger fw-bold"></div>
-
-                        <!-- Region Name Field -->
-                        <div class="mb-3">
-                            <label asp-for="Region.RegionName" class="form-label"></label>
-                            <div class="input-group mb-3">
-                                <div class="input-group-prepend">
-                                    <span class="input-group-text"><i class="fas fa-map-marker-alt"></i></span>
-                                </div>
-                                <input asp-for="Region.RegionName" placeholder="Region Name" class="form-control" />
-                            </div>
-                            <span asp-validation-for="Region.RegionName" class="text-danger fw-bold"></span>
-                        </div>
-
-                        <!-- Buttons for form submission -->
-                        <div style="display: flex; justify-content: center; align-items: center; margin-top: 20px;">
-                            <div class="row" style="width: 100%; max-width: 600px; display: flex; justify-content: space-around;">
-                                <button type="submit" class="btn create-btn">Create Region</button>
-                                <button type="button" class="btn btn-secondary" onclick="hideAllForms()">Cancel</button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </form>
-    </div>
-
-    <!-- Edit Region Form (Hidden Initially) -->
-    <div id="editFormDiv" style="display:none; flex-direction: column; align-items: center; min-height: 20vh;">
-        <form method="post" asp-page-handler="Update">
-            <input type="hidden" asp-for="Region.RegionId" id="editRegionId" />
-            <div class="container form-control border-2 mb-2" style="display:flex; justify-content:space-around; height:auto; flex-direction:column;width: 45rem;">
-                <div class="row pb-1 pt-2">
-                    <div style="color:#17a2b8; text-align:center; font-size:1.7rem; font-weight:500">EDIT REGION</div>
-                    <div>
-                        <hr />
-                    </div>
-                </div>
-                <div class="card">
-                    <div class="card-header" style="background:#f8f8f8;">
-                        <div class="card-title fw-bold" style="font-size:1.2rem">Region Details</div>
-                        <div class="card-tools">
-                            <button type="button" class="btn btn-tool" data-card-widget="collapse">
-                                <i class="fas fa-minus"></i>
-                            </button>
-                            <button type="button" class="btn btn-tool" data-card-widget="remove">
-                                <i class="fas fa-times"></i>
-                            </button>
-                        </div>
-                    </div>
-                    <div class="card-body">
-
-                        <!-- Validation Summary -->
-                        <div asp-validation-summary="All" class="text-danger fw-bold"></div>
-
-                        <!-- Region Name Field -->
-                        <div class="mb-3">
-                            <label asp-for="Region.RegionName" class="form-label"></label>
-                            <div class="input-group mb-3">
-                                <div class="input-group-prepend">
-                                    <span class="input-group-text"><i class="fas fa-map-marker-alt"></i></span>
-                                </div>
-                                <input asp-for="Region.RegionName" id="editRegionName" placeholder="Region Name" class="form-control" />
-                            </div>
-                            <span asp-validation-for="Region.RegionName" class="text-danger fw-bold"></span>
-                        </div>
-
-                        <!-- Buttons for form submission -->
-                        <div style="display: flex; justify-content: center; align-items: center; margin-top: 20px;">
-                            <div class="row" style="width: 100%; max-width: 600px; display: flex; justify-content: space-around;">
-                                <button type="submit" class="btn update-btn">Update Region</button>
-                                <button type="button" class="btn btn-secondary" onclick="hideAllForms()">Cancel</button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </form>
-    </div>
-
-    <!-- Delete Region Confirmation (Hidden Initially) -->
-    <div id="deleteFormDiv" style="display:none; flex-direction: column; align-items: center; min-height: 20vh;">
-        <form method="post" asp-page-handler="Delete">
-            <input type="hidden" name="RegionId" id="deleteRegionId" />
-            <div class="container form-control border-2 mb-2" style="display:flex; justify-content:space-around; height:auto; flex-direction:column;width: 45rem;">
-                <div class="row pb-1 pt-2">
-                    <div style="color:#dc3545; text-align:center; font-size:1.7rem; font-weight:500">DELETE REGION</div>
-                    <div>
-                        <hr />
-                    </div>
-                </div>
-                <div class="card">
-                    <div class="card-header" style="background:#f8f8f8;">
-                        <div class="card-title fw-bold" style="font-size:1.2rem">Region Details</div>
-                        <div class="card-tools">
-                            <button type="button" class="btn btn-tool" data-card-widget="collapse">
-                                <i class="fas fa-minus"></i>
-                            </button>
-                            <button type="button" class="btn btn-tool" data-card-widget="remove">
-                                <i class="fas fa-times"></i>
-                            </button>
-                        </div>
-                    </div>
-                    <div class="card-body">
-
-                        <!-- Validation Summary -->
-                        <div asp-validation-summary="All" class="text-danger fw-bold"></div>
-
-                        <!-- Region Name Field -->
-                        <div class="mb-3">
-                            <label asp-for="Region.RegionName" class="form-label"></label>
-                            <div class="input-group mb-3">
-                                <div class="input-group-prepend">
-                                    <span class="input-group-text"><i class="fas fa-map-marker-alt"></i></span>
-                                </div>
-                                <input asp-for="Region.RegionName" id="deleteRegionName" placeholder="Region Name" class="form-control" disabled />
-                            </div>
-                            <span asp-validation-for="Region.RegionName" class="text-danger fw-bold"></span>
-                        </div>
-
-                        <p class="text">Are you sure you want to delete region <strong id="deleteRegionPName"></strong>?</p>
-
-                        <!-- Buttons for deletion confirmation -->
-                        <div style="display: flex; justify-content: center; align-items: center; margin-top: 20px;">
-                            <div class="row" style="width: 100%; max-width: 600px; display: flex; justify-content: space-around;">
-                                <button type="submit" class="btn delete-btn">Confirm Delete</button>
-                                <button type="button" class="btn btn-secondary" onclick="hideAllForms()">Cancel</button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </form>
-    </div>
-
 </div>
+
+<form id="createFormDiv" method="post" asp-page-handler="Create" style="display:none;">
+    <div class="card">
+        <div class="card-header card-header-rose card-header-icon">
+            <div class="card-icon">
+                <i class="material-icons">contacts</i>
+            </div>
+            <h4 class="card-title">Create New Region</h4>
+        </div>
+        <div class="card-body ">
+            <!-- Validation Summary -->
+            <div asp-validation-summary="All" class="text-danger fw-bold"></div>
+
+            <div class="row">
+                <label class="col-sm-2 col-form-label" asp-for="Region.RegionName"></label>
+                <div class="col-sm-10">
+                    <div class="form-group">
+                        <input type="text" class="form-control" asp-for="Region.RegionName" placeholder="Region Name">
+                    </div>
+                    <span asp-validation-for="Region.RegionName" class="text-danger fw-bold"></span>
+                </div>
+            </div>
+
+        </div>
+        <div class="card-footer ml-auto mr-auto">
+            <button type="submit" class="btn btn-round btn-primary">Create Region</button> &nbsp;
+            <button type="button" class="btn btn-round btn-secondary" onclick="hideAllForms()">Cancel</button>
+        </div>
+    </div>
+</form>
+
+<form id="editFormDiv" method="post" asp-page-handler="Update" style="display:none;">
+    <input type="hidden" asp-for="Region.RegionId" id="editRegionId" />
+    <div class="card">
+        <div class="card-header card-header-rose card-header-icon">
+            <div class="card-icon">
+                <i class="material-icons">contacts</i>
+            </div>
+            <h4 class="card-title">Update Existing Region</h4>
+        </div>
+        <div class="card-body ">
+            <!-- Validation Summary -->
+            <div asp-validation-summary="All" class="text-danger fw-bold"></div>
+
+            <div class="row">
+                <label class="col-sm-2 col-form-label" asp-for="Region.RegionName"></label>
+                <div class="col-sm-10">
+                    <div class="form-group">
+                        <input type="text" class="form-control" id="editRegionName" asp-for="Region.RegionName" placeholder="Region Name">
+                    </div>
+                    <span asp-validation-for="Region.RegionName" class="text-danger fw-bold"></span>
+                </div>
+            </div>
+        </div>
+        <div class="card-footer ml-auto mr-auto">
+            <button type="submit" class="btn btn-round btn-success">Update Region</button> &nbsp;
+            <button type="button" class="btn btn-round btn-secondary" onclick="hideAllForms()">Cancel</button>
+        </div>
+    </div>
+</form>
+
+<form id="deleteFormDiv" method="post" asp-page-handler="Delete" style="display:none;">
+    <input type="hidden" name="RegionId" id="deleteRegionId" />
+    <div class="card">
+        <div class="card-header card-header-rose card-header-icon">
+            <div class="card-icon">
+                <i class="material-icons">contacts</i>
+            </div>
+            <h4 class="card-title">Delete Existing Region</h4>
+        </div>
+        <div class="card-body ">
+            <!-- Validation Summary -->
+            <div asp-validation-summary="All" class="text-danger fw-bold"></div>
+
+            <div class="row">
+                <label class="col-sm-2 col-form-label" asp-for="Region.RegionName"></label>
+                <div class="col-sm-10">
+                    <div class="form-group">
+                        <input type="text" class="form-control" id="deleteRegionName" asp-for="Region.RegionName" placeholder="Region Name" disabled>
+                    </div>
+                    <span asp-validation-for="Region.RegionName" class="text-danger fw-bold"></span>
+                </div>
+            </div>
+
+            <div class="row">
+                <label class="col-sm-2 col-form-label"></label>
+                <div class="col-sm-10">
+                    <div class="form-group">
+                        <p class="text">Are you sure you want to delete region <strong id="deleteRegionPName"></strong>?</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="card-footer ml-auto mr-auto">
+            <button type="submit" class="btn btn-round btn-danger">Delete Region</button> &nbsp;
+            <button type="button" class="btn btn-round btn-secondary" onclick="hideAllForms()">Cancel</button>
+        </div>
+    </div>
+</form>
+
 
 @section scripts {
     <partial name="_ValidationScriptsPartial" />
-    <script src="./plugins/jsgrid/jsgrid.min.js"></script>
     <script asp-append-version="true">
-        const regions = @Html.Raw(Json.Serialize(Model.Regions));
-
-        $(function () {
-            $("#jsGridRegions").jsGrid({
-                width: "100%",
-                height: "400px",
-                inserting: false,
-                editing: false,
-                sorting: true,
-                paging: true,
-                filtering: true,
-                autoload: true,
-                pageSize: 10,
-                pageButtonCount: 5,
-
-                controller: {
-                    loadData: function (filter) {
-                        return $.Deferred(function (dfd) {
-                            var filteredData = $.grep(regions, function (item) {
-                                // Apply dynamic filtering based on the selected 'searchBy' field and input value
-                                const searchField = $('#searchBy').val();
-                                const searchValue = filter[searchField] || '';
-
-                                if (searchField === 'regionName') {
-                                    return item.regionName.toLowerCase().includes(searchValue.toLowerCase());
-                                }
-                                return true;
-                            });
-                            dfd.resolve(filteredData);
-                        }).promise();
-                    }
-                },
-                fields: [
-                    { name: "regionName", type: "text", title: "Region Name", width: 150 },
-                    {
-                        title: "Actions",
-                        width: 100,
-                        align: "center",
-                        itemTemplate: function (_, item, rowIndex) {
-                            var editButton = $("<button>")
-                                .addClass("btn btn-primary btn-sm me-1")
-                                .html('<i class="fas fa-edit"></i>')
-                                .on("click", function () {
-                                    showEditForm(item.regionId, item.regionName);
-                                });
-                            var deleteButton = $("<button>")
-                                .addClass("btn btn-danger btn-sm")
-                                .html('<i class="fas fa-trash-alt"></i>')
-                                .on("click", function () {
-                                    showDeleteForm(item.regionId, item.regionName);
-                                });
-
-                            // Return buttons based on the row index (first row will have reset)
-                            return $("<div>").append(editButton).append(deleteButton); // Append Reset button here
-                        }
-                    }
-                ]
-            });
-            // Search button functionality
-            $('#searchBtn').on('click', function () {
-                var searchValue = $('#searchInput').val();
-                var searchBy = $('#searchBy').val();
-
-                // Trigger jsGrid filtering
-                $("#jsGridRegions").jsGrid("loadData", { [searchBy]: searchValue });
-            });
-
-            // Reset button functionality
-            $('#resetBtn').on('click', function () {
-                $('#searchInput').val('');  // Clear search input
-                $('#searchBy').val('regionName');  // Reset search by dropdown to default value
-                $("#jsGridRegions").jsGrid("loadData", {});  // Reset grid data
-            });
-        });
-
         // Function to show the Create form
         function showCreateForm() {
             hideAllForms();
@@ -301,5 +178,112 @@
         function hideAllForms() {
             $('#createFormDiv, #editFormDiv, #deleteFormDiv').hide();
         }
+
+        $(document).ready(function () {
+            // Sample regions data - replace this with the actual data from server
+            const regionsData = @Html.Raw(Json.Serialize(Model.Regions));
+
+            // Initialize DataTables
+            const table = $('#regionsTable').DataTable({
+                data: regionsData,
+                columns: [
+                    { data: 'regionName' },
+                    {
+                        data: null,
+                        className: "text-right",
+                        render: function (data, type, row) {
+                            return `<button class="btn btn-success btn-sm editBtn" data-id="${row.regionId}" data-name="${row.regionName}">
+                                   <i class="material-icons">drive_file_rename_outline</i>
+                                </button>
+                                <button class="btn btn-danger btn-sm deleteBtn" data-id="${row.regionId}" data-name="${row.regionName}">
+                                    <i class="material-icons">delete_outline</i>
+                                </button>`;
+                        }
+                    }
+                ],
+                pagingType: "full_numbers",
+                pageLength: 10,
+                lengthMenu: [
+                    [10, 25, 50, -1],
+                    [10, 25, 50, "All"]
+                ],
+                responsive: true,
+                language: {
+                    search: "Search:",
+                    searchPlaceholder: "Enter value..."
+                },
+                paging: true,
+                ordering: true,
+                autoWidth: true,
+                dom: 'Bfrtip',
+                buttons: [
+                    {
+                        extend: 'copy',
+                        title: 'Region Data Copy',
+                        filename: `Region_Data_Copy_${new Date().toISOString().slice(0, 19).replace(/[-T:]/g, '')}`,
+                        exportOptions: {
+                            columns: ':not(:last-child)' // Exclude last column in export
+                        }
+                    },
+                    {
+                        extend: 'csv',
+                        title: 'Region Data CSV',
+                        filename: `Region_Data_CSV_${new Date().toISOString().slice(0, 19).replace(/[-T:]/g, '')}`,
+                        exportOptions: {
+                            columns: ':not(:last-child)' // Exclude last column in export
+                        }
+                    },
+                    {
+                        extend: 'excel',
+                        title: 'Region Data Excel',
+                        filename: `Region_Data_Excel_${new Date().toISOString().slice(0, 19).replace(/[-T:]/g, '')}`,
+                        exportOptions: {
+                            columns: ':not(:last-child)' // Exclude last column in export
+                        }
+                    },
+                    {
+                        extend: 'pdf',
+                        title: 'Region Data PDF',
+                        filename: `Region_Data_PDF_${new Date().toISOString().slice(0, 19).replace(/[-T:]/g, '')}`,
+                        exportOptions: {
+                            columns: ':not(:last-child)' // Exclude last column in export
+                        },
+                        customize: function (doc) {
+                            doc.content[1].table.widths = ['*', '*']; // Adjust columns if needed
+                            doc.pageSize = 'A4';
+                        }
+                    },
+                    {
+                        extend: 'print',
+                        title: 'Region Data Print',
+                        filename: `Region_Data_Print_${new Date().toISOString().slice(0, 19).replace(/[-T:]/g, '')}`,
+                        exportOptions: {
+                            columns: ':not(:last-child)' // Exclude last column in export
+                        }
+                    }
+                ],
+                columnDefs: [
+                    {
+                        targets: -1, // Exclude the last column (Actions) from export
+                        exportOptions: {
+                            columns: ':not(:last-child)'
+                        }
+                    }
+                ]
+            });
+
+            // Action handlers for edit and delete buttons
+            $('#regionsTable tbody').on('click', '.editBtn', function () {
+                const regionId = $(this).data('id');
+                const regionName = $(this).data('name');
+                showEditForm(regionId, regionName);  // Custom function to handle editing
+            });
+
+            $('#regionsTable tbody').on('click', '.deleteBtn', function () {
+                const regionId = $(this).data('id');
+                const regionName = $(this).data('name');
+                showDeleteForm(regionId, regionName);  // Custom function to handle deletion
+            });
+        });
     </script>
 }

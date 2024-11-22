@@ -5,24 +5,65 @@
     TempData["NavigationalPageName"] = "Manage Contacts";
 }
 
-<div style="display:flex; flex-direction:column; align-items:center; min-height:20vh;">
-    <!-- Title and Action Buttons -->
-    <div class="row pt-1 mb-3" style="width:100%;">
-        <div class="col text-start">
-            <h4 class="rb-header">Manage Contacts</h4>
-        </div>
-        <div class="col text-end">
-            <button class="btn create-btn" onclick="showCreateContactForm()" style="background: linear-gradient(to bottom, #ffffff, #e0e0e0); color: #71797E;">
-                <i class="fas fa-plus-circle"></i>
-                &nbsp;Create New Contact
-            </button>
+<div class="row">
+    <div class="col-md-12">
+        <div class="card">
+            <div class="card-header card-header-primary card-header-icon">
+                <div class="card-icon">
+                    <i class="material-icons">assignment</i>
+                </div>
+                <h4 class="card-title">Contacts Management</h4>
+            </div>
+            <div class="card-body">
+                <div class="toolbar row d-flex justify-content-between">
+                    <div class="d-flex">
+                    </div>
+                    <button onclick="showCreateForm()" class="btn btn-round btn-warning">
+                        <i class="material-icons">
+                            add_to_photos
+                        </i> Create Contact
+                    </button>
+                </div>
+                <div class="material-datatables">
+                    <table id="contactsTable" class="table table-striped table-no-bordered table-hover" cellspacing="0" width="100%" style="width:100%">
+                        <thead>
+                            <tr>
+                                <th>Designation</th>
+                                <th>Name</th>
+                                <th>Email</th>
+                                <th>Mobile</th>
+                                <th>Fax</th>
+                                <th>Office Phone</th>
+                                <th>Branch</th>
+                                <th>Sponsor</th>
+                                <th class="text-right">Actions</th>
+                            </tr>
+                        </thead>
+                        <tfoot>
+                            <tr>
+                                <th>Designation</th>
+                                <th>Name</th>
+                                <th>Email</th>
+                                <th>Mobile</th>
+                                <th>Fax</th>
+                                <th>Office Phone</th>
+                                <th>Branch</th>
+                                <th>Sponsor</th>
+                                <th class="text-right">Actions</th>
+                            </tr>
+                        </tfoot>
+                        <tbody>
+                            <!-- Data is loaded dynamically via JavaScript -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
         </div>
     </div>
+</div>
 
-    <div id="jsGrid" style="width:100%; max-height:400px;" class="mb-4"></div>
-
-    <!-- Create New Contact Form (Hidden Initially) -->
-    <div id="createContactFormDiv" style="display:none; flex-direction: column; align-items: center; min-height: 20vh;">
+<!-- Create New Contact Form (Hidden Initially) -->
+<div id="createContactFormDiv" style="display:none; flex-direction: column; align-items: center; min-height: 20vh;">
         <form method="post" asp-page-handler="Create" id="createContactForm">
             <div class="container form-control border-2 mb-2" style="display:flex; justify-content:space-around; height:auto; flex-direction:column;width: 45rem;">
                 <div class="row pb-1 pt-2">
@@ -147,8 +188,8 @@
         </form>
     </div>
 
-    <!-- Edit Contact Form (Hidden Initially) -->
-    <div id="editContactFormDiv" style="display:none; flex-direction: column; align-items: center; min-height: 20vh;">
+<!-- Edit Contact Form (Hidden Initially) -->
+<div id="editContactFormDiv" style="display:none; flex-direction: column; align-items: center; min-height: 20vh;">
         <form method="post" asp-page-handler="Update">
             <input type="hidden" asp-for="ContactViewModel.ContactId" id="editContactId" />
             <div class="container form-control border-2 mb-2" style="display:flex; justify-content:space-around; height:auto; flex-direction:column;width: 45rem;">
@@ -274,8 +315,8 @@
         </form>
     </div>
 
-    <!-- Delete Contact Confirmation (Hidden Initially) -->
-    <div id="deleteContactFormDiv" style="display:none; flex-direction: column; align-items: center; min-height: 20vh;">
+<!-- Delete Contact Confirmation (Hidden Initially) -->
+<div id="deleteContactFormDiv" style="display:none; flex-direction: column; align-items: center; min-height: 20vh;">
         <form method="post" asp-page-handler="Delete">
             <input type="hidden" name="ContactId" id="deleteContactId" />
             <div class="container form-control border-2 mb-2" style="display:flex; justify-content:space-around; height:auto; flex-direction:column;width: 45rem;">
@@ -393,79 +434,12 @@
             </div>
         </form>
     </div>
-</div>
 
 @section scripts {
     <partial name="_ValidationScriptsPartial" />
-    <script src="./plugins/jsgrid/jsgrid.min.js"></script>
     <script asp-append-version="true">
         const contactLists = @Html.Raw(Json.Serialize(Model.contactVMList));
-        $(function () {
-            $("#jsGrid").jsGrid({
-                width: "100%",
-                height: "400px",
-                inserting: false,
-                editing: false,
-                sorting: true,
-                paging: true,
-                filtering: true,
-                autoload: true,
-                pageSize: 10,
-                pageButtonCount: 5,
 
-                data: contactLists,
-
-                fields: [
-                    { name: "designation", type: "text", title: "Designation", width: 100, filtering: true, sorting: true },
-                    { name: "name", type: "text", title: "Name", width: 100, filtering: true, sorting: true },
-                    { name: "emailID", type: "text", title: "Email Address", width: 150, filtering: true, sorting: true },
-                    { name: "mobile", type: "text", title: "Mobile Number", width: 100, filtering: true, sorting: true },
-                    { name: "fax", type: "text", title: "Fax Number", width: 100, filtering: true, sorting: true },
-                    { name: "officePhone", type: "text", title: "Office Phone", width: 100, filtering: true, sorting: true },
-                    { name: "branchName", type: "text", title: "Branch Name", width: 100, filtering: true, sorting: true },
-                    { name: "sponsorName", type: "text", title: "Sponsor", width: 100, filtering: true, sorting: true },
-                    {
-                        title: "Actions",
-                        width: 100,
-                        align: "center",
-                        itemTemplate: function (_, item) {
-                            var editButton = $("<button>")
-                                .addClass("btn btn-primary btn-sm me-1")
-                                .html('<i class="fas fa-edit"></i>')
-                                .on("click", function () {
-                                    showEditContactForm(item.contactId, item.designation, item.name, item.emailID, item.mobile, item.fax, item.officePhone, item.branchName, item.sponsorId);
-                                });
-                            var deleteButton = $("<button>")
-                                .addClass("btn btn-danger btn-sm")
-                                .html('<i class="fas fa-trash-alt"></i>')
-                                .on("click", function () {
-                                    showDeleteContactForm(item.contactId, item.designation, item.name, item.emailID, item.mobile, item.fax, item.officePhone, item.branchName, item.sponsorId, item.sponsorName);
-                                });
-                            return $("<div>").append(editButton).append(deleteButton);
-                        }
-                    }
-                ],
-                // No data message when no data is available
-                noDataContent: "No Sites found.",
-                controller: {
-                    loadData: function (filter) {
-                        return $.Deferred(function (dfd) {
-                            var filteredData = $.grep(contactLists, function (item) {
-                                return (!filter.designation || item.designation.includes(filter.designation)) &&
-                                    (!filter.name || item.name.includes(filter.name)) &&
-                                    (!filter.emailID || item.emailID.includes(filter.emailID)) &&
-                                    (!filter.mobile || item.mobile.includes(filter.mobile)) &&
-                                    (!filter.fax || item.Fax.includes(filter.Fax)) &&
-                                    (!filter.officePhone || item.officePhone.includes(filter.officePhone)) &&
-                                    (!filter.branchName || item.branchName.includes(filter.branchName)) &&
-                                    (!filter.sponsorName || item.sponsorName.includes(filter.sponsorName));
-                            });
-                            dfd.resolve(filteredData);
-                        }).promise();
-                    }
-                },
-            });
-        });
 
         // Function to show the Create form
         function showCreateContactForm() {
@@ -526,6 +500,118 @@
                 deleteForm[0].reset();  // Reset form fields
             }
         }
+
+        $(document).ready(function () {
+            $('#contactsTable').DataTable({
+                data: contactLists,
+                columns: [
+                    { data: 'designation', title: 'Designation' },
+                    { data: 'name', title: 'Name' },
+                    { data: 'emailID', title: 'Email Address' },
+                    { data: 'mobile', title: 'Mobile Number' },
+                    { data: 'fax', title: 'Fax Number' },
+                    { data: 'officePhone', title: 'Office Phone' },
+                    { data: 'branchName', title: 'Branch Name' },
+                    { data: 'sponsorName', title: 'Sponsor' },
+                    {
+                        data: null,
+                        title: 'Actions',
+                        className: 'text-right',
+                        orderable: false,
+                        searchable: false,
+                        render: function (data, type, row) {
+                            return `
+                                <button class="btn btn-success btn-sm me-1" onclick="showEditContactForm('${row.contactId}', '${row.designation}', '${row.name}', '${row.emailID}', '${row.mobile}', '${row.fax}', '${row.officePhone}', '${row.branchName}', '${row.sponsorId}')">
+                                    <i class="material-icons">drive_file_rename_outline</i>
+                                </button>
+                                <button class="btn btn-danger btn-sm" onclick="showDeleteContactForm('${row.contactId}', '${row.designation}', '${row.name}', '${row.emailID}', '${row.mobile}', '${row.fax}', '${row.officePhone}', '${row.branchName}', '${row.sponsorId}', '${row.sponsorName}')">
+                                    <i class="material-icons">delete_outline</i>
+                                </button>
+                            `;
+                        }
+                    }
+                ],
+                pagingType: "full_numbers",
+                pageLength: 10,
+                lengthMenu: [
+                    [10, 25, 50, -1],
+                    [10, 25, 50, "All"]
+                ],
+                responsive: true,
+                language: {
+                    search: "Search:",
+                    searchPlaceholder: "Enter value..."
+                },
+                paging: true,
+                ordering: true,
+                autoWidth: true,
+                dom: 'Bfrtip',
+                buttons: [
+                    {
+                        extend: 'copy',
+                        title: 'Contact Data Copy',
+                        filename: `Contact_Data_Copy_${new Date().toISOString().slice(0, 19).replace(/[-T:]/g, '')}`,
+                        exportOptions: {
+                            columns: ':not(:last-child)' // Exclude last column in export
+                        }
+                    },
+                    {
+                        extend: 'csv',
+                        title: 'Contact Data CSV',
+                        filename: `Contact_Data_CSV_${new Date().toISOString().slice(0, 19).replace(/[-T:]/g, '')}`,
+                        exportOptions: {
+                            columns: ':not(:last-child)' // Exclude last column in export
+                        }
+                    },
+                    {
+                        extend: 'excel',
+                        title: 'Contact Data Excel',
+                        filename: `Contact_Data_Excel_${new Date().toISOString().slice(0, 19).replace(/[-T:]/g, '')}`,
+                        exportOptions: {
+                            columns: ':not(:last-child)' // Exclude last column in export
+                        }
+                    },
+                    {
+                        extend: 'pdf',
+                        title: 'Contact Data PDF',
+                        filename: `Contact_Data_PDF_${new Date().toISOString().slice(0, 19).replace(/[-T:]/g, '')}`,
+                        exportOptions: {
+                            columns: ':not(:last-child)'  // Exclude the last column (Actions) from exports
+                        },
+                        customize: function (doc) {
+                            // Set orientation and page size
+                            doc.pageOrientation = 'landscape';
+                            doc.pageSize = 'A4';
+
+                            // Style table borders
+                            doc.styles.tableBodyEven = { fillColor: '#FFFFFF' };
+                            doc.styles.tableBodyOdd = { fillColor: '#F3F3F3' };
+
+                            // Add table border style
+                            doc.content[1].table.body.forEach(row => {
+                                row.forEach(cell => {
+                                    cell.border = [true, true, true, true]; // Top, Left, Bottom, Right
+                                });
+                            });
+                        }
+                    },
+                    {
+                        extend: 'print',
+                        title: 'Contact Data Print',
+                        filename: `Contact_Data_Print_${new Date().toISOString().slice(0, 19).replace(/[-T:]/g, '')}`,
+                        exportOptions: {
+                            columns: ':not(:last-child)' // Exclude last column in export
+                        }
+                    }
+                ],
+                columnDefs: [
+                    {
+                        targets: -1,
+                        orderable: false, // Make the last column non-sortable
+                    }
+                ]
+            });
+        });
     </script>
 }
 

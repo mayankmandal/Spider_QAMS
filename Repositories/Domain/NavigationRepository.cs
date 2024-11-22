@@ -169,10 +169,6 @@ namespace Spider_QAMS.Repositories.Domain
                     }
 
                 }
-                else
-                {
-                    return (false, paths);
-                }
 
                 RowsAffected = (sqlParameters[2].Value != DBNull.Value) ? (int)sqlParameters[2].Value : -1;
 

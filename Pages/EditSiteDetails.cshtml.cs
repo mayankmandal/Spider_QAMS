@@ -388,7 +388,7 @@ namespace Spider_QAMS.Pages
                 if (response.IsSuccessStatusCode)
                 {
                     TempData["success"] = $"{SiteDetailVM.SiteName} - Updated Successfully. Please Update Images if required";
-                    return Redirect($"/SiteImageUploader?siteId={_siteDetail.SiteID}");
+                    return Redirect($"/EditSiteDetails?siteId={_siteDetail.SiteID}");
                 }
                 else
                 {

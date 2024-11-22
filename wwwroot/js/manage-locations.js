@@ -68,53 +68,111 @@ function loadCities(regionId, selectedCityId = null, formType = "create") {
     }
 }
 
-$("#jsGrid").jsGrid({
-    width: "100%",
-    height: "400px",
-
-    inserting: false,
-    editing: false,
-    sorting: true,   // Enable sorting
-    paging: true,    // Enable pagination
-    filtering: true, // Enable search/filtering
-    autoload: true,  // Automatically load data
-    pageSize: 10,    // Items per page
-    pageButtonCount: 5,  // Pagination button count
-
-    data: locationsData,
-
-    fields: [
-        { name: "location", type: "text", title: "Location", width: 150, filtering: true, sorting: true },
-        { name: "streetName", type: "text", title: "Street Name", width: 150, filtering: true, sorting: true },
-        { name: "cityName", type: "text", title: "City", width: 100, filtering: true, sorting: true },
-        { name: "regionName", type: "text", title: "Region", width: 120, filtering: true, sorting: true },
-        { name: "sponsorName", type: "text", title: "Sponsor", width: 150, filtering: true, sorting: true },
-        {
-            title: "Actions",
-            width: 100,
-            align: "center",
-            itemTemplate: function (_, item) {
-                var editButton = $("<button>")
-                    .addClass("btn btn-primary btn-sm me-1")
-                    .html('<i class="fas fa-edit"></i>')
-                    .on("click", function () {
-                        showEditForm(item.locationId, item.location, item.streetName, item.cityId, item.regionId, item.branchName, item.districtName, item.sponsorId);
-                    });
-                var deleteButton = $("<button>")
-                    .addClass("btn btn-danger btn-sm")
-                    .html('<i class="fas fa-trash-alt"></i>')
-                    .on("click", function () {
-                        var index = locationsData.indexOf(item);
-                        if (index > -1) {
-                            locationsData.splice(index, 1);
-                            $("#jsGrid").jsGrid("loadData");
-                            showDeleteForm(item.locationId, item.location, item.streetName, item.cityId, item.regionId, item.regionName, item.branchName, item.districtName, item.cityId, item.cityName, item.sponsorId, item.sponsorName);
-                        }
-                    });
-
-                return $("<div>").append(editButton).append(deleteButton);
+$(document).ready(function () {
+    const table = $('#locationsTable').DataTable({
+        data: locationsData,
+        columns: [
+            { data: 'location', title: "Location", width: "150px" },
+            { data: 'streetName', title: "Street Name", width: "150px" },
+            { data: 'cityName', title: "City", width: "100px" },
+            { data: 'regionName', title: "Region", width: "120px" },
+            { data: 'sponsorName', title: "Sponsor", width: "150px" },
+            {
+                title: "Actions",
+                data: null,
+                width: "100px",
+                className: "text-center",
+                orderable: false,
+                render: function (data, type, row) {
+                    return `
+                        <button class="btn btn-success btn-sm me-1" onclick="showEditForm(${row.locationId}, '${row.location}', '${row.streetName}', ${row.cityId}, ${row.regionId}, '${row.branchName}', '${row.districtName}', ${row.sponsorId})">
+                            <i class="material-icons">drive_file_rename_outline</i>
+                        </button>
+                        <button class="btn btn-danger btn-sm" onclick="showDeleteForm(${row.locationId}, '${row.location}', '${row.streetName}', ${row.cityId}, ${row.regionId}, '${row.regionName}', '${row.branchName}', '${row.districtName}', ${row.cityId}, '${row.cityName}', ${row.sponsorId}, '${row.sponsorName}')">
+                            <i class="material-icons">delete_outline</i>
+                        </button>
+                    `;
+                }
             }
-        }
-    ],
-    noDataContent: "No Locations found.",
+        ],
+        pagingType: "full_numbers",
+        pageLength: 10,
+        lengthMenu: [
+            [10, 25, 50, -1],
+            [10, 25, 50, "All"]
+        ],
+        responsive: true,
+        language: {
+            search: "Search:",
+            searchPlaceholder: "Enter value..."
+        },
+        paging: true,
+        ordering: true,
+        autoWidth: true,
+        dom: 'Bfrtip',
+        buttons: [
+            {
+                extend: 'copy',
+                title: 'User Data Copy',
+                filename: `User_Data_Copy_${new Date().toISOString().slice(0, 19).replace(/[-T:]/g, '')}`,
+                exportOptions: {
+                    columns: ':not(:last-child)' // Exclude last column in export
+                }
+            },
+            {
+                extend: 'csv',
+                title: 'User Data CSV',
+                filename: `User_Data_CSV_${new Date().toISOString().slice(0, 19).replace(/[-T:]/g, '')}`,
+                exportOptions: {
+                    columns: ':not(:last-child)' // Exclude last column in export
+                }
+            },
+            {
+                extend: 'excel',
+                title: 'User Data Excel',
+                filename: `User_Data_Excel_${new Date().toISOString().slice(0, 19).replace(/[-T:]/g, '')}`,
+                exportOptions: {
+                    columns: ':not(:last-child)' // Exclude last column in export
+                }
+            },
+            {
+                extend: 'pdf',
+                title: 'User Data PDF',
+                filename: `User_Data_PDF_${new Date().toISOString().slice(0, 19).replace(/[-T:]/g, '')}`,
+                exportOptions: {
+                    columns: ':not(:last-child)'  // Exclude the last column (Actions) from exports
+                },
+                customize: function (doc) {
+                    // Set orientation and page size
+                    doc.pageOrientation = 'landscape';
+                    doc.pageSize = 'A4';
+
+                    // Style table borders
+                    doc.styles.tableBodyEven = { fillColor: '#FFFFFF' };
+                    doc.styles.tableBodyOdd = { fillColor: '#F3F3F3' };
+
+                    // Add table border style
+                    doc.content[1].table.body.forEach(row => {
+                        row.forEach(cell => {
+                            cell.border = [true, true, true, true]; // Top, Left, Bottom, Right
+                        });
+                    });
+                }
+            },
+            {
+                extend: 'print',
+                title: 'User Data Print',
+                filename: `User_Data_Print_${new Date().toISOString().slice(0, 19).replace(/[-T:]/g, '')}`,
+                exportOptions: {
+                    columns: ':not(:last-child)' // Exclude last column in export
+                }
+            }
+        ],
+        columnDefs: [
+            {
+                targets: -1,
+                orderable: false, // Make the last column non-sortable
+            }
+        ]
+    });
 });

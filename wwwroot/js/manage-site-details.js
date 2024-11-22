@@ -39,8 +39,12 @@
             }
         ],
         paging: true,
+        pagingType: "full_numbers",
         pageLength: 10,
-        lengthMenu: [10, 25, 50],
+        lengthMenu: [
+            [5, 10, 25, 50, -1], // This controls the number of options shown in the dropdown
+            [5, 10, 25, 50, 'All'] // Text shown next to each option
+        ],
         searching: true,
         responsive: true,
         order: [[0, 'asc']],
@@ -48,7 +52,16 @@
             search: "_INPUT_",
             searchPlaceholder: "Search records"
         },
-        dom: 'Bfrtip',
-        noDataContent: "No Sites found."
+        dom: `
+                <"row"<"col-sm-3"l><"col-sm-6 text-center"B><"col-sm-3"f>> 
+                t
+                <"row"<"col-sm-6"i><"col-sm-6"p>>
+            `,
+        noDataContent: "No Sites found.",
+        initComplete: function () {
+            // Adjust the dropdown select using jQuery
+            var select = $('#sitesTable_length label select');
+            select.addClass('form-control px-4'); // Add form-control class for styling
+        }
     });
 });

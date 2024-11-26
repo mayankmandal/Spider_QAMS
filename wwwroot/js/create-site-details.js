@@ -114,6 +114,9 @@ function renderLargeMapInModal(longitude, latitude) {
 }
 
 $(document).ready(function () {
+    // Initialize selectpicker for all select elements with the class `selectpicker`
+    $('.selectpicker').selectpicker();
+
     // Select the longitude and latitude input fields
     const gpsLongInput = $('input[id="SiteDetailVM_GPSLong"]');
     const gpsLattInput = $('input[id="SiteDetailVM_GPSLatt"]');
@@ -145,6 +148,7 @@ $(document).ready(function () {
         groupedData.forEach(sponsor => {
             sponsorSelect.append(new Option(sponsor.sponsorName, sponsor.sponsorId));
         });
+        sponsorSelect.selectpicker('refresh'); // Refresh select picker after populating
     }
 
     // Populate Regions, SiteType, and Contacts based on selected Sponsor
@@ -164,10 +168,12 @@ $(document).ready(function () {
         regions.forEach(region => {
             regionSelect.append(new Option(region.regionName, region.regionId));
         });
+        regionSelect.selectpicker('refresh'); // Refresh select picker after populating
 
         // Reset City and Location Dropdowns
         const citySelect = $('#citySelect');
         citySelect.empty().append('<option disabled selected>Select City</option>');
+        citySelect.selectpicker('refresh'); // Refresh select picker
 
         const locationSelect = $('#locationSelect');
         locationSelect.empty().append('<option disabled selected>Select Location</option>');
@@ -178,6 +184,7 @@ $(document).ready(function () {
         siteTypes.forEach(siteType => {
             siteTypeSelect.append(new Option(siteType.siteTypeDescription, siteType.siteTypeId));
         });
+        siteTypeSelect.selectpicker('refresh'); // Refresh select picker after populating
 
         // Populate Contact Dropdown
         const contactSelect = $('#contactSelect');
@@ -185,10 +192,12 @@ $(document).ready(function () {
         contacts.forEach(contact => {
             contactSelect.append(new Option(`${contact.name} (${contact.designation}) - ${contact.branchName}`, contact.contactId));
         });
+        contactSelect.selectpicker('refresh'); // Refresh select picker after populating
 
         // Reset Branch Type
         const branchTypeSelect = $('#branchTypeSelect');
         branchTypeSelect.empty().append('<option disabled selected>Select Branch Type</option>');
+        branchTypeSelect.selectpicker('refresh'); // Refresh select picker
     });
 
     // Populate Cities based on selected Region
@@ -204,10 +213,12 @@ $(document).ready(function () {
 
         const locationSelect = $('#locationSelect');
         locationSelect.empty().append('<option disabled selected>Select Location</option>');
+        locationSelect.selectpicker('refresh'); // Refresh location select picker after clearing
 
         cities.forEach(city => {
             citySelect.append(new Option(city.cityName, city.cityId));
         });
+        citySelect.selectpicker('refresh'); // Refresh city select picker after populating
     });
 
     // Populate Locations based on selected City
@@ -235,6 +246,7 @@ $(document).ready(function () {
             `;
             locationSelect.append(optionLocationHtml);
         });
+        locationSelect.selectpicker('refresh'); // Refresh location select picker after populating
     });
 
     // Populate BranchType based on selected SiteType
@@ -247,6 +259,7 @@ $(document).ready(function () {
             .siteTypes.find(st => st.siteTypeId == selectedSiteTypeId);
 
         $('#branchTypeSelect').empty().append('<option disabled selected>Select Branch Type</option>');
+        $('#branchTypeSelect').selectpicker('refresh'); // Refresh branch type select picker after clearing
 
         if (selectedSiteType && selectedSiteType.branchTypes && selectedSiteType.branchTypes.length > 0) {
             // If the selected site type has branch types, show and populate the Branch Type dropdown
@@ -256,6 +269,7 @@ $(document).ready(function () {
             branchTypes.forEach(branchType => {
                 $('#branchTypeSelect').append(new Option(branchType.description, branchType.branchTypeId));
             });
+            $('#branchTypeSelect').selectpicker('refresh'); // Refresh branch type select picker after populating
         } else {
             // If there are no branch types, hide the Branch Type dropdown
             $('#branchTypeDiv').hide(); // Hide the branch type div

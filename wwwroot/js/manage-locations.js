@@ -1,6 +1,11 @@
 ﻿function showCreateForm() {
     hideAllForms();
     $("#createFormDiv").css("display", "flex");
+
+    // Refresh selectpickers for the create form dropdowns
+    $('#createRegionId').selectpicker('refresh');
+    $('#createCitySelect').selectpicker('refresh');
+    $('#createSponsorId').selectpicker('refresh');
 }
 
 function showEditForm(locationId, locationName, streetName, cityId, regionId, branchName, districtName, sponsorId) {
@@ -13,10 +18,9 @@ function showEditForm(locationId, locationName, streetName, cityId, regionId, br
     $("#editBranchName").val(branchName);
     $("#editDistrictName").val(districtName);
 
-    // Set region dropdown and trigger city load
-    $("#editRegionId").val(regionId);
-
-    $("#editSponsorId").val(sponsorId);
+    // Set region and sponsor dropdown values
+    $("#editRegionId").val(regionId).selectpicker('refresh');
+    $("#editSponsorId").val(sponsorId).selectpicker('refresh');
 
     // Load cities for the selected region and set the city value after cities are loaded
     loadCities(regionId, cityId, 'edit'); // Pass cityId to select it later
@@ -31,10 +35,13 @@ function showDeleteForm(locationId, locationName, streetName, cityId, regionId, 
     $("#deleteBranchName").val(branchName);
     $("#deleteDistrictName").val(districtName);
 
-    // Set region dropdown and trigger city load
-    $('#deleteRegionId').empty().append(new Option(regionName, regionId)).prop('disabled', true); // Set and disable the dropdown
-    $('#deleteCitySelect').empty().append(new Option(cityName, cityId)).prop('disabled', true); // Set and disable the dropdown
-    $('#deleteSponsorId').empty().append(new Option(sponsorName, sponsorId)).prop('disabled', true); // Set and disable the dropdown
+    // Set region, city, and sponsor dropdowns and disable them
+    $('#deleteRegionId').val(regionId).prop('disabled', true);
+    $('#deleteRegionId').selectpicker('refresh');
+    $('#deleteCitySelect').val(cityId).prop('disabled', true);
+    $('#deleteCitySelect').selectpicker('refresh');
+    $('#deleteSponsorId').val(sponsorId).prop('disabled', true);
+    $('#deleteSponsorId').selectpicker('refresh');
 }
 
 function hideAllForms() {
@@ -66,9 +73,15 @@ function loadCities(regionId, selectedCityId = null, formType = "create") {
     if (selectedCityId) {
         $(citySelectId).val(selectedCityId);
     }
+
+    // Refresh the selectpicker for the city dropdown
+    $(citySelectId).selectpicker('refresh');
 }
 
 $(document).ready(function () {
+    // Initialize selectpicker for all select elements with the class `selectpicker`
+    $('.selectpicker').selectpicker();
+
     const table = $('#locationsTable').DataTable({
         data: locationsData,
         columns: [

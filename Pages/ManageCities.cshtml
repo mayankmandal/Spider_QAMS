@@ -48,159 +48,166 @@
             </div>
         </div>
     </div>
+    <div class="col-md-12">
+        <form id="createFormDiv" method="post" asp-page-handler="Create" style="display:none;">
+            <div class="card">
+                <div class="card-header card-header-rose card-header-icon">
+                    <div class="card-icon">
+                        <i class="material-icons">location_city</i>
+                    </div>
+                    <h4 class="card-title">Create New City</h4>
+                </div>
+                <div class="card-body">
+                    <!-- Validation Summary -->
+                    <div asp-validation-summary="All" class="text-danger fw-bold"></div>
+
+                    <div class="row">
+                        <label class="col-sm-2 col-form-label" asp-for="CityViewModel.CityName"></label>
+                        <div class="col-sm-10">
+                            <div class="form-group">
+                                <input type="text" class="form-control" asp-for="CityViewModel.CityName" placeholder="City Name here...">
+                            </div>
+                            <span asp-validation-for="CityViewModel.CityName" class="text-danger fw-bold"></span>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <label class="col-sm-2 col-form-label" asp-for="CityViewModel.RegionData.RegionId"></label>
+                        <div class="col-sm-10">
+                            <div class="form-group">
+                                <select id="regionCreateSelect" asp-for="CityViewModel.RegionData.RegionId" data-size="7" class="selectpicker" data-style="btn btn-primary btn-round" title="Choose Region" required>
+                                    <option value="" disabled selected>--Select Region--</option>
+                                    @foreach (var region in Model.Regions)
+                                    {
+                                        <option value="@region.RegionId">@region.RegionName</option>
+                                    }
+                                </select>
+                            </div>
+                            <span asp-validation-for="CityViewModel.RegionData.RegionId" class="text-danger fw-bold"></span>
+                        </div>
+                    </div>
+
+                </div>
+                <div class="card-footer ml-auto mr-auto">
+                    <button type="submit" class="btn btn-round btn-primary">Create City</button> &nbsp;
+                    <button type="button" class="btn btn-round btn-secondary" onclick="hideAllForms()">Cancel</button>
+                </div>
+            </div>
+        </form>
+    </div>
+    <div class="col-md-12">
+        <form id="editFormDiv" method="post" asp-page-handler="Update" style="display:none;">
+            <input type="hidden" asp-for="CityViewModel.CityId" id="editCityId" />
+            <div class="card">
+                <div class="card-header card-header-rose card-header-icon">
+                    <div class="card-icon">
+                        <i class="material-icons">location_city</i>
+                    </div>
+                    <h4 class="card-title">Update Existing City</h4>
+                </div>
+                <div class="card-body ">
+                    <!-- Validation Summary -->
+                    <div asp-validation-summary="All" class="text-danger fw-bold"></div>
+
+                    <div class="row">
+                        <label class="col-sm-2 col-form-label" asp-for="CityViewModel.CityName"></label>
+                        <div class="col-sm-10">
+                            <div class="form-group">
+                                <input type="text" class="form-control" id="editCityName" asp-for="CityViewModel.CityName" placeholder="City Name here...">
+                            </div>
+                            <span asp-validation-for="CityViewModel.CityName" class="text-danger fw-bold"></span>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <label class="col-sm-2 col-form-label" asp-for="CityViewModel.RegionData.RegionId"></label>
+                        <div class="col-sm-10">
+                            <div class="form-group">
+                                <select id="regionUpdateSelect" asp-for="CityViewModel.RegionData.RegionId" class="selectpicker" data-style="btn btn-primary btn-round" title="Choose Region" data-size="7" required>
+                                    <option value="" disabled selected>--Select Region--</option>
+                                    @foreach (var region in Model.Regions)
+                                    {
+                                        <option value="@region.RegionId">@region.RegionName</option>
+                                    }
+                                </select>
+                            </div>
+                            <span asp-validation-for="CityViewModel.RegionData.RegionId" class="text-danger fw-bold"></span>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-footer ml-auto mr-auto">
+                    <button type="submit" class="btn btn-round btn-success">Update City</button> &nbsp;
+                    <button type="button" class="btn btn-round btn-secondary" onclick="hideAllForms()">Cancel</button>
+                </div>
+            </div>
+        </form>
+    </div>
+    <div class="col-md-12">
+        <form id="deleteFormDiv" method="post" asp-page-handler="Delete" style="display:none;">
+            <input type="hidden" name="CityId" id="deleteCityId" />
+            <div class="card">
+                <div class="card-header card-header-rose card-header-icon">
+                    <div class="card-icon">
+                        <i class="material-icons">location_city</i>
+                    </div>
+                    <h4 class="card-title">Delete Existing City</h4>
+                </div>
+                <div class="card-body ">
+                    <!-- Validation Summary -->
+                    <div asp-validation-summary="All" class="text-danger fw-bold"></div>
+
+                    <div class="row">
+                        <label class="col-sm-2 col-form-label" asp-for="CityViewModel.CityName"></label>
+                        <div class="col-sm-10">
+                            <div class="form-group">
+                                <input type="text" class="form-control" id="deleteCityName" asp-for="CityViewModel.CityName" placeholder="City Name here..." disabled>
+                            </div>
+                            <span asp-validation-for="CityViewModel.CityName" class="text-danger fw-bold"></span>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <label class="col-sm-2 col-form-label" asp-for="CityViewModel.RegionData.RegionId"></label>
+                        <div class="col-sm-10">
+                            <div class="form-group">
+                                <select id="regionDeleteSelect" asp-for="CityViewModel.RegionData.RegionId" data-size="7" class="selectpicker" data-style="btn btn-primary btn-round" title="Choose Region" required>
+                                    <option value="" disabled selected>--Select Region--</option>
+                                    @foreach (var region in Model.Regions)
+                                    {
+                                        <option value="@region.RegionId">@region.RegionName</option>
+                                    }
+                                </select>
+                            </div>
+                            <span asp-validation-for="CityViewModel.RegionData.RegionId" class="text-danger fw-bold"></span>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <label class="col-sm-2 col-form-label"></label>
+                        <div class="col-sm-10">
+                            <div class="form-group">
+                                <p class="text">Are you sure you want to delete city <strong id="deleteCityPName"></strong>?</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-footer ml-auto mr-auto">
+                    <button type="submit" class="btn btn-round btn-danger">Delete City</button> &nbsp;
+                    <button type="button" class="btn btn-round btn-secondary" onclick="hideAllForms()">Cancel</button>
+                </div>
+            </div>
+        </form>
+    </div>
 </div>
-
-<form id="createFormDiv" method="post" asp-page-handler="Create" style="display:none;">
-    <div class="card">
-        <div class="card-header card-header-rose card-header-icon">
-            <div class="card-icon">
-                <i class="material-icons">contacts</i>
-            </div>
-            <h4 class="card-title">Create New City</h4>
-        </div>
-        <div class="card-body">
-            <!-- Validation Summary -->
-            <div asp-validation-summary="All" class="text-danger fw-bold"></div>
-
-            <div class="row">
-                <label class="col-sm-2 col-form-label" asp-for="CityViewModel.CityName"></label>
-                <div class="col-sm-10">
-                    <div class="form-group">
-                        <input type="text" class="form-control" asp-for="CityViewModel.CityName" placeholder="Region Name">
-                    </div>
-                    <span asp-validation-for="CityViewModel.CityName" class="text-danger fw-bold"></span>
-                </div>
-            </div>
-
-            <div class="row">
-                <label class="col-sm-2 col-form-label" asp-for="CityViewModel.RegionData.RegionId"></label>
-                <div class="col-sm-10">
-                    <div class="form-group">
-                        <select id="regionSelect" asp-for="CityViewModel.RegionData.RegionId" data-size="7" class="selectpicker" data-style="btn btn-primary btn-round" title="Choose Region" required>
-                            <option value="" disabled selected>--Select Region--</option>
-                            @foreach (var region in Model.Regions)
-                            {
-                                <option value="@region.RegionId">@region.RegionName</option>
-                            }
-                        </select>
-                    </div>
-                    <span asp-validation-for="CityViewModel.RegionData.RegionId" class="text-danger fw-bold"></span>
-                </div>
-            </div>
-        </div>
-        <div class="card-footer ml-auto mr-auto">
-            <button type="submit" class="btn btn-round btn-primary">Create City</button> &nbsp;
-            <button type="button" class="btn btn-round btn-secondary" onclick="hideAllForms()">Cancel</button>
-        </div>
-    </div>
-</form>
-
-<form id="editFormDiv" method="post" asp-page-handler="Update" style="display:none;">
-    <input type="hidden" asp-for="CityViewModel.CityId" id="editCityId" />
-    <div class="card">
-        <div class="card-header card-header-rose card-header-icon">
-            <div class="card-icon">
-                <i class="material-icons">contacts</i>
-            </div>
-            <h4 class="card-title">Update Existing City</h4>
-        </div>
-        <div class="card-body ">
-            <!-- Validation Summary -->
-            <div asp-validation-summary="All" class="text-danger fw-bold"></div>
-
-            <div class="row">
-                <label class="col-sm-2 col-form-label" asp-for="CityViewModel.CityName"></label>
-                <div class="col-sm-10">
-                    <div class="form-group">
-                        <input type="text" class="form-control" id="editCityName" asp-for="CityViewModel.CityName" placeholder="Region Name">
-                    </div>
-                    <span asp-validation-for="CityViewModel.CityName" class="text-danger fw-bold"></span>
-                </div>
-            </div>
-
-            <div class="row">
-                <label class="col-sm-2 col-form-label" asp-for="CityViewModel.RegionData.RegionId"></label>
-                <div class="col-sm-10">
-                    <div class="form-group">
-                        <select id="editRegionId" asp-for="CityViewModel.RegionData.RegionId" class="selectpicker" data-style="btn btn-primary btn-round" title="Choose Region" data-size="7" required>
-                            <option value="" disabled selected>--Select Region--</option>
-                            @foreach (var region in Model.Regions)
-                            {
-                                <option value="@region.RegionId">@region.RegionName</option>
-                            }
-                        </select>
-                    </div>
-                    <span asp-validation-for="CityViewModel.RegionData.RegionId" class="text-danger fw-bold"></span>
-                </div>
-            </div>
-        </div>
-        <div class="card-footer ml-auto mr-auto">
-            <button type="submit" class="btn btn-round btn-success">Update City</button> &nbsp;
-            <button type="button" class="btn btn-round btn-secondary" onclick="hideAllForms()">Cancel</button>
-        </div>
-    </div>
-</form>
-
-<form id="deleteFormDiv" method="post" asp-page-handler="Delete" style="display:none;">
-    <input type="hidden" name="CityId" id="deleteCityId" />
-    <div class="card">
-        <div class="card-header card-header-rose card-header-icon">
-            <div class="card-icon">
-                <i class="material-icons">contacts</i>
-            </div>
-            <h4 class="card-title">Delete Existing City</h4>
-        </div>
-        <div class="card-body ">
-            <!-- Validation Summary -->
-            <div asp-validation-summary="All" class="text-danger fw-bold"></div>
-
-            <div class="row">
-                <label class="col-sm-2 col-form-label" asp-for="CityViewModel.CityName"></label>
-                <div class="col-sm-10">
-                    <div class="form-group">
-                        <input type="text" class="form-control" id="deleteCityName" asp-for="CityViewModel.CityName" placeholder="City Name" disabled>
-                    </div>
-                    <span asp-validation-for="CityViewModel.CityName" class="text-danger fw-bold"></span>
-                </div>
-            </div>
-
-            <div class="row">
-                <label class="col-sm-2 col-form-label" asp-for="CityViewModel.RegionData.RegionId"></label>
-                <div class="col-sm-10">
-                    <div class="form-group">
-                        <select id="deleteRegionId" asp-for="CityViewModel.RegionData.RegionId" data-size="7" class="selectpicker" data-style="btn btn-primary btn-round" title="Choose Region" required>
-                        </select>
-                    </div>
-                    <span asp-validation-for="CityViewModel.RegionData.RegionId" class="text-danger fw-bold"></span>
-                </div>
-            </div>
-
-            <div class="row">
-                <label class="col-sm-2 col-form-label"></label>
-                <div class="col-sm-10">
-                    <div class="form-group">
-                    <p class="text">Are you sure you want to delete city <strong id="deleteCityPName"></strong>?</p>
-                    </div>
-                </div>
-            </div>
-        </div>
-        <div class="card-footer ml-auto mr-auto">
-            <button type="submit" class="btn btn-round btn-danger">Delete City</button> &nbsp;
-            <button type="button" class="btn btn-round btn-secondary" onclick="hideAllForms()">Cancel</button>
-        </div>
-    </div>
-</form>
 
 @section scripts {
     <partial name="_ValidationScriptsPartial" />
     <script asp-append-version="true">
-        // Sample regions data - replace this with the actual data from server
-        const cities = @Html.Raw(Json.Serialize(Model.Cities));
-
         // Function to show the Create form
         function showCreateForm() {
             hideAllForms();
             $('#createFormDiv').show();
+            $('#regionCreateSelect').selectpicker('refresh');  // Refresh selectpicker for create form
         }
 
         // Function to show the Edit Form
@@ -208,17 +215,24 @@
             hideAllForms();
             $('#editCityId').val(cityId);
             $('#editCityName').val(cityName);
-            $('#editRegionId').val(regionId); // Set selected region for edit
+            $('#regionUpdateSelect').val(regionId); // Set selected region for edit
+            $('#regionUpdateSelect').selectpicker('refresh');  // Refresh selectpicker for create form
             $('#editFormDiv').show();
         }
 
         // Function to show the Delete form
-        function showDeleteForm(cityId, cityName, regionId, regionName) {
+        function showDeleteForm(cityId, cityName, regionId) {
             hideAllForms();
             $('#deleteCityId').val(cityId);
             $('#deleteCityName').val(cityName);
             $('#deleteCityPName').text(cityName);
-            $('#deleteRegionId').empty().append(new Option(regionName, regionId)).prop('disabled selected', true); // Set and disable the dropdown
+
+            // Set the selected sponsor ID and disable the dropdown
+            $('#regionDeleteSelect').val(regionId).prop('disabled', true);
+
+            // Refresh the selectpicker to ensure the selection and disabled state are visible
+            $('#regionDeleteSelect').selectpicker('refresh');
+
             $('#deleteFormDiv').show();
         }
 
@@ -235,6 +249,7 @@
             if (createForm.length > 0) {
                 createForm.validate().resetForm(); // Clear valdiation errors
                 createForm[0].reset(); // Reset form fields
+                $('#regionCreateSelect').selectpicker('refresh');  // Refresh selectpicker for create form
             }
 
             // Clear validation messages and reset validation state for the edit form
@@ -242,6 +257,7 @@
             if (editForm.length > 0) {
                 editForm.validate().resetForm();  // Clear validation errors
                 editForm[0].reset();  // Reset form fields
+                $('#regionUpdateSelect').selectpicker('refresh');  // Refresh selectpicker for create form
             }
 
             // Clear validation messages and reset validation state for the delete form
@@ -249,10 +265,25 @@
             if (deleteForm.length > 0) {
                 deleteForm.validate().resetForm();  // Clear validation errors
                 deleteForm[0].reset();  // Reset form fields
+                $('#regionDeleteSelect').selectpicker('refresh');  // Refresh selectpicker for create form
             }
         }
 
         $(document).ready(function () {
+            // Sample regions data - replace this with the actual data from server
+            const cities = @Html.Raw(Json.Serialize(Model.Cities));
+
+            // Initialize selectpicker for all select elements with the class `selectpicker`
+            $('.selectpicker').selectpicker();
+
+            $('#regionCreateSelect').on('show.bs.select', function (e) {
+                // Force dropdown to open below
+                $('.dropdown-menu.show').css({
+                    'top': $(this).offset().top + $(this).outerHeight(),
+                    'left': $(this).offset().left
+                });
+            });
+
             // Initialize DataTables
             const table = $('#citiesTable').DataTable({
                 data: cities,
@@ -266,12 +297,12 @@
                         orderable: false,
                         render: function (data, type, row) {
                             return `<button class="btn btn-success btn-sm me-1" onclick="showEditForm(${row.cityId}, '${row.cityName}', ${row.regionData.regionId})">
-                                                <i class="material-icons">drive_file_rename_outline</i>
-                                            </button>
-                                            <button class="btn btn-danger btn-sm" onclick="showDeleteForm(${row.cityId}, '${row.cityName}', ${row.regionData.regionId}, '${row.regionData.regionName}')">
-                                                <i class="material-icons">delete_outline</i>
-                                            </button>
-                                        `;
+                                                                <i class="material-icons">drive_file_rename_outline</i>
+                                                            </button>
+                                                            <button class="btn btn-danger btn-sm" onclick="showDeleteForm(${row.cityId}, '${row.cityName}', ${row.regionData.regionId})">
+                                                                <i class="material-icons">delete_outline</i>
+                                                            </button>
+                                                        `;
                         }
                     }
                 ],
@@ -344,10 +375,10 @@
                     }
                 ],
                 dom: `
-                        <"row"<"col-sm-3"l><"col-sm-6 text-center"B><"col-sm-3"f>>
-                        t
-                        <"row"<"col-sm-6"i><"col-sm-6"p>>
-                    `,
+                                        <"row"<"col-sm-3"l><"col-sm-6 text-center"B><"col-sm-3"f>>
+                                        t
+                                        <"row"<"col-sm-6"i><"col-sm-6"p>>
+                                    `,
                 noDataContent: "No Cities found.",
                 initComplete: function () {
                     // Adjust the dropdown select using jQuery

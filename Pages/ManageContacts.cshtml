@@ -18,7 +18,7 @@
                 <div class="toolbar row d-flex justify-content-between">
                     <div class="d-flex">
                     </div>
-                    <button onclick="showCreateForm()" class="btn btn-round btn-warning">
+                    <button onclick="showCreateContactForm()" class="btn btn-round btn-warning">
                         <i class="material-icons">
                             add_to_photos
                         </i> Create Contact
@@ -60,391 +60,355 @@
             </div>
         </div>
     </div>
-</div>
-
-<!-- Create New Contact Form (Hidden Initially) -->
-<div id="createContactFormDiv" style="display:none; flex-direction: column; align-items: center; min-height: 20vh;">
-        <form method="post" asp-page-handler="Create" id="createContactForm">
-            <div class="container form-control border-2 mb-2" style="display:flex; justify-content:space-around; height:auto; flex-direction:column;width: 45rem;">
-                <div class="row pb-1 pt-2">
-                    <div style="color:#17a2b8; text-align:center; font-size:1.7rem; font-weight:500">CREATE NEW CONTACT</div>
-                    <div><hr /></div>
-                </div>
-                <div class="card">
-                    <div class="card-header" style="background:#f8f8f8;">
-                        <div class="card-title fw-bold" style="font-size:1.2rem">Contact Details</div>
+    <div class="col-md-12">
+        <form id="createContactFormDiv" method="post" asp-page-handler="Create" style="display:none;">
+            <div class="card">
+                <div class="card-header card-header-rose card-header-icon">
+                    <div class="card-icon">
+                        <i class="material-icons">contact_phone</i>
                     </div>
-                    <div class="card-body">
-                        <!-- Validation Summary -->
-                        <div asp-validation-summary="All" class="text-danger fw-bold"></div>
+                    <h4 class="card-title">Create New Contact</h4>
+                </div>
+                <div class="card-body">
+                    <!-- Validation Summary -->
+                    <div asp-validation-summary="All" class="text-danger fw-bold"></div>
 
-                        <!-- Name Field -->
-                        <div class="mb-3">
-                            <label asp-for="ContactViewModel.Name" class="form-label"></label>
-                            <div class="input-group mb-3">
-                                <div class="input-group-prepend">
-                                    <span class="input-group-text"><i class="fas fa-user"></i></span>
-                                </div>
-                                <input asp-for="ContactViewModel.Name" placeholder="Name" class="form-control" />
+                    <div class="row">
+                        <label class="col-sm-2 col-form-label" asp-for="ContactViewModel.Name"></label>
+                        <div class="col-sm-10">
+                            <div class="form-group">
+                                <input type="text" class="form-control" asp-for="ContactViewModel.Name" placeholder="Contact Name here...">
                             </div>
                             <span asp-validation-for="ContactViewModel.Name" class="text-danger fw-bold"></span>
                         </div>
+                    </div>
 
-                        <!-- Designation Field -->
-                        <div class="mb-3">
-                            <label asp-for="ContactViewModel.Designation" class="form-label"></label>
-                            <div class="input-group mb-3">
-                                <div class="input-group-prepend">
-                                    <span class="input-group-text"><i class="fas fa-briefcase"></i></span>
-                                </div>
-                                <input asp-for="ContactViewModel.Designation" placeholder="Designation" class="form-control" />
+                    <div class="row">
+                        <label class="col-sm-2 col-form-label" asp-for="ContactViewModel.Designation"></label>
+                        <div class="col-sm-10">
+                            <div class="form-group">
+                                <input type="text" class="form-control" asp-for="ContactViewModel.Designation" placeholder="Designation here...">
                             </div>
                             <span asp-validation-for="ContactViewModel.Designation" class="text-danger fw-bold"></span>
                         </div>
+                    </div>
 
-                        <!-- Office Phone Field -->
-                        <div class="mb-3">
-                            <label asp-for="ContactViewModel.OfficePhone" class="form-label"></label>
-                            <div class="input-group mb-3">
-                                <div class="input-group-prepend">
-                                    <span class="input-group-text"><i class="fas fa-phone"></i></span>
-                                </div>
-                                <input asp-for="ContactViewModel.OfficePhone" placeholder="Office Phone" class="form-control" />
+                    <!-- Office Phone Field -->
+                    <div class="row">
+                        <label class="col-sm-2 col-form-label" asp-for="ContactViewModel.OfficePhone"></label>
+                        <div class="col-sm-10">
+                            <div class="form-group">
+                                <input type="text" class="form-control" asp-for="ContactViewModel.OfficePhone" placeholder="Office Phone Number here...">
                             </div>
                             <span asp-validation-for="ContactViewModel.OfficePhone" class="text-danger fw-bold"></span>
                         </div>
+                    </div>
 
-                        <!-- Mobile Field -->
-                        <div class="mb-3">
-                            <label asp-for="ContactViewModel.Mobile" class="form-label"></label>
-                            <div class="input-group mb-3">
-                                <div class="input-group-prepend">
-                                    <span class="input-group-text"><i class="fas fa-mobile-alt"></i></span>
-                                </div>
-                                <input asp-for="ContactViewModel.Mobile" placeholder="Mobile" class="form-control" />
+                    <!-- Mobile Field -->
+                    <div class="row">
+                        <label class="col-sm-2 col-form-label" asp-for="ContactViewModel.Mobile"></label>
+                        <div class="col-sm-10">
+                            <div class="form-group">
+                                <input type="text" class="form-control" asp-for="ContactViewModel.Mobile" placeholder="Mobile Number here...">
                             </div>
                             <span asp-validation-for="ContactViewModel.Mobile" class="text-danger fw-bold"></span>
                         </div>
+                    </div>
 
-                        <!-- Email Address Field -->
-                        <div class="mb-3">
-                            <label asp-for="ContactViewModel.EmailID" class="form-label"></label>
-                            <div class="input-group mb-3">
-                                <div class="input-group-prepend">
-                                    <span class="input-group-text"><i class="fas fa-envelope"></i></span>
-                                </div>
-                                <input asp-for="ContactViewModel.EmailID" placeholder="Email Address" class="form-control" />
+                    <!-- Email Address Field -->
+                    <div class="row">
+                        <label class="col-sm-2 col-form-label" asp-for="ContactViewModel.EmailID"></label>
+                        <div class="col-sm-10">
+                            <div class="form-group">
+                                <input type="text" class="form-control" asp-for="ContactViewModel.EmailID" placeholder="Email Address here...">
                             </div>
                             <span asp-validation-for="ContactViewModel.EmailID" class="text-danger fw-bold"></span>
                         </div>
+                    </div>
 
-                        <!-- Fax Field -->
-                        <div class="mb-3">
-                            <label asp-for="ContactViewModel.Fax" class="form-label"></label>
-                            <div class="input-group mb-3">
-                                <div class="input-group-prepend">
-                                    <span class="input-group-text"><i class="fas fa-fax"></i></span>
-                                </div>
-                                <input asp-for="ContactViewModel.Fax" placeholder="Fax Number" class="form-control" />
+                    <!-- Fax Field -->
+                    <div class="row">
+                        <label class="col-sm-2 col-form-label" asp-for="ContactViewModel.Fax"></label>
+                        <div class="col-sm-10">
+                            <div class="form-group">
+                                <input type="text" class="form-control" asp-for="ContactViewModel.Fax" placeholder="Fax Number here...">
                             </div>
                             <span asp-validation-for="ContactViewModel.Fax" class="text-danger fw-bold"></span>
                         </div>
+                    </div>
 
-                        <!-- Branch Name Field -->
-                        <div class="mb-3">
-                            <label asp-for="ContactViewModel.BranchName" class="form-label"></label>
-                            <div class="input-group mb-3">
-                                <div class="input-group-prepend">
-                                    <span class="input-group-text"><i class="fas fa-building"></i></span>
-                                </div>
-                                <input asp-for="ContactViewModel.BranchName" placeholder="Branch Name" class="form-control" />
+                    <!-- Branch Name Field -->
+                    <div class="row">
+                        <label class="col-sm-2 col-form-label" asp-for="ContactViewModel.BranchName"></label>
+                        <div class="col-sm-10">
+                            <div class="form-group">
+                                <input type="text" class="form-control" asp-for="ContactViewModel.BranchName" placeholder="Branch Name here...">
                             </div>
                             <span asp-validation-for="ContactViewModel.BranchName" class="text-danger fw-bold"></span>
                         </div>
+                    </div>
 
-                        <!-- Sponsor Dropdown Field -->
-                        <div class="mb-3">
-                            <label asp-for="ContactViewModel.SponsorId" class="form-label"></label>
-                            <select asp-for="ContactViewModel.SponsorId" class="form-select" required>
-                                <option value="" disabled selected>--Select Sponsor--</option>
-                                @foreach (var sponsor in Model.Sponsors)
-                                {
-                                    <option value="@sponsor.SponsorId">@sponsor.SponsorName</option>
-                                }
-                            </select>
+                    <div class="row">
+                        <label class="col-sm-2 col-form-label" asp-for="ContactViewModel.SponsorId"></label>
+                        <div class="col-sm-10">
+                            <div class="form-group">
+                                <select asp-for="ContactViewModel.SponsorId" data-size="7" class="selectpicker" data-style="btn btn-primary btn-round" title="Choose Sponsor" required>
+                                    <option value="" disabled selected>--Select Sponsor--</option>
+                                    @foreach (var sponsor in Model.Sponsors)
+                                    {
+                                        <option value="@sponsor.SponsorId">@sponsor.SponsorName</option>
+                                    }
+                                </select>
+                            </div>
                             <span asp-validation-for="ContactViewModel.SponsorId" class="text-danger fw-bold"></span>
                         </div>
-
-                        <!-- Buttons for form submission -->
-                        <div style="display: flex; justify-content: center; align-items: center; margin-top: 20px;">
-                            <div class="row" style="width: 100%; max-width: 600px; display: flex; justify-content: space-around;">
-                                <button type="submit" class="btn create-btn">Add Contact</button>
-                                <button type="button" class="btn btn-secondary" onclick="hideAllForms()">Cancel</button>
-                            </div>
-                        </div>
                     </div>
+
+                </div>
+                <div class="card-footer ml-auto mr-auto">
+                    <button type="submit" class="btn btn-round btn-primary">Create Contact</button> &nbsp;
+                    <button type="button" class="btn btn-round btn-secondary" onclick="hideAllForms()">Cancel</button>
                 </div>
             </div>
         </form>
     </div>
-
-<!-- Edit Contact Form (Hidden Initially) -->
-<div id="editContactFormDiv" style="display:none; flex-direction: column; align-items: center; min-height: 20vh;">
-        <form method="post" asp-page-handler="Update">
+    <div class="col-md-12">
+        <form id="editContactFormDiv" method="post" asp-page-handler="Update" style="display:none;">
             <input type="hidden" asp-for="ContactViewModel.ContactId" id="editContactId" />
-            <div class="container form-control border-2 mb-2" style="display:flex; justify-content:space-around; height:auto; flex-direction:column;width: 45rem;">
-                <div class="row pb-1 pt-2">
-                    <div style="color:#17a2b8; text-align:center; font-size:1.7rem; font-weight:500">EDIT CONTACT</div>
-                    <div><hr /></div>
-                </div>
-                <div class="card">
-                    <div class="card-header" style="background:#f8f8f8;">
-                        <div class="card-title fw-bold" style="font-size:1.2rem">Contact Details</div>
+            <div class="card">
+                <div class="card-header card-header-rose card-header-icon">
+                    <div class="card-icon">
+                        <i class="material-icons">contact_phone</i>
                     </div>
-                    <div class="card-body">
-                        <!-- Validation Summary -->
-                        <div asp-validation-summary="All" class="text-danger fw-bold"></div>
+                    <h4 class="card-title">Update Existing Contact</h4>
+                </div>
+                <div class="card-body">
+                    <!-- Validation Summary -->
+                    <div asp-validation-summary="All" class="text-danger fw-bold"></div>
 
-                        <!-- Name Field -->
-                        <div class="mb-3">
-                            <label asp-for="ContactViewModel.Name" class="form-label"></label>
-                            <div class="input-group mb-3">
-                                <div class="input-group-prepend">
-                                    <span class="input-group-text"><i class="fas fa-user"></i></span>
-                                </div>
-                                <input asp-for="ContactViewModel.Name" id="editContactName" placeholder="Name" class="form-control" />
+                    <div class="row">
+                        <label class="col-sm-2 col-form-label" asp-for="ContactViewModel.Name"></label>
+                        <div class="col-sm-10">
+                            <div class="form-group">
+                                <input type="text" class="form-control" asp-for="ContactViewModel.Name" id="editContactName" placeholder="Contact Name here...">
                             </div>
                             <span asp-validation-for="ContactViewModel.Name" class="text-danger fw-bold"></span>
                         </div>
+                    </div>
 
-                        <!-- Designation Field -->
-                        <div class="mb-3">
-                            <label asp-for="ContactViewModel.Designation" class="form-label"></label>
-                            <div class="input-group mb-3">
-                                <div class="input-group-prepend">
-                                    <span class="input-group-text"><i class="fas fa-briefcase"></i></span>
-                                </div>
-                                <input asp-for="ContactViewModel.Designation" id="editContactDesignation" placeholder="Designation" class="form-control" />
+                    <div class="row">
+                        <label class="col-sm-2 col-form-label" asp-for="ContactViewModel.Designation"></label>
+                        <div class="col-sm-10">
+                            <div class="form-group">
+                                <input type="text" class="form-control" asp-for="ContactViewModel.Designation" id="editContactDesignation" placeholder="Designation here...">
                             </div>
                             <span asp-validation-for="ContactViewModel.Designation" class="text-danger fw-bold"></span>
                         </div>
+                    </div>
 
-                        <!-- Email Address Field -->
-                        <div class="mb-3">
-                            <label asp-for="ContactViewModel.EmailID" class="form-label"></label>
-                            <div class="input-group mb-3">
-                                <div class="input-group-prepend">
-                                    <span class="input-group-text"><i class="fas fa-envelope"></i></span>
-                                </div>
-                                <input asp-for="ContactViewModel.EmailID" id="editContactEmailID" placeholder="Email Address" class="form-control" />
-                            </div>
-                            <span asp-validation-for="ContactViewModel.EmailID" class="text-danger fw-bold"></span>
-                        </div>
-
-                        <!-- Mobile Field -->
-                        <div class="mb-3">
-                            <label asp-for="ContactViewModel.Mobile" class="form-label"></label>
-                            <div class="input-group mb-3">
-                                <div class="input-group-prepend">
-                                    <span class="input-group-text"><i class="fas fa-mobile-alt"></i></span>
-                                </div>
-                                <input asp-for="ContactViewModel.Mobile" id="editContactMobile" placeholder="Mobile" class="form-control" />
-                            </div>
-                            <span asp-validation-for="ContactViewModel.Mobile" class="text-danger fw-bold"></span>
-                        </div>
-
-                        <!-- Fax Field -->
-                        <div class="mb-3">
-                            <label asp-for="ContactViewModel.Fax" class="form-label"></label>
-                            <div class="input-group mb-3">
-                                <div class="input-group-prepend">
-                                    <span class="input-group-text"><i class="fas fa-fax"></i></span>
-                                </div>
-                                <input asp-for="ContactViewModel.Fax" placeholder="Fax Number" class="form-control" id="editContactFax" />
-                            </div>
-                            <span asp-validation-for="ContactViewModel.Fax" class="text-danger fw-bold"></span>
-                        </div>
-
-                        <!-- Office Phone Field -->
-                        <div class="mb-3">
-                            <label asp-for="ContactViewModel.OfficePhone" class="form-label"></label>
-                            <div class="input-group mb-3">
-                                <div class="input-group-prepend">
-                                    <span class="input-group-text"><i class="fas fa-phone"></i></span>
-                                </div>
-                                <input asp-for="ContactViewModel.OfficePhone" id="editContactOfficePhone" placeholder="Office Phone" class="form-control" />
+                    <!-- Office Phone Field -->
+                    <div class="row">
+                        <label class="col-sm-2 col-form-label" asp-for="ContactViewModel.OfficePhone"></label>
+                        <div class="col-sm-10">
+                            <div class="form-group">
+                                <input type="text" class="form-control" asp-for="ContactViewModel.OfficePhone" id="editContactOfficePhone" placeholder="Office Phone Number here...">
                             </div>
                             <span asp-validation-for="ContactViewModel.OfficePhone" class="text-danger fw-bold"></span>
                         </div>
+                    </div>
 
-                        <!-- Branch Name Field -->
-                        <div class="mb-3">
-                            <label asp-for="ContactViewModel.BranchName" class="form-label"></label>
-                            <div class="input-group mb-3">
-                                <div class="input-group-prepend">
-                                    <span class="input-group-text"><i class="fas fa-building"></i></span>
-                                </div>
-                                <input asp-for="ContactViewModel.BranchName" id="editContactBranchName" placeholder="Branch Name" class="form-control" />
+                    <!-- Mobile Field -->
+                    <div class="row">
+                        <label class="col-sm-2 col-form-label" asp-for="ContactViewModel.Mobile"></label>
+                        <div class="col-sm-10">
+                            <div class="form-group">
+                                <input type="text" class="form-control" asp-for="ContactViewModel.Mobile" id="editContactMobile" placeholder="Mobile Number here...">
+                            </div>
+                            <span asp-validation-for="ContactViewModel.Mobile" class="text-danger fw-bold"></span>
+                        </div>
+                    </div>
+
+                    <!-- Email Address Field -->
+                    <div class="row">
+                        <label class="col-sm-2 col-form-label" asp-for="ContactViewModel.EmailID"></label>
+                        <div class="col-sm-10">
+                            <div class="form-group">
+                                <input type="text" class="form-control" asp-for="ContactViewModel.EmailID" id="editContactEmailID" placeholder="Email Address here...">
+                            </div>
+                            <span asp-validation-for="ContactViewModel.EmailID" class="text-danger fw-bold"></span>
+                        </div>
+                    </div>
+
+                    <!-- Fax Field -->
+                    <div class="row">
+                        <label class="col-sm-2 col-form-label" asp-for="ContactViewModel.Fax"></label>
+                        <div class="col-sm-10">
+                            <div class="form-group">
+                                <input type="text" class="form-control" asp-for="ContactViewModel.Fax" id="editContactFax" placeholder="Fax Number here...">
+                            </div>
+                            <span asp-validation-for="ContactViewModel.Fax" class="text-danger fw-bold"></span>
+                        </div>
+                    </div>
+
+                    <!-- Branch Name Field -->
+                    <div class="row">
+                        <label class="col-sm-2 col-form-label" asp-for="ContactViewModel.BranchName"></label>
+                        <div class="col-sm-10">
+                            <div class="form-group">
+                                <input type="text" class="form-control" asp-for="ContactViewModel.BranchName" id="editContactBranchName" placeholder="Branch Name here...">
                             </div>
                             <span asp-validation-for="ContactViewModel.BranchName" class="text-danger fw-bold"></span>
                         </div>
+                    </div>
 
-                        <!-- Sponsor Dropdown Field -->
-                        <div class="mb-3">
-                            <label asp-for="ContactViewModel.SponsorId" class="form-label"></label>
-                            <select asp-for="ContactViewModel.SponsorId" class="form-select" id="editContactSponsorId" required>
-                                <option value="" disabled selected>--Select Sponsor--</option>
-                                @foreach (var sponsor in Model.Sponsors)
-                                {
-                                    <option value="@sponsor.SponsorId">@sponsor.SponsorName</option>
-                                }
-                            </select>
+                    <div class="row">
+                        <label class="col-sm-2 col-form-label" asp-for="ContactViewModel.SponsorId"></label>
+                        <div class="col-sm-10">
+                            <div class="form-group">
+                                <select asp-for="ContactViewModel.SponsorId" id="editContactSponsorId" data-size="7" class="selectpicker" data-style="btn btn-primary btn-round" title="Choose Sponsor" required>
+                                    <option value="" disabled selected>--Select Sponsor--</option>
+                                    @foreach (var sponsor in Model.Sponsors)
+                                    {
+                                        <option value="@sponsor.SponsorId">@sponsor.SponsorName</option>
+                                    }
+                                </select>
+                            </div>
                             <span asp-validation-for="ContactViewModel.SponsorId" class="text-danger fw-bold"></span>
                         </div>
-
-                        <!-- Buttons for form submission -->
-                        <div style="display: flex; justify-content: center; align-items: center; margin-top: 20px;">
-                            <div class="row" style="width: 100%; max-width: 600px; display: flex; justify-content: space-around;">
-                                <button type="submit" class="btn update-btn">Update Contact</button>
-                                <button type="button" class="btn btn-secondary" onclick="hideAllForms()">Cancel</button>
-                            </div>
-                        </div>
                     </div>
+
+                </div>
+                <div class="card-footer ml-auto mr-auto">
+                    <button type="submit" class="btn btn-round btn-success">Update Contact</button> &nbsp;
+                    <button type="button" class="btn btn-round btn-secondary" onclick="hideAllForms()">Cancel</button>
                 </div>
             </div>
         </form>
-    </div>
 
-<!-- Delete Contact Confirmation (Hidden Initially) -->
-<div id="deleteContactFormDiv" style="display:none; flex-direction: column; align-items: center; min-height: 20vh;">
-        <form method="post" asp-page-handler="Delete">
+    </div>
+    <div class="col-md-12">
+        <form id="deleteContactFormDiv" method="post" asp-page-handler="Delete" style="display:none;">
             <input type="hidden" name="ContactId" id="deleteContactId" />
-            <div class="container form-control border-2 mb-2" style="display:flex; justify-content:space-around; height:auto; flex-direction:column;width: 45rem;">
-                <div class="row pb-1 pt-2">
-                    <div style="color:#dc3545; text-align:center; font-size:1.7rem; font-weight:500">DELETE CONTACT</div>
-                    <div><hr /></div>
+            <div class="card">
+                <div class="card-header card-header-rose card-header-icon">
+                    <div class="card-icon">
+                        <i class="material-icons">contact_phone</i>
+                    </div>
+                    <h4 class="card-title">Delete Existing Contact</h4>
                 </div>
-                <div class="card">
-                    <div class="card-body">
-                        <!-- Validation Summary -->
-                        <div asp-validation-summary="All" class="text-danger fw-bold"></div>
+                <div class="card-body">
+                    <!-- Validation Summary -->
+                    <div asp-validation-summary="All" class="text-danger fw-bold"></div>
 
-                        <!-- Name Field -->
-                        <div class="mb-3">
-                            <label asp-for="ContactViewModel.Name" class="form-label"></label>
-                            <div class="input-group mb-3">
-                                <div class="input-group-prepend">
-                                    <span class="input-group-text"><i class="fas fa-user"></i></span>
-                                </div>
-                                <input asp-for="ContactViewModel.Name" id="deleteContactName" placeholder="Name" class="form-control" disabled />
+                    <div class="row">
+                        <label class="col-sm-2 col-form-label" asp-for="ContactViewModel.Name"></label>
+                        <div class="col-sm-10">
+                            <div class="form-group">
+                                <input type="text" class="form-control" asp-for="ContactViewModel.Name" id="deleteContactName" placeholder="Contact Name here..." disabled>
                             </div>
                             <span asp-validation-for="ContactViewModel.Name" class="text-danger fw-bold"></span>
                         </div>
+                    </div>
 
-                        <!-- Designation Field -->
-                        <div class="mb-3">
-                            <label asp-for="ContactViewModel.Designation" class="form-label"></label>
-                            <div class="input-group mb-3">
-                                <div class="input-group-prepend">
-                                    <span class="input-group-text"><i class="fas fa-briefcase"></i></span>
-                                </div>
-                                <input asp-for="ContactViewModel.Designation" id="deleteContactDesignation" placeholder="Designation" class="form-control" disabled />
+                    <div class="row">
+                        <label class="col-sm-2 col-form-label" asp-for="ContactViewModel.Designation"></label>
+                        <div class="col-sm-10">
+                            <div class="form-group">
+                                <input type="text" class="form-control" asp-for="ContactViewModel.Designation" id="deleteContactDesignation" placeholder="Designation here..." disabled>
                             </div>
                             <span asp-validation-for="ContactViewModel.Designation" class="text-danger fw-bold"></span>
                         </div>
+                    </div>
 
-                        <!-- Email Address Field -->
-                        <div class="mb-3">
-                            <label asp-for="ContactViewModel.EmailID" class="form-label"></label>
-                            <div class="input-group mb-3">
-                                <div class="input-group-prepend">
-                                    <span class="input-group-text"><i class="fas fa-envelope"></i></span>
-                                </div>
-                                <input asp-for="ContactViewModel.EmailID" id="deleteContactEmailID" placeholder="Email Address" class="form-control" disabled />
-                            </div>
-                            <span asp-validation-for="ContactViewModel.EmailID" class="text-danger fw-bold"></span>
-                        </div>
-
-                        <!-- Mobile Field -->
-                        <div class="mb-3">
-                            <label asp-for="ContactViewModel.Mobile" class="form-label"></label>
-                            <div class="input-group mb-3">
-                                <div class="input-group-prepend">
-                                    <span class="input-group-text"><i class="fas fa-mobile-alt"></i></span>
-                                </div>
-                                <input asp-for="ContactViewModel.Mobile" id="deleteContactMobile" placeholder="Mobile" class="form-control" disabled />
-                            </div>
-                            <span asp-validation-for="ContactViewModel.Mobile" class="text-danger fw-bold"></span>
-                        </div>
-
-                        <!-- Fax Field -->
-                        <div class="mb-3">
-                            <label asp-for="ContactViewModel.Fax" class="form-label"></label>
-                            <div class="input-group mb-3">
-                                <div class="input-group-prepend">
-                                    <span class="input-group-text"><i class="fas fa-fax"></i></span>
-                                </div>
-                                <input asp-for="ContactViewModel.Fax" placeholder="Fax Number" class="form-control" id="deleteContactFax" disabled />
-                            </div>
-                            <span asp-validation-for="ContactViewModel.Fax" class="text-danger fw-bold"></span>
-                        </div>
-
-                        <!-- Office Phone Field -->
-                        <div class="mb-3">
-                            <label asp-for="ContactViewModel.OfficePhone" class="form-label"></label>
-                            <div class="input-group mb-3">
-                                <div class="input-group-prepend">
-                                    <span class="input-group-text"><i class="fas fa-phone"></i></span>
-                                </div>
-                                <input asp-for="ContactViewModel.OfficePhone" id="deleteContactOfficePhone" placeholder="Office Phone" class="form-control" disabled />
+                    <!-- Office Phone Field -->
+                    <div class="row">
+                        <label class="col-sm-2 col-form-label" asp-for="ContactViewModel.OfficePhone"></label>
+                        <div class="col-sm-10">
+                            <div class="form-group">
+                                <input type="text" class="form-control" asp-for="ContactViewModel.OfficePhone" id="deleteContactOfficePhone" placeholder="Office Phone Number here..." disabled>
                             </div>
                             <span asp-validation-for="ContactViewModel.OfficePhone" class="text-danger fw-bold"></span>
                         </div>
+                    </div>
 
-                        <!-- Branch Name Field -->
-                        <div class="mb-3">
-                            <label asp-for="ContactViewModel.BranchName" class="form-label"></label>
-                            <div class="input-group mb-3">
-                                <div class="input-group-prepend">
-                                    <span class="input-group-text"><i class="fas fa-building"></i></span>
-                                </div>
-                                <input asp-for="ContactViewModel.BranchName" id="deleteContactBranchName" placeholder="Branch Name" class="form-control" disabled />
+                    <!-- Mobile Field -->
+                    <div class="row">
+                        <label class="col-sm-2 col-form-label" asp-for="ContactViewModel.Mobile"></label>
+                        <div class="col-sm-10">
+                            <div class="form-group">
+                                <input type="text" class="form-control" asp-for="ContactViewModel.Mobile" id="deleteContactMobile" placeholder="Mobile Number here..." disabled>
+                            </div>
+                            <span asp-validation-for="ContactViewModel.Mobile" class="text-danger fw-bold"></span>
+                        </div>
+                    </div>
+
+                    <!-- Email Address Field -->
+                    <div class="row">
+                        <label class="col-sm-2 col-form-label" asp-for="ContactViewModel.EmailID"></label>
+                        <div class="col-sm-10">
+                            <div class="form-group">
+                                <input type="text" class="form-control" asp-for="ContactViewModel.EmailID" id="deleteContactEmailID" placeholder="Email Address here..." disabled>
+                            </div>
+                            <span asp-validation-for="ContactViewModel.EmailID" class="text-danger fw-bold"></span>
+                        </div>
+                    </div>
+
+                    <!-- Fax Field -->
+                    <div class="row">
+                        <label class="col-sm-2 col-form-label" asp-for="ContactViewModel.Fax"></label>
+                        <div class="col-sm-10">
+                            <div class="form-group">
+                                <input type="text" class="form-control" asp-for="ContactViewModel.Fax" id="deleteContactFax" placeholder="Fax Number here..." disabled>
+                            </div>
+                            <span asp-validation-for="ContactViewModel.Fax" class="text-danger fw-bold"></span>
+                        </div>
+                    </div>
+
+                    <!-- Branch Name Field -->
+                    <div class="row">
+                        <label class="col-sm-2 col-form-label" asp-for="ContactViewModel.BranchName"></label>
+                        <div class="col-sm-10">
+                            <div class="form-group">
+                                <input type="text" class="form-control" asp-for="ContactViewModel.BranchName" id="deleteContactBranchName" placeholder="Branch Name here..." disabled>
                             </div>
                             <span asp-validation-for="ContactViewModel.BranchName" class="text-danger fw-bold"></span>
                         </div>
+                    </div>
 
-                        <!-- Sponsor Dropdown Field -->
-                        <div class="mb-3">
-                            <label asp-for="ContactViewModel.SponsorId" class="form-label"></label>
-                            <select asp-for="ContactViewModel.SponsorId" class="form-select" id="deleteContactSponsorId" required>
-                            </select>
+                    <div class="row">
+                        <label class="col-sm-2 col-form-label" asp-for="ContactViewModel.SponsorId"></label>
+                        <div class="col-sm-10">
+                            <div class="form-group">
+                                <select asp-for="ContactViewModel.SponsorId" id="deleteContactSponsorId" data-size="7" class="selectpicker" data-style="btn btn-primary btn-round" title="Choose Sponsor" required>
+                                    <option value="" disabled selected>--Select Sponsor--</option>
+                                    @foreach (var sponsor in Model.Sponsors)
+                                    {
+                                        <option value="@sponsor.SponsorId">@sponsor.SponsorName</option>
+                                    }
+                                </select>
+                            </div>
                             <span asp-validation-for="ContactViewModel.SponsorId" class="text-danger fw-bold"></span>
                         </div>
-
-                        <p class="text">Are you sure you want to delete contact <strong id="deleteContactPName"></strong>?</p>
-                        <!-- Buttons for deletion confirmation -->
-                        <div style="display: flex; justify-content: center; align-items: center; margin-top: 20px;">
-                            <div class="row" style="width: 100%; max-width: 600px; display: flex; justify-content: space-around;">
-                                <button type="submit" class="btn delete-btn">Confirm Delete</button>
-                                <button type="button" class="btn btn-secondary" onclick="hideAllForms()">Cancel</button>
-                            </div>
-                        </div>
                     </div>
+
+                </div>
+                <div class="card-footer ml-auto mr-auto">
+                    <button type="submit" class="btn btn-round btn-danger">Delete Contact</button> &nbsp;
+                    <button type="button" class="btn btn-round btn-secondary" onclick="hideAllForms()">Cancel</button>
                 </div>
             </div>
         </form>
     </div>
+</div>
 
 @section scripts {
     <partial name="_ValidationScriptsPartial" />
     <script asp-append-version="true">
-        const contactLists = @Html.Raw(Json.Serialize(Model.contactVMList));
-
-
         // Function to show the Create form
         function showCreateContactForm() {
             hideAllForms();
             $('#createContactFormDiv').show();
+            $('#createContactSponsorId').selectpicker('refresh');  // Refresh selectpicker for create form
         }
 
         // Function to show the Edit Form
@@ -458,7 +422,13 @@
             $('#editContactFax').val(fax);
             $('#editContactOfficePhone').val(officePhone);
             $('#editContactBranchName').val(branchName);
+
+            // Set the selected sponsor ID
             $('#editContactSponsorId').val(sponsorId);
+
+            // Trigger a refresh for the selectpicker to display the selected value
+            $('#editContactSponsorId').selectpicker('refresh');
+
             $('#editContactFormDiv').show();
         }
 
@@ -473,8 +443,15 @@
             $('#deleteContactFax').val(fax);
             $('#deleteContactOfficePhone').val(officePhone);
             $('#deleteContactBranchName').val(branchName);
-            $('#deleteContactSponsorId').empty().append(new Option(sponsorName, sponsorId)).prop('disabled', true);
+
+            // Set the selected sponsor ID and disable the dropdown
+            $('#deleteContactSponsorId').val(sponsorId).prop('disabled', true);
+
+            // Refresh the selectpicker to ensure the selection and disabled state are visible
+            $('#deleteContactSponsorId').selectpicker('refresh');
+
             $('#deleteContactPName').text(contactName);
+
             $('#deleteContactFormDiv').show();
         }
 
@@ -491,6 +468,7 @@
             if (editForm.length > 0) {
                 editForm.validate().resetForm();  // Clear validation errors
                 editForm[0].reset();  // Reset form fields
+                $('#editContactSponsorId').selectpicker('refresh');  // Refresh selectpicker for edit form
             }
 
             // Clear validation messages and reset validation state for the delete form
@@ -498,10 +476,16 @@
             if (deleteForm.length > 0) {
                 deleteForm.validate().resetForm();  // Clear validation errors
                 deleteForm[0].reset();  // Reset form fields
+                $('#deleteContactSponsorId').selectpicker('refresh');  // Refresh selectpicker for edit form
             }
         }
 
         $(document).ready(function () {
+            const contactLists = @Html.Raw(Json.Serialize(Model.contactVMList));
+
+            // Initialize selectpicker for all select elements with the class `selectpicker`
+            $('.selectpicker').selectpicker();
+
             $('#contactsTable').DataTable({
                 data: contactLists,
                 columns: [
@@ -521,13 +505,13 @@
                         searchable: false,
                         render: function (data, type, row) {
                             return `
-                                <button class="btn btn-success btn-sm me-1" onclick="showEditContactForm('${row.contactId}', '${row.designation}', '${row.name}', '${row.emailID}', '${row.mobile}', '${row.fax}', '${row.officePhone}', '${row.branchName}', '${row.sponsorId}')">
-                                    <i class="material-icons">drive_file_rename_outline</i>
-                                </button>
-                                <button class="btn btn-danger btn-sm" onclick="showDeleteContactForm('${row.contactId}', '${row.designation}', '${row.name}', '${row.emailID}', '${row.mobile}', '${row.fax}', '${row.officePhone}', '${row.branchName}', '${row.sponsorId}', '${row.sponsorName}')">
-                                    <i class="material-icons">delete_outline</i>
-                                </button>
-                            `;
+                                        <button class="btn btn-success btn-sm me-1" onclick="showEditContactForm('${row.contactId}', '${row.designation}', '${row.name}', '${row.emailID}', '${row.mobile}', '${row.fax}', '${row.officePhone}', '${row.branchName}', '${row.sponsorId}')">
+                                            <i class="material-icons">drive_file_rename_outline</i>
+                                        </button>
+                                        <button class="btn btn-danger btn-sm" onclick="showDeleteContactForm('${row.contactId}', '${row.designation}', '${row.name}', '${row.emailID}', '${row.mobile}', '${row.fax}', '${row.officePhone}', '${row.branchName}', '${row.sponsorId}', '${row.sponsorName}')">
+                                            <i class="material-icons">delete_outline</i>
+                                        </button>
+                                    `;
                         }
                     }
                 ],
@@ -610,10 +594,10 @@
                     }
                 ],
                 dom: `
-                        <"row"<"col-sm-3"l><"col-sm-6 text-center"B><"col-sm-3"f>>
-                        t
-                        <"row"<"col-sm-6"i><"col-sm-6"p>>
-                    `,
+                                <"row"<"col-sm-3"l><"col-sm-6 text-center"B><"col-sm-3"f>>
+                                t
+                                <"row"<"col-sm-6"i><"col-sm-6"p>>
+                            `,
                 noDataContent: "No Sites found.",
                 initComplete: function () {
                     // Adjust the dropdown select using jQuery

@@ -155,8 +155,7 @@ function populateSidebarforUserProfiles(currentUser) {
     $('#userImageDiv img').attr('src', currentUser.profilePicName);
     $('#userImageDiv img').attr('alt', `Image of ${currentUser.userName}`);
 
-    $('#userImageDiv p').text(currentUser.fullName + ' - ' + currentUser.designation);
-    $('#userImageDiv span').text(currentUser.fullName);
+    $('#currentUserName span span').text(currentUser.fullName);
 }
 
 document.addEventListener('DOMContentLoaded', function () {

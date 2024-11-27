@@ -1,6 +1,7 @@
 ﻿// Initialize terminalMap globally if it's not already defined
 let terminalMap; // Declare terminalMap
 let terminalMarkerGroup; // Declare terminalMarkerGroup
+let isInitializing = true; // Flag to prevent triggering change event on initial load
 
 // Modify your createLeafletMap function to accept a dynamic map container
 function createLeafletMap(terminalData, containerId = 'mapContainer') {
@@ -45,7 +46,7 @@ function createLeafletMap(terminalData, containerId = 'mapContainer') {
     const mapButton = L.control({ position: 'bottomleft' });
     mapButton.onAdd = function () {
         const div = L.DomUtil.create('div', 'leaflet-bar leaflet-control leaflet-control-custom');
-        div.innerHTML = '<i id="enlargeMapButton" class="fas fa-expand-arrows-alt px-1"></i>';
+        div.innerHTML = '<i id="enlargeMapButton" class="material-icons">fullscreen</i>';
         div.style.backgroundColor = 'white';
         div.style.padding = '5px';
         return div;
@@ -116,15 +117,23 @@ function renderLargeMapInModal(longitude, latitude) {
 // Populate Sponsor Dropdown
 function populateSponsorDropdown(selectedSponsorId) {
     const sponsorSelect = $('#sponsorSelect');
-    sponsorSelect.empty().append('<option disabled selected>Select Sponsor</option>');
 
+    // Clear current options and add default "Select Sponsor" option
+    sponsorSelect.empty().append('<option disabled>Select Sponsor</option>');
+
+    // Populate dropdown with options from groupedData
     groupedData.forEach(sponsor => {
         const option = new Option(sponsor.sponsorName, sponsor.sponsorId);
-        if (String(sponsor.sponsorId) === selectedSponsorId) {
-            option.selected = true; // Set as selected if the IDs match
-        }
         sponsorSelect.append(option);
     });
+
+    // Refresh selectpicker to update the dropdown UI
+    sponsorSelect.selectpicker('refresh');
+
+    // Set the selected option if selectedSponsorId is provided
+    if (selectedSponsorId) {
+        sponsorSelect.selectpicker('val', selectedSponsorId); // Select the option by value
+    }
 }
 
 // Helper to Populate Dropdown with selected value if available
@@ -137,11 +146,13 @@ function populateDropdown(selector, items, labelKey, valueKey, selectedValue = n
         if (item[valueKey] == selectedValue) option.selected = true;
         dropdown.append(option);
     });
+    dropdown.selectpicker('refresh'); // Refresh selectpicker after populating
 }
 
 // Reset Dropdown
 function resetDropdown(selector, placeholder) {
     $(selector).empty().append(`<option disabled selected>${placeholder}</option>`);
+    $(selector).selectpicker('refresh'); // Refresh selectpicker after reset
 }
 
 // Formatter for Contact Options
@@ -155,6 +166,8 @@ function locationFormatter(location) {
 }
 
 $(document).ready(function () {
+    $('.selectpicker').selectpicker(); // Initialize selectpicker for all elements with `selectpicker` class
+
     // Select the longitude and latitude input fields
     const gpsLongInput = $('input[id="SiteDetailVM_GPSLong"]');
     const gpsLattInput = $('input[id="SiteDetailVM_GPSLatt"]');
@@ -205,10 +218,21 @@ $(document).ready(function () {
     $('#cancelButton').on('click', function () {
         $('#mapModel').modal('hide'); // Hides the modal
     });
+
+    // Remove the initializing flag after initial population
+    isInitializing = false;
 });
 
 // Populate Regions, SiteType, and Contacts based on selected Sponsor
 $('#sponsorSelect').change(function () {
+    // Initialize selectedSponsorId with the current selection before returning if still initializing
+    selectedSponsorId = $(this).val();
+
+    // Skip if still initializing (initial page load)
+    if (isInitializing) {
+        return;
+    }
+
     // Initially hide the Branch Type dropdown
     resetDropdown('#branchTypeSelect', 'Select Branch Type');
     $('#branchTypeDiv').hide();
@@ -217,7 +241,6 @@ $('#sponsorSelect').change(function () {
     resetDropdown('#citySelect', 'Select City');
     resetDropdown('#locationSelect', 'Select Location');
 
-    selectedSponsorId = $(this).val();
     const sponsorData = groupedData.find(s => s.sponsorId == selectedSponsorId);
 
     if (sponsorData) {

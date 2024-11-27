@@ -113,6 +113,16 @@ function renderLargeMapInModal(longitude, latitude) {
     });
 }
 
+// Populate Sponsor Dropdown
+function populateSponsorDropdown() {
+    const sponsorSelect = $('#sponsorSelect');
+    sponsorSelect.empty().append('<option disabled selected>Select Sponsor</option>');
+    groupedData.forEach(sponsor => {
+        sponsorSelect.append(new Option(sponsor.sponsorName, sponsor.sponsorId));
+    });
+    sponsorSelect.selectpicker('refresh'); // Refresh select picker after populating
+}
+
 $(document).ready(function () {
     // Initialize selectpicker for all select elements with the class `selectpicker`
     $('.selectpicker').selectpicker();
@@ -140,16 +150,6 @@ $(document).ready(function () {
     $('#cancelButton').on('click', function () {
         $('#mapModel').modal('hide'); // Hides the modal
     });
-
-    // Populate Sponsor Dropdown
-    function populateSponsorDropdown() {
-        const sponsorSelect = $('#sponsorSelect');
-        sponsorSelect.empty().append('<option disabled selected>Select Sponsor</option>');
-        groupedData.forEach(sponsor => {
-            sponsorSelect.append(new Option(sponsor.sponsorName, sponsor.sponsorId));
-        });
-        sponsorSelect.selectpicker('refresh'); // Refresh select picker after populating
-    }
 
     // Populate Regions, SiteType, and Contacts based on selected Sponsor
     $('#sponsorSelect').change(function () {

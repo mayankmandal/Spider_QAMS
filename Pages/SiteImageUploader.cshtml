@@ -10,40 +10,42 @@
     <link rel="stylesheet" href="~/plugins/lightbox2/css/lightbox.min.css" />
 </head>
 
-<div class="pb-2" style="display:flex; flex-direction:column; justify-content:center; align-items:stretch;">
-    <div id="siteImageUploaderDiv" style="flex-direction: column; align-items: stretch;">
-        <form id="imageUploadForm">
-            @Html.AntiForgeryToken()
-            <div>
-                <!-- Dropdown for selecting category -->
-                <div class="row pt-1 mb-3" style="width:100%;display:flex; justify-content:space-between; align-items:center;">
-                    <div class="col text-start">
-                        <label for="categorySelect" class="">Select Image Category</label>
-                        <select id="categorySelect" class="form-select striped-select mb-3">
-                            <option value="" disabled selected> -- Select a Category -- </option>
-                        </select>
-                    </div>
-                    <div class="col text-end">
-                        <a asp-page="/EditSiteDetails" asp-route-siteId="@Model.SiteImageUploaderVM.SiteId" type="button" class="btn btn-warning">
-                            <i class="fas fa-arrow-circle-left"></i> Edit Site
-                        </a>
-                    </div>
-                </div>
-
-                <!-- Image upload sections container -->
-                <div id="imageUploadSection"></div>
-
-                <!-- Buttons for deletion confirmation -->
-                <div style="display: flex; justify-content: center; align-items: center; margin-top: 20px;">
-                    <div class="row" style="width: 100%; max-width: 600px; display: flex; justify-content: space-around;">
-                        <button id="submitButton" class="btn update-btn">Submit All Images</button>
-                        <a asp-page="/ManageSiteDetails" type="button" class="btn btn-secondary"><i class="fas fa-arrow-circle-left"></i> Back to All Sites</a>
+<form id="imageUploadForm">
+    @Html.AntiForgeryToken()
+    <div class="col">
+        <!-- Dropdown for selecting category -->
+        <div class="row d-flex justify-content-between">
+            <div class="col-auto">
+                <div class="row">
+                    <label class="col-sm-6 col-form-label" for="categorySelect">Select Image Category</label>
+                    <div class="col-sm-6">
+                        <div class="form-group">
+                            <select id="categorySelect" data-size="5" class="selectpicker" data-style="btn btn-primary btn-round" title="Choose Picture Category">
+                                <option value="" disabled selected> -- Select Picture Category -- </option>
+                            </select>
+                        </div>
                     </div>
                 </div>
             </div>
-        </form>
+            <div class="col-auto text-right">
+                <a asp-page="/EditSiteDetails" asp-route-siteId="@Model.SiteImageUploaderVM.SiteId" type="button" class="btn btn-warning btn-round">
+                    <i class="material-icons">drive_file_rename_outline</i> Edit Site
+                </a>
+            </div>
+        </div>
+
+        <!-- Image upload sections container -->
+        <div id="imageUploadSection" class="row"></div>
+
+        <!-- Buttons for deletion confirmation -->
+        <div class="row d-flex justify-content-center align-items-center mt-4">
+            <div class="w-100 justify-content-around">
+                <button id="submitButton" class="btn btn-success btn-round"> <i class="material-icons">photo_library</i> Submit All Images</button>
+                <a asp-page="/ManageSiteDetails" type="button" class="btn btn-info btn-round"><i class="material-icons">assignment_return</i> Back to All Sites</a>
+            </div>
+        </div>
     </div>
-</div>
+</form>
 
 @section scripts {
     <partial name="_ValidationScriptsPartial" />

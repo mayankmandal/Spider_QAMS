@@ -22,7 +22,7 @@
                 searchable: false,
                 render: function (data, type, row) {
                     return `
-                        <button class="btn btn-warning btn-sm me-1" onclick="window.location.href='/ViewSiteDetails?siteId=${row.siteID}'">
+                        <button class="btn btn-info btn-sm me-1" onclick="window.location.href='/ViewSiteDetails?siteId=${row.siteID}'">
                             <i class="material-icons">visibility</i>
                         </button>
                         <button class="btn btn-success btn-sm me-1" onclick="window.location.href='/EditSiteDetails?siteId=${row.siteID}'">

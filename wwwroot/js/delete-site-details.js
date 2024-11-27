@@ -114,6 +114,8 @@ function renderLargeMapInModal(longitude, latitude) {
 }
 
 $(document).ready(function () {
+    $('.selectpicker').selectpicker(); // Initialize selectpicker for all elements with `selectpicker` class
+
     // Select the longitude and latitude input fields
     const gpsLongInput = $('input[id="SiteDetailVM_GPSLong"]');
     const gpsLattInput = $('input[id="SiteDetailVM_GPSLatt"]');

@@ -18,6 +18,8 @@
         $('#categorySelect').append(`<option value="${category.picCatID}">${category.description}</option>`);
     });
 
+    $('.selectpicker').selectpicker('refresh'); // Refresh select picker
+
     // Render existing categories and images
     existingImages.forEach(category => {
         // Call addCategorySection for each category that has existing images
@@ -45,13 +47,14 @@
     function addCategorySection(categoryId, categoryName) {
         // Create the category section card inside a Bootstrap column
         const sectionDiv = $(`
-            <div class="col-md-6 category-column" id="col-${categoryId}">
-                <div class="category-section card p-3" id="category-${categoryId}">
-                    <h5>${categoryName} 
-                        <button type="button" class="btn btn-danger btn-sm float-end remove-category" data-category-id="${categoryId}">
-                            Remove
-                        </button>
-                    </h5>
+            <div class="col-md-6" id="col-${categoryId}">
+                <div class="card" id="category-${categoryId}">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <h5>${categoryName}</h5>
+                        <button type="button" class="btn btn-danger btn-sm btn-round remove-category" data-category-id="${categoryId}">Remove</button>
+                    </div>
+                    <div class="card-body category-section">
+                    </div>
                 </div>
             </div>
             `);
@@ -63,7 +66,14 @@
         sectionDiv.find('.category-section').append(hiddenPicCatId, hiddenDescription);
 
         // Add file input for uploading images
-        const fileInput = $(`<input type="file" multiple class="form-control mb-3 file-input" data-category-id="${categoryId}" />`);
+        const fileInput = $(`
+            <label class="file-input-label border border-default rounded p-2 d-flex align-items-center" style="box-shadow: 0px 1px 2px rgba(0, 0, 0, 0.2) !important;">
+                <div class="material-icons" style="font-size: 36px;">attach_file</div>
+                <span style="font-size: 16px; margin-left: 8px;">Choose Files</span>
+                <input type="file" multiple class="d-none file-input" data-category-id="${categoryId}" />
+            </label>
+            `);
+
         const galleryDiv = $(`
         <div class="gallery d-flex flex-wrap" 
              style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px;">
@@ -87,14 +97,14 @@
         $('#imageUploadSection').addClass('row').append(sectionDiv);
 
         // Handle file input change event
-        fileInput.on('change', function () {
+        fileInput.find('input[type="file"]').on('change', function () {
             handleFileSelect(this.files, galleryDiv, categoryId);
         });
     }
 
     function createGalleryItem(filePath, description, fileName, categoryId, uniqueFileId = null) {
         const link = $(`
-        <a href="${filePath}" data-lightbox="gallery-${categoryId}" data-title="${description}" class="image-link position-relative d-flex">
+        <a href="${filePath}" data-lightbox="gallery-${categoryId}" data-title="${description}" class="position-relative d-flex">
             <img src="${filePath}" class="img-thumbnail m-2" style="width: auto; height: 10rem;" alt="${description}" />
         </a>
     `);
@@ -106,11 +116,10 @@
     `);
 
         const deleteButton = $(`<!-- Delete button overlay -->
-            <button type="button" class="btn btn-sm delete-image-btn position-absolute" data-unique-file-id="${uniqueFileId}">
-                <i class="fas fa-times-circle"></i>
-            </button>`);
+            <i class="material-icons text-danger position-absolute delete-image-btn" data-unique-file-id="${uniqueFileId}" style="top: 1px; right: 1px; cursor: pointer;">cancel</i>
+            `);
 
-        const container = $('<div class="gallery-item me-2 mb-2 d-inline-block text-center"></div>');
+        const container = $('<div class="gallery-item position-relative text-center"></div>');
         container.append(link).append(commentInput).append(deleteButton);
 
         return container;

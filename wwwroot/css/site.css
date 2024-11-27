@@ -217,33 +217,11 @@ img.img-thumbnail {
     height: 100px;
 }
 
-.category-section {
-    border: 1px solid #ddd;
-    border-radius: 5px;
-}
-
 .gallery-item {
     position: relative;
     display: inline-block;
     margin: 5px;
     text-align: center;
-}
-
-.position-relative {
-    position: relative;
-}
-.delete-image-btn {
-    top: 10px;
-    right: 10px;
-    padding: 0;
-    background: transparent;
-    border: none;
-    font-size: 1rem; /* Adjust icon size */
-    cursor: pointer;
-    align-items: flex-start;
-}
-.delete-image-btn i {
-    font-size: 1.2rem; /* Adjust the icon size */
 }
 
 .logo .img-circle {

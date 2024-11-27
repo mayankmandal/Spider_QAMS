@@ -43,7 +43,6 @@ namespace Spider_QAMS.Models.ViewModels
         [CheckUniquenessinDB("UserName")]
         public string? UserName { get; set; }
 
-        [Required(ErrorMessage = "Please upload a profile picture.")]
         [DisplayName("User Photo")]
         [AllowedExtensions(new string[] { ".jpg", ".png", ".jpeg" })]
         [MaxFileSize(20 * 1024, ErrorMessage = "Image size cannot exceed 20 KB")]

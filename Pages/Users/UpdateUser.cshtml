@@ -5,237 +5,222 @@
     TempData["NavigationalPageName"] = "Update User";
 }
 
-<div style="display:flex; flex-direction:column; justify-content:center; align-items:center; min-height:100vh;">
-    <form id="updateProfileForm" method="post" enctype="multipart/form-data">
-        <div class="container form-control border-2 mb-2" style="display:flex; justify-content:space-around; height:auto; flex-direction:column; width: 45rem;">
-            <div class="row pb-1 pt-2">
-                <div style="color:#17a2b8; text-align:center; font-size:1.7rem; font-weight:500">UPDATE USER</div>
-                <div>
-                    <hr />
+<div class="col-md-8 col-12 mr-auto ml-auto">
+    <div class="wizard-container">
+        <div class="card card-wizard" data-color="rose">
+            <form method="post" enctype="multipart/form-data" id="updateUserForm">
+                <input type="hidden" asp-for="ProfileUsersData.UserId" readonly />
+                <div class="card-header text-center">
+                    <h3 class="card-title">
+                        Update Existing User
+                    </h3>
+                    <h5 class="card-description">
+                    </h5>
                 </div>
-            </div>
-            <div class="card">
-                <div class="card-header" style="background:#f8f8f8;">
-                    <div class="card-title fw-bold" style="font-size:1.2rem">User Details</div>
-                    <div class="card-tools">
-                        <button type="button" class="btn btn-tool" data-card-widget="collapse">
-                            <i class="fas fa-minus"></i>
-                        </button>
-                        <button type="button" class="btn btn-tool" data-card-widget="remove">
-                            <i class="fas fa-times"></i>
-                        </button>
-                    </div>
-                </div>
-                <div class="card-body">
+                <div class="wizard-navigation">
+                    <ul class="nav nav-pills">
+                        <li class="nav-item">
+                            <a class="nav-link active" href="#about" data-toggle="tab" role="tab">
+                                About
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="#account" data-toggle="tab" role="tab">
+                                Account
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="#userProfile" data-toggle="tab" role="tab">
+                                Profile
+                            </a>
+                        </li>
+                    </ul>
+                    <br />
                     <!-- Validation Summary -->
                     <div asp-validation-summary="All" class="text-danger fw-bold"></div>
-
-                    <!-- Profile Picture Field -->
-                    <div class="text-center">
-                        <div class="position-relative d-inline-block mx-auto mb-4">
-                            @if (Model.UserProfilePathUrl != null)
-                            {
-                                <img src="@Model.UserProfilePathUrl" class="rounded-circle img-thumbnail" style="width: 150px; height: 150px;" id="loadedProfilePicture">
-                                <div class="position-absolute bottom-0 end-0 rounded-circle bg-light p-1" style="transform: translate(20%, 20%);">
-                                    <input class="d-none" asp-for="ProfileUsersData.PhotoFile" type="file" id="profile-img-file-input" />
-                                    <label for="profile-img-file-input" class="rounded-circle bg-gradient-blue p-2" style="cursor: pointer; width: 40px; height: 40px;">
-                                        <i class="fas fa-camera" style="font-size: 1.5rem;"></i>
-                                    </label>
+                </div>
+                <div class="card-body">
+                    <div class="tab-content">
+                        <div class="tab-pane active" id="about">
+                            <h5 class="info-text"></h5>
+                            <div class="row justify-content-center">
+                                <div class="col-sm-4">
+                                    <div class="picture-container">
+                                        <div class="picture">
+                                            <img src="@Model.UserProfilePathUrl" class="picture-src" id="wizardPicturePreview" title="" />
+                                            <input type="file" id="wizard-picture" asp-for="ProfileUsersData.PhotoFile">
+                                        </div>
+                                        <h6 class="description">Choose Picture</h6>
+                                        <span asp-validation-for="ProfileUsersData.PhotoFile" class="text-danger"></span>
+                                    </div>
                                 </div>
-                            }
-                        </div>
-                        <br />
-                        <span asp-validation-for="ProfileUsersData.PhotoFile" class="text-danger fw-bold"></span>
-                    </div>
-
-                    <!-- User ID and ID Number on one line -->
-                    <div class="mb-3" style="display: flex; justify-content: space-between;">
-                        <div style="flex: 1; margin-right: 10px;">
-                            <label asp-for="ProfileUsersData.UserId" class="form-label"></label>
-                            <div class="input-group mb-3">
-                                <div class="input-group-prepend">
-                                    <span class="input-group-text"><i class="fas fa-id-badge"></i></span>
+                                <div class="col-sm-6">
+                                    <div class="input-group form-control-lg">
+                                        <div class="input-group-prepend">
+                                            <span class="input-group-text">
+                                                <i class="material-icons">face</i>
+                                            </span>
+                                        </div>
+                                        <div class="form-group">
+                                            <label asp-for="ProfileUsersData.Designation" class="bmd-label-floating">Designation (required)</label>
+                                            <input type="text" class="form-control" asp-for="ProfileUsersData.Designation" required>
+                                            <span asp-validation-for="ProfileUsersData.Designation" class="text-danger"></span>
+                                        </div>
+                                    </div>
+                                    <div class="input-group form-control-lg">
+                                        <div class="input-group-prepend">
+                                            <span class="input-group-text">
+                                                <i class="material-icons">record_voice_over</i>
+                                            </span>
+                                        </div>
+                                        <div class="form-group">
+                                            <label asp-for="ProfileUsersData.FullName" class="bmd-label-floating">Full Name (required)</label>
+                                            <input type="text" class="form-control" asp-for="ProfileUsersData.FullName" required>
+                                            <span asp-validation-for="ProfileUsersData.FullName" class="text-danger"></span>
+                                        </div>
+                                    </div>
                                 </div>
-                                <input asp-for="ProfileUsersData.UserId" placeholder="User ID" class="form-control" readonly />
-                            </div>
-                        </div>
-                        <div style="flex: 1;">
-                            <label asp-for="ProfileUsersData.Designation" class="form-label"></label>
-                            <div class="input-group mb-3">
-                                <div class="input-group-prepend">
-                                    <span class="input-group-text"><i class="fas fa-briefcase"></i></span>
-                                </div>
-                                <input type="text" asp-for="ProfileUsersData.Designation" placeholder="Designation" class="form-control" />
-                            </div>
-                            <span asp-validation-for="ProfileUsersData.Designation" class="text-danger fw-bold"></span>
-                        </div>
-                    </div>
-
-                    <!-- Full Name Field -->
-                    <div class="mb-3">
-                        <label asp-for="ProfileUsersData.FullName" class="form-label"></label>
-                        <div class="input-group mb-3">
-                            <div class="input-group-prepend">
-                                <span class="input-group-text"><i class="fas fa-id-card"></i></span>
-                            </div>
-                            <input type="text" asp-for="ProfileUsersData.FullName" placeholder="Full Name" class="form-control" />
-                        </div>
-                        <span asp-validation-for="ProfileUsersData.FullName" class="text-danger fw-bold"></span>
-                    </div>
-
-                    <!-- Email and Mobile Number on one line -->
-                    <div class="mb-3" style="display: flex; justify-content: space-between;">
-                        <div style="flex: 1; margin-right: 10px;">
-                            <label asp-for="ProfileUsersData.EmailID" class="form-label"></label>
-                            <div class="input-group mb-3">
-                                <div class="input-group-prepend">
-                                    <span class="input-group-text"><i class="fas fa-envelope"></i></span>
-                                </div>
-                                <input type="email" asp-for="ProfileUsersData.EmailID" placeholder="Email Address" class="form-control" readonly />
-                            </div>
-                            <span asp-validation-for="ProfileUsersData.EmailID" class="text-danger fw-bold"></span>
-                        </div>
-                        <div style="flex: 1;">
-                            <label asp-for="ProfileUsersData.PhoneNumber" class="form-label"></label>
-                            <div class="input-group mb-3">
-                                <div class="input-group-prepend">
-                                    <span class="input-group-text"><i class="fas fa-phone"></i></span>
-                                </div>
-                                <input type="tel" asp-for="ProfileUsersData.PhoneNumber" placeholder="Mobile Number" class="form-control" />
-                            </div>
-                            <span asp-validation-for="ProfileUsersData.PhoneNumber" class="text-danger fw-bold"></span>
-                        </div>
-                    </div>
-
-                    <!-- Username -->
-                    <div class="mb-3">
-                        <label asp-for="ProfileUsersData.UserName" class="form-label"></label>
-                        <div class="input-group mb-3">
-                            <div class="input-group-prepend">
-                                <span class="input-group-text"><i class="fas fa-user-cog"></i></span>
-                            </div>
-                            <input type="text" asp-for="ProfileUsersData.UserName" placeholder="Username" class="form-control" />
-                        </div>
-                        <span asp-validation-for="ProfileUsersData.UserName" class="text-danger fw-bold"></span>
-                    </div>
-
-                    <!-- Change Password Section -->
-                    <!-- New Password and ReType New Password ld -->
-                    <div class="mb-3" style="display: flex; justify-content: space-between;">
-                        <div style="flex: 1; margin-right: 10px;">
-                            <label asp-for="ProfileUsersData.Password" class="form-label"></label>
-                            <div class="input-group mb-3">
-                                <div class="input-group-prepend">
-                                    <span class="input-group-text"><i class="fas fa-lock"></i></span>
-                                </div>
-                                <input type="password" asp-for="ProfileUsersData.Password" placeholder="New Password" class="form-control password-toggle-input" />
-                                <div class="input-group-append">
-                                    <span class="input-group-text">
-                                        <i class="fas fa-eye-slash password-toggle-icon" data-toggle="password"></i>
-                                    </span>
+                                <div class="col-lg-10 mt-3">
+                                    <div class="input-group form-control-lg">
+                                        <div class="input-group-prepend">
+                                            <span class="input-group-text">
+                                                <i class="material-icons">email</i>
+                                            </span>
+                                        </div>
+                                        <div class="form-group">
+                                            <label asp-for="ProfileUsersData.EmailID" class="bmd-label-floating">Email (required)</label>
+                                            <input type="email" class="form-control" asp-for="ProfileUsersData.EmailID" required>
+                                            <span asp-validation-for="ProfileUsersData.EmailID" class="text-danger"></span>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
-                            <span asp-validation-for="ProfileUsersData.Password" class="text-danger fw-bold"></span>
                         </div>
-                        <div style="flex: 1;">
-                            <label asp-for="ProfileUsersData.ReTypePassword" class="form-label"></label>
-                            <div class="input-group mb-3">
-                                <div class="input-group-prepend">
-                                    <span class="input-group-text"><i class="fas fa-lock"></i></span>
+                        <div class="tab-pane" id="account">
+                            <div class="row justify-content-center">
+                                <div class="col-sm-12">
+                                    <h5 class="info-text"></h5>
                                 </div>
-                                <input type="password" asp-for="ProfileUsersData.ReTypePassword" placeholder="Retype New Password" class="form-control password-toggle-input" />
-                                <div class="input-group-append">
-                                    <span class="input-group-text">
-                                        <i class="fas fa-eye-slash password-toggle-icon" data-toggle="password"></i>
-                                    </span>
+                                <div class="col-sm-11">
+                                    <div class="form-group">
+                                        <label asp-for="ProfileUsersData.UserName">User Name(required)</label>
+                                        <input type="text" class="form-control" asp-for="ProfileUsersData.UserName" required>
+                                        <span asp-validation-for="ProfileUsersData.UserName" class="text-danger"></span>
+                                    </div>
+                                </div>
+                                <div class="col-sm-11">
+                                    <div class="form-group">
+                                        <label asp-for="ProfileUsersData.PhoneNumber">Phone Number(required)</label>
+                                        <input type="tel" class="form-control" asp-for="ProfileUsersData.PhoneNumber" required>
+                                        <span asp-validation-for="ProfileUsersData.PhoneNumber" class="text-danger"></span>
+                                    </div>
+                                </div>
+                                <div class="col-sm-11">
+                                    <div class="form-group">
+                                        <label asp-for="ProfileUsersData.Password">Password(required)</label>
+                                        <input type="password" class="form-control" asp-for="ProfileUsersData.Password">
+                                        <span asp-validation-for="ProfileUsersData.Password" class="text-danger"></span>
+                                    </div>
+                                </div>
+                                <div class="col-sm-11">
+                                    <div class="form-group">
+                                        <label asp-for="ProfileUsersData.ReTypePassword">Confirm Password(required)</label>
+                                        <input type="password" class="form-control" asp-for="ProfileUsersData.ReTypePassword">
+                                        <span asp-validation-for="ProfileUsersData.Password" class="text-danger"></span>
+                                    </div>
                                 </div>
                             </div>
-                            <span asp-validation-for="ProfileUsersData.ReTypePassword" class="text-danger fw-bold"></span>
                         </div>
-                    </div>
+                        <div class="tab-pane" id="userProfile">
+                            <div class="row justify-content-center">
+                                <div class="col-lg-10">
+                                    <div class="row">
+                                        <div class="col-6">
+                                            <div>
+                                                <label asp-for="ProfileUsersData.ProfileSiteData.ProfileName">User Profile</label>
+                                                <select asp-for="ProfileUsersData.ProfileSiteData.ProfileName" id="profileSelect" class="selectpicker" data-size="5" data-style="btn btn-primary btn-round" title="Select Profile">
+                                                    <option disabled selected>Select a Profile</option>
+                                                    @foreach (var profile in Model.ProfilesData)
+                                                    {
+                                                        <option value="@profile.ProfileName" data-profileid="@profile.ProfileId">@profile.ProfileName</option>
+                                                    }
+                                                </select>
+                                                <span asp-validation-for="ProfileUsersData.ProfileSiteData.ProfileName" class="text-danger"></span>
+                                            </div>
+                                        </div>
+                                    </div>
 
-                    <!-- Dropdown to Select Profile Name -->
-                    <div class="mb-3">
-                        <label asp-for="ProfileUsersData.ProfileSiteData.ProfileName" class="form-label"></label>
-                        <div class="input-group mb-3">
-                            <div class="input-group-prepend">
-                                <span class="input-group-text"><i class="fas fa-user"></i></span>
+                                    <!-- Hidden fields Profile Id -->
+                                    <input type="hidden" asp-for="ProfileUsersData.ProfileSiteData.ProfileId" id="profileIdHidden" />
+
+                                    <br />
+                                    <br />
+                                    <h5 class="info-text">Select the applicable options for the user status:</h5>
+
+                                    <div class="row">
+                                        <div class="col">
+                                            <div class="choice @(Model.ProfileUsersData.IsActive ? "active" : "")" data-toggle="wizard-checkbox">
+                                                <input type="checkbox" asp-for="ProfileUsersData.IsActive"/>
+                                                <div class="icon">
+                                                    <i class="material-icons">account_circle</i>
+                                                </div>
+                                                <h6>Active User</h6>
+                                            </div>
+                                        </div>
+                                        <div class="col">
+                                            <div class="choice @(Model.ProfileUsersData.IsADUser ? "active" : "")" data-toggle="wizard-checkbox">
+                                                <input type="checkbox" asp-for="ProfileUsersData.IsADUser">
+                                                <div class="icon">
+                                                    <i class="material-icons">cloud_done</i>
+                                                </div>
+                                                <h6>Active Directory User</h6>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
-                            <select asp-for="ProfileUsersData.ProfileSiteData.ProfileName" class="form-select striped-select" id="profileSelect">
-                                @foreach (var profile in Model.ProfilesData)
-                                {
-                                    @if (profile.ProfileId == Model.ProfileUsersData.ProfileSiteData.ProfileId)
-                                    {
-                                        <option value="@profile.ProfileName" data-profileid="@profile.ProfileId" selected>@profile.ProfileName</option>
-
-                                    }
-                                    else
-                                    {
-                                        <option value="@profile.ProfileName" data-profileid="@profile.ProfileId">@profile.ProfileName</option>
-                                    }
-                                }
-                            </select>
-                        </div>
-                        <span asp-validation-for="ProfileUsersData.ProfileSiteData.ProfileName" class="text-danger fw-bold"></span>
-                    </div>
-
-                    <!-- Hidden fields Profile Id -->
-                    <input type="hidden" asp-for="ProfileUsersData.ProfileSiteData.ProfileId" id="profileIdHidden" />
-
-                    <!-- Is Active -->
-                    <div class="mb-3">
-                        <div class="form-check">
-                            <input class="form-check-input" type="checkbox" asp-for="ProfileUsersData.IsActive" id="isActiveCheckbox" />
-                            <label class="form-check-label" for="isActiveCheckbox">
-                                Active User
-                            </label>
-                        </div>
-                    </div>
-
-                    <!-- Is Active Directory User -->
-                    <div class="mb-3">
-                        <div class="form-check">
-                            <input class="form-check-input" type="checkbox" asp-for="ProfileUsersData.IsADUser" id="isActiveDirectoryUserCheckbox" />
-                            <label class="form-check-label" for="isActiveDirectoryUserCheckbox">
-                                Active Directory User
-                            </label>
-                        </div>
-                    </div>
-
-                    <!-- Buttons for Edit -->
-                    <div style="display: flex; justify-content: center; align-items: center; margin-top: 20px;">
-                        <div class="column" style="width: 100%; max-width: 600px; display: flex; justify-content: space-around;">
-                            <button type="submit" onclick="prepareFormSubmission()" class="btn update-btn">Update User</button>
-                            <a asp-page="/Users/ReadUser" asp-route-userId="@Model.ProfileUsersData.UserId" type="button" class="btn btn-warning"><i class="fas fa-arrow-circle-left"></i> Read User</a>
-                            <a asp-page="/Users/ManageUsers" type="button" class="btn btn-secondary">Back to All Users</a>
                         </div>
                     </div>
                 </div>
-            </div>
+                <div class="card-footer">
+                    <div class="mr-auto">
+                        <button type="button" class="btn btn-previous btn-fill btn-default btn-wd disabled" name="previous"><i class="material-icons">chevron_left</i> Previous</button>
+                    </div>
+                    <div class="text-center">
+                        <a asp-page="/Users/ManageUsers" type="button" class="btn btn-fill btn-info btn-wd"> <i class="material-icons">assignment_return</i> Back to All Users</a>
+                    </div>
+                    <div class="ml-auto">
+                        <button type="button" class="btn btn-next btn-fill btn-rose btn-wd" name="next">Next <i class="material-icons">chevron_right</i></button>
+                        <button type="submit" class="btn btn-finish btn-fill btn-success btn-wd" style="display: none;"><i class="material-icons">drive_file_rename_outline</i> Update User</button>
+                    </div>
+                    <div class="clearfix">
+                    </div>
+                </div>
+            </form>
         </div>
-    </form>
+    </div>
 </div>
 
 @section scripts {
     <partial name="_ValidationScriptsPartial" />
     <script>
-        $('#profile-img-file-input').change(function () {
-            // Get the selected file
-            var file = this.files[0];
+        $(document).ready(function () {
+            $('.selectpicker').selectpicker(); // Initialize selectpicker for all elements with `selectpicker` class
 
-            if (file) {
-                // Create a file reader object
-                var reader = new FileReader();
+            // Add onchange event to #profileSelect
+            $('#profileSelect').on('change', function () {
+                // Get the selected profile ID
+                var selectedProfileId = $(this).find('option:selected').attr('data-profileid');
 
-                // Set up the FileReader Onload event
-                reader.onload = function (e) {
-                    // Set the SRC attribute of the image element to the data URL of the selected file
-                    $('#loadedProfilePicture').attr('src', e.target.result);
-                };
+                // Set the hidden fields with ProfileId
+                $('#profileIdHidden').val(selectedProfileId); // Set ProfileName to selected profile id
+            });
 
-                // Read the selected file as a data URL
-                reader.readAsDataURL(file);
-            }
+            // Initialise the wizard
+            spider_qams_ui.initMaterialWizard();
+            setTimeout(function () {
+                $('.card.card-wizard').addClass('active');
+            }, 600);
         });
     </script>
 }

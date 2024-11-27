@@ -142,10 +142,10 @@ namespace Spider_QAMS.Controllers
                         return Unauthorized("User is not authenticated.");
                     }
 
-                    /*if (string.IsNullOrEmpty(record) || string.IsNullOrEmpty(input))
+                    if (record.RecordId <= 0 && string.IsNullOrEmpty(record.RecordText))
                     {
                         return BadRequest();
-                    }*/
+                    }
 
                     // Fetch the appropriate type from the repository using the RecordType
                     object result = await _navigationRepository.FetchRecordByTypeAsync(record);

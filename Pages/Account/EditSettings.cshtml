@@ -4,169 +4,95 @@
     ViewData["Title"] = "Edit Settings";
     TempData["NavigationalPageName"] = "Edit Settings";
 }
+<div class="row d-flex justify-content-center align-content-center align-items-center">
+    <div class="col-md-8">
+        <form method="post" enctype="multipart/form-data">
+            <input type="hidden" asp-for="SettingsData.SettingUserId" readonly />
+            <div class="card card-profile">
+                <div class="card-avatar position-relative d-inline-block">
+                    <a href="#pablo">
+                        <img id="profilePicturePreview" src="@Model.UserProfilePathUrl" class="img" alt="Profile Picture" />
+                    </a>
+                </div>
 
-<div style="display:flex; flex-direction:column; justify-content:center; align-items:center; min-height:20vh;">
-    <form method="post" enctype="multipart/form-data">
-        <div class="container form-control border-2 mb-2" style="display:flex; justify-content:space-around; height:auto; flex-direction:column; ">
-            <div class="row pb-1 pt-2">
-                <div style="color:#17a2b8; text-align:center; font-size:1.7rem; font-weight:500">Edit User Settings</div>
-                <div>
-                    <hr />
-                </div>
-            </div>
-            <div class="card">
-                <div class="card-header" style="background:#f8f8f8;">
-                    <div class="card-title fw-bold" style="font-size:1.2rem">User Details</div>
-                    <div class="card-tools">
-                        <button type="button" class="btn btn-tool" data-card-widget="collapse">
-                            <i class="fas fa-minus"></i>
-                        </button>
-                        <button type="button" class="btn btn-tool" data-card-widget="remove">
-                            <i class="fas fa-times"></i>
-                        </button>
-                    </div>
-                </div>
                 <div class="card-body">
+                    <h4 class="card-title">@Model.SettingsData.SettingFullName</h4>
+                    <p class="card-description">
+                        @Model.SettingsData.SettingEmailID (@Model.SettingsData.SettingUserName)
+                    </p>
+
                     <!-- Validation Summary -->
                     <div asp-validation-summary="All" class="text-danger fw-bold"></div>
 
-                    <!-- Profile Picture Field -->
-                    <div class="text-center">
-                        <div class="position-relative d-inline-block mx-auto mb-4">
-                            @if (Model.UserProfilePathUrl != null)
-                            {
-                                <img src="@Model.UserProfilePathUrl" class="rounded-circle img-thumbnail" alt="Profile Picture" style="width: 150px; height: 150px;" id="loadedProfilePicture">
-                                <div class="position-absolute bottom-0 end-0 rounded-circle bg-light p-1" style="transform: translate(20%, 20%);">
-                                    <input class="d-none" asp-for="SettingsData.SettingPhotoFile" type="file" id="profile-img-file-input" />
-                                    <label for="profile-img-file-input" class="rounded-circle bg-gradient-blue p-2" style="cursor: pointer; width: 40px; height: 40px;">
-                                        <i class="fas fa-camera" style="font-size: 1.5rem;"></i>
-                                    </label>
-                                </div>
-                            }
-                        </div>
-                        <br />
-                        <span asp-validation-for="SettingsData.SettingPhotoFile" class="text-danger fw-bold"></span>
-                        <h5 class="fs-16 mb-1">@Model.SettingsData.SettingFullName</h5>
-                        <p class="text-muted mb-0">@Model.SettingsData.SettingEmailID (@Model.SettingsData.SettingUserName)</p>
-                    </div>
-
-                    <!-- UserId Field -->
-                    <div class="mb-3">
-                        <label asp-for="SettingsData.SettingUserId" class="form-label"></label>
-                        <div class="input-group mb-3">
-                            <div class="input-group-prepend">
-                                <span class="input-group-text"><i class="fas fa-id-badge"></i></span>
+                    <div class="row">
+                        <label class="col-sm-2 col-form-label" asp-for="SettingsData.SettingUserName"></label>
+                        <div class="col-sm-10">
+                            <div class="form-group">
+                                <input type="text" class="form-control" asp-for="SettingsData.SettingUserName" placeholder="Username here...">
                             </div>
-                            <input type="text" asp-for="SettingsData.SettingUserId" class="form-control" readonly />
+                            <span asp-validation-for="SettingsData.SettingUserName" class="text-danger fw-bold"></span>
                         </div>
-                        <span asp-validation-for="SettingsData.SettingUserId" class="text-danger fw-bold"></span>
                     </div>
 
-                    <!-- Username Field -->
-                    <div class="mb-3">
-                        <label asp-for="SettingsData.SettingUserName" class="form-label"></label>
-                        <div class="input-group mb-3">
-                            <div class="input-group-prepend">
-                                <span class="input-group-text"><i class="fas fa-address-card"></i></span>
+                    <div class="row">
+                        <label class="col-sm-2 col-form-label" asp-for="SettingsData.SettingFullName"></label>
+                        <div class="col-sm-10">
+                            <div class="form-group">
+                                <input type="text" class="form-control" asp-for="SettingsData.SettingFullName" placeholder="Full Name here...">
                             </div>
-                            <input type="text" asp-for="SettingsData.SettingUserName" placeholder="User Name" class="form-control" />
+                            <span asp-validation-for="SettingsData.SettingFullName" class="text-danger fw-bold"></span>
                         </div>
-                        <span asp-validation-for="SettingsData.SettingUserName" class="text-danger fw-bold"></span>
                     </div>
 
-                    <!-- FullName Field -->
-                    <div class="mb-3">
-                        <label asp-for="SettingsData.SettingFullName" class="form-label"></label>
-                        <div class="input-group mb-3">
-                            <div class="input-group-prepend">
-                                <span class="input-group-text"><i class="fas fa-id-card"></i></span>
+                    <div class="row">
+                        <label class="col-sm-2 col-form-label" asp-for="SettingsData.SettingEmailID"></label>
+                        <div class="col-sm-10">
+                            <div class="form-group">
+                                <input type="text" class="form-control" asp-for="SettingsData.SettingEmailID" placeholder="Email here...">
                             </div>
-                            <input type="text" asp-for="SettingsData.SettingFullName" placeholder="Name" class="form-control" />
+                            <span asp-validation-for="SettingsData.SettingEmailID" class="text-danger fw-bold"></span>
                         </div>
-                        <span asp-validation-for="SettingsData.SettingFullName" class="text-danger fw-bold"></span>
                     </div>
 
-                    <!-- Email Field -->
-                    <div class="mb-3">
-                        <label asp-for="SettingsData.SettingEmailID" class="form-label"></label>
-                        <div class="input-group mb-3">
-                            <div class="input-group-prepend">
-                                <span class="input-group-text"><i class="fas fa-envelope"></i></span>
-                            </div>
-                            <input type="text" asp-for="SettingsData.SettingEmailID" placeholder="Email Address" class="form-control" />
-                        </div>
-                        <span asp-validation-for="SettingsData.SettingEmailID" class="text-danger fw-bold"></span>
-                    </div>
-
-                    <!-- Change Password Section -->
-                    <div class="mb-3">
-                        <div>
-                            <label asp-for="SettingsData.Password" class="form-label"></label>
-                            <div class="input-group mb-3">
-                                <div class="input-group-prepend">
-                                    <span class="input-group-text"><i class="fas fa-lock"></i></span>
-                                </div>
-                                <input type="password" asp-for="SettingsData.Password" placeholder="New Password" class="form-control password-toggle-input" />
-                                <div class="input-group-append">
-                                    <span class="input-group-text">
-                                        <i class="fas fa-eye-slash password-toggle-icon" data-toggle="password"></i>
-                                    </span>
-                                </div>
+                    <div class="row">
+                        <label class="col-sm-2 col-form-label" asp-for="SettingsData.Password"></label>
+                        <div class="col-sm-10">
+                            <div class="form-group">
+                                <input type="password" class="form-control" asp-for="SettingsData.Password" placeholder="Password here...">
                             </div>
                             <span asp-validation-for="SettingsData.Password" class="text-danger fw-bold"></span>
                         </div>
-                        <div>
-                            <label asp-for="SettingsData.ReTypePassword" class="form-label"></label>
-                            <div class="input-group mb-3">
-                                <div class="input-group-prepend">
-                                    <span class="input-group-text"><i class="fas fa-lock"></i></span>
-                                </div>
-                                <input type="password" asp-for="SettingsData.ReTypePassword" placeholder="Retype New Password" class="form-control password-toggle-input" />
-                                <div class="input-group-append">
-                                    <span class="input-group-text">
-                                        <i class="fas fa-eye-slash password-toggle-icon" data-toggle="password"></i>
-                                    </span>
-                                </div>
+                    </div>
+
+                    <div class="row">
+                        <label class="col-sm-2 col-form-label" asp-for="SettingsData.ReTypePassword">Confirm Password</label>
+                        <div class="col-sm-10">
+                            <div class="form-group">
+                                <input type="password" class="form-control" asp-for="SettingsData.ReTypePassword" placeholder="Confirm Password here...">
                             </div>
-                            <span asp-validation-for="SettingsData.ReTypePassword" class="text-danger fw-bold"></span>
+                            <span asp-validation-for="SettingsData.Password" class="text-danger fw-bold"></span>
                         </div>
                     </div>
 
-                    <!-- Buttons for form submission -->
-                    <div style="display: flex; justify-content: center; align-items: center; margin-top: 20px;">
-                        <div class="row" style="width: 100%; max-width: 600px; display: flex; justify-content: space-around;">
-                            <button type="submit" class="btn update-btn">Update Settings</button>
-                            <a type="button" class="btn btn-secondary" asp-page="/Dashboard">Back to Dashboard</a>
-                        </div>
+                    <div class="row-cols-auto">
+                        <button type="submit" class="btn btn-success pull-center"><i class="material-icons">drive_file_rename_outline</i> Update Settings</button>
+                        <a type="button" class="btn btn-info pull-center" asp-page="/Dashboard"><i class="material-icons">assignment_return</i> Back to Dashboard</a>
                     </div>
+                    
+                    <div class="clearfix"></div>
                 </div>
             </div>
-        </div>
-
-    </form>
+        </form>
+    </div>
 </div>
+
 
 @section scripts {
     <partial name="_ValidationScriptsPartial" />
     <script>
         $(document).ready(function () {
-            $('#profile-img-file-input').change(function () {
-                // Get the selected file
-                var file = this.files[0];
-                if (file) {
-                    // Create a file reader object
-                    var reader = new FileReader();
-
-                    // Set up the FileReader Onload event
-                    reader.onload = function (e) {
-                        // Set the SRC attribute of the image element to the data URL of the selected file
-                        $('#loadedProfilePicture').attr('src', e.target.result);
-                    };
-
-                    // Read the selected file as a data URL
-                    reader.readAsDataURL(file);
-                }
-            });
+           
         });
+
     </script>
 }

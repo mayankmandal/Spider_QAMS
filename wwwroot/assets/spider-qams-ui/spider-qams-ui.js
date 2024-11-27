@@ -1,5 +1,4 @@
-demo = {
-
+spider_qams_ui = {
   initContactUsMap: function() {
     var myLatlng = new google.maps.LatLng(44.433530, 26.093928);
     var mapOptions = {
@@ -100,7 +99,6 @@ demo = {
     });
     marker.setMap(map);
   },
-
   initContactUs2Map: function() {
     var lat = 44.433530;
     var long = 26.093928;
@@ -208,7 +206,6 @@ demo = {
     });
     marker.setMap(map);
   },
-
   presentationAnimations: function() {
     $(function() {
 
@@ -250,7 +247,6 @@ demo = {
     });
 
   },
-
   initDateTimePicker: function() {
     $('.datetimepicker').datetimepicker({
       icons: {
@@ -266,8 +262,6 @@ demo = {
       }
     });
   },
-
-
   initPickColor: function() {
     $('.pick-class-label').click(function() {
       var new_class = $(this).attr('new-class');
@@ -281,7 +275,6 @@ demo = {
       }
     });
   },
-
   initMaterialWizard: function() {
     // Code for the Validator
     var $validator = $('.card-wizard form').validate({
@@ -310,8 +303,6 @@ demo = {
         $(element).append(error);
       }
     });
-
-
 
     // Wizard Initialization
     $('.card-wizard').bootstrapWizard({
@@ -390,7 +381,6 @@ demo = {
         refreshAnimation($wizard, index);
       }
     });
-
 
     // Prepare the preview for profile picture
     $("#wizard-picture").change(function() {
@@ -486,7 +476,6 @@ demo = {
       });
     }
   },
-
   initCharts: function() {
     if ($('#roundedLineChart').length != 0 && $('#straightLinesChart').length != 0 && $('#colouredRoundedLineChart').length != 0 && $('#colouredBarsChart').length != 0 && $('#simpleBarChart').length != 0 && $('#multipleBarsChart').length != 0) {
       /* ----------==========    Rounded Line Chart initialization    ==========---------- */
@@ -702,7 +691,6 @@ demo = {
     }
 
   },
-
   showSwal: function(type) {
     if (type == 'basic') {
       swal({
@@ -819,7 +807,6 @@ demo = {
       }).catch(swal.noop)
     }
   },
-
   initGoogleMaps: function() {
     var myLatlng = new google.maps.LatLng(40.748817, -73.985428);
     var mapOptions = {
@@ -923,7 +910,6 @@ demo = {
     // To add the marker to the map, call setMap();
     marker.setMap(map);
   },
-
   initSmallGoogleMaps: function() {
 
     // Regular Map
@@ -1071,5 +1057,4 @@ demo = {
 
 
   }
-
 }

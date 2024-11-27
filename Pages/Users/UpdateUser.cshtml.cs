@@ -15,13 +15,11 @@ namespace Spider_QAMS.Pages.Users
     {
         private readonly IConfiguration _configuration;
         private readonly IHttpClientFactory _clientFactory;
-        private readonly IWebHostEnvironment _webHostEnvironment;
         private ProfileUserAPIVM _profileUserData { get; set; }
-        public UpdateUserModel(IConfiguration configuration, IHttpClientFactory httpClientFactory, IWebHostEnvironment webHostEnvironment)
+        public UpdateUserModel(IConfiguration configuration, IHttpClientFactory httpClientFactory)
         {
             _configuration = configuration;
             _clientFactory = httpClientFactory;
-            _webHostEnvironment = webHostEnvironment;
         }
         [BindProperty]
         public UpdateProfileUserVM ProfileUsersData { get; set; }

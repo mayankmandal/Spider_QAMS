@@ -53,7 +53,7 @@
                         <h5>${categoryName}</h5>
                         <button type="button" class="btn btn-danger btn-sm btn-round remove-category" data-category-id="${categoryId}">Remove</button>
                     </div>
-                    <div class="card-body category-section">
+                    <div class="card-body category-section" id="category-${categoryId}">
                     </div>
                 </div>
             </div>
@@ -183,8 +183,8 @@
             galleryItems.each(function (galleryIndex) {
                 // Check if the image is marked as deleted
                 const isDeleted = $(this).find('input[type="text"]').data('is-deleted') || false;
-                const uniqueFileId = $(this).children('input[type=text]').data('unique-file-id');
-                const fileName = $(this).children('input[type=text]').data('file-name');
+                const uniqueFileId = $(this).find('input[type=text]').data('unique-file-id');
+                const fileName = $(this).find('input[type=text]').data('file-name');
                 let filePath = $(this).find('img').attr('src') || '';
                 let imageFile = null;
                 const imageDescription = $(this).find('input[type="text"]').val();
@@ -238,8 +238,6 @@
                 formDataObject[key] = value;
             }
         });
-
-        console.log(formDataObject);
 
         // Add token to request headers
         $.ajax({

@@ -71,7 +71,7 @@
                         <label class="col-sm-2 col-form-label" asp-for="siteLocationVM.Location"></label>
                         <div class="col-sm-10">
                             <div class="form-group">
-                                <input type="text" class="form-control" asp-for="siteLocationVM.Location" placeholder="Location here...">
+                                <input type="text" class="form-control" asp-for="siteLocationVM.Location" placeholder="Location Name here..." required>
                             </div>
                             <span asp-validation-for="siteLocationVM.Location" class="text-danger fw-bold"></span>
                         </div>
@@ -81,7 +81,7 @@
                         <label class="col-sm-2 col-form-label" asp-for="siteLocationVM.StreetName"></label>
                         <div class="col-sm-10">
                             <div class="form-group">
-                                <input type="text" class="form-control" asp-for="siteLocationVM.StreetName" placeholder="Street here...">
+                                <input type="text" class="form-control" asp-for="siteLocationVM.StreetName" placeholder="Street Name here...">
                             </div>
                             <span asp-validation-for="siteLocationVM.StreetName" class="text-danger fw-bold"></span>
                         </div>
@@ -99,7 +99,7 @@
                                     }
                                 </select>
                             </div>
-                            <span asp-validation-for="siteLocationVM.SponsorId" class="text-danger fw-bold"></span>
+                            <span asp-validation-for="siteLocationVM.RegionId" class="text-danger fw-bold"></span>
                         </div>
                     </div>
 
@@ -112,7 +112,7 @@
                                     <!-- Cities will be loaded here based on the selected region -->
                                 </select>
                             </div>
-                            <span asp-validation-for="siteLocationVM.SponsorId" class="text-danger fw-bold"></span>
+                            <span asp-validation-for="siteLocationVM.CityId" class="text-danger fw-bold"></span>
                         </div>
                     </div>
 
@@ -120,7 +120,7 @@
                         <label class="col-sm-2 col-form-label" asp-for="siteLocationVM.DistrictName"></label>
                         <div class="col-sm-10">
                             <div class="form-group">
-                                <input type="text" class="form-control" asp-for="siteLocationVM.DistrictName" placeholder="District here...">
+                                <input type="text" class="form-control" asp-for="siteLocationVM.DistrictName" placeholder="District Name here...">
                             </div>
                             <span asp-validation-for="siteLocationVM.DistrictName" class="text-danger fw-bold"></span>
                         </div>
@@ -130,7 +130,7 @@
                         <label class="col-sm-2 col-form-label" asp-for="siteLocationVM.BranchName"></label>
                         <div class="col-sm-10">
                             <div class="form-group">
-                                <input type="text" class="form-control" asp-for="siteLocationVM.BranchName" placeholder="Branch here...">
+                                <input type="text" class="form-control" asp-for="siteLocationVM.BranchName" placeholder="Branch Name here...">
                             </div>
                             <span asp-validation-for="siteLocationVM.BranchName" class="text-danger fw-bold"></span>
                         </div>
@@ -178,7 +178,7 @@
                         <label class="col-sm-2 col-form-label" asp-for="siteLocationVM.Location"></label>
                         <div class="col-sm-10">
                             <div class="form-group">
-                                <input id="editLocationName" type="text" class="form-control" asp-for="siteLocationVM.Location" placeholder="Location here...">
+                                <input id="editLocationName" type="text" class="form-control" asp-for="siteLocationVM.Location" placeholder="Location Name here..." required>
                             </div>
                             <span asp-validation-for="siteLocationVM.Location" class="text-danger fw-bold"></span>
                         </div>
@@ -188,7 +188,7 @@
                         <label class="col-sm-2 col-form-label" asp-for="siteLocationVM.StreetName"></label>
                         <div class="col-sm-10">
                             <div class="form-group">
-                                <input id="editStreetName" type="text" class="form-control" asp-for="siteLocationVM.StreetName" placeholder="Street here...">
+                                <input id="editStreetName" type="text" class="form-control" asp-for="siteLocationVM.StreetName" placeholder="Street Name here...">
                             </div>
                             <span asp-validation-for="siteLocationVM.StreetName" class="text-danger fw-bold"></span>
                         </div>
@@ -206,7 +206,7 @@
                                     }
                                 </select>
                             </div>
-                            <span asp-validation-for="siteLocationVM.SponsorId" class="text-danger fw-bold"></span>
+                            <span asp-validation-for="siteLocationVM.RegionId" class="text-danger fw-bold"></span>
                         </div>
                     </div>
 
@@ -219,7 +219,7 @@
                                     <!-- Cities will be loaded here based on the selected region -->
                                 </select>
                             </div>
-                            <span asp-validation-for="siteLocationVM.SponsorId" class="text-danger fw-bold"></span>
+                            <span asp-validation-for="siteLocationVM.CityId" class="text-danger fw-bold"></span>
                         </div>
                     </div>
 
@@ -227,7 +227,7 @@
                         <label class="col-sm-2 col-form-label" asp-for="siteLocationVM.DistrictName"></label>
                         <div class="col-sm-10">
                             <div class="form-group">
-                                <input id="editDistrictName" type="text" class="form-control" asp-for="siteLocationVM.DistrictName" placeholder="District here...">
+                                <input id="editDistrictName" type="text" class="form-control" asp-for="siteLocationVM.DistrictName" placeholder="District Name here...">
                             </div>
                             <span asp-validation-for="siteLocationVM.DistrictName" class="text-danger fw-bold"></span>
                         </div>
@@ -237,7 +237,7 @@
                         <label class="col-sm-2 col-form-label" asp-for="siteLocationVM.BranchName"></label>
                         <div class="col-sm-10">
                             <div class="form-group">
-                                <input id="editBranchName" type="text" class="form-control" asp-for="siteLocationVM.BranchName" placeholder="Branch here...">
+                                <input id="editBranchName" type="text" class="form-control" asp-for="siteLocationVM.BranchName" placeholder="Branch Name here...">
                             </div>
                             <span asp-validation-for="siteLocationVM.BranchName" class="text-danger fw-bold"></span>
                         </div>
@@ -285,7 +285,7 @@
                         <label class="col-sm-2 col-form-label" asp-for="siteLocationVM.Location"></label>
                         <div class="col-sm-10">
                             <div class="form-group">
-                                <input id="deleteLocationName" type="text" class="form-control" asp-for="siteLocationVM.Location" placeholder="Location here..." disabled>
+                                <input id="deleteLocationName" type="text" class="form-control" asp-for="siteLocationVM.Location" placeholder="Location Name here..." required disabled>
                             </div>
                             <span asp-validation-for="siteLocationVM.Location" class="text-danger fw-bold"></span>
                         </div>
@@ -295,7 +295,7 @@
                         <label class="col-sm-2 col-form-label" asp-for="siteLocationVM.StreetName"></label>
                         <div class="col-sm-10">
                             <div class="form-group">
-                                <input id="deleteStreetName" type="text" class="form-control" asp-for="siteLocationVM.StreetName" placeholder="Street here..." disabled>
+                                <input id="deleteStreetName" type="text" class="form-control" asp-for="siteLocationVM.StreetName" placeholder="Street Name here..." disabled>
                             </div>
                             <span asp-validation-for="siteLocationVM.StreetName" class="text-danger fw-bold"></span>
                         </div>
@@ -305,7 +305,7 @@
                         <label class="col-sm-2 col-form-label" asp-for="siteLocationVM.RegionId"></label>
                         <div class="col-sm-10">
                             <div class="form-group">
-                                <select id="deleteRegionId" asp-for="siteLocationVM.RegionId" onchange="loadCities(this.value, null, 'edit')" data-size="5" class="selectpicker" data-style="btn btn-primary btn-round" title="Choose Region" required>
+                                <select id="deleteRegionId" asp-for="siteLocationVM.RegionId" data-size="5" class="selectpicker" data-style="btn btn-primary btn-round" title="Choose Region" required>
                                     <option value="" disabled selected>--Select Region--</option>
                                     @foreach (var region in Model.RegionAssociatedCitiesLst)
                                     {
@@ -313,7 +313,7 @@
                                     }
                                 </select>
                             </div>
-                            <span asp-validation-for="siteLocationVM.SponsorId" class="text-danger fw-bold"></span>
+                            <span asp-validation-for="siteLocationVM.RegionId" class="text-danger fw-bold"></span>
                         </div>
                     </div>
 
@@ -326,7 +326,7 @@
                                     <!-- Cities will be loaded here based on the selected region -->
                                 </select>
                             </div>
-                            <span asp-validation-for="siteLocationVM.SponsorId" class="text-danger fw-bold"></span>
+                            <span asp-validation-for="siteLocationVM.CityId" class="text-danger fw-bold"></span>
                         </div>
                     </div>
 
@@ -334,7 +334,7 @@
                         <label class="col-sm-2 col-form-label" asp-for="siteLocationVM.DistrictName"></label>
                         <div class="col-sm-10">
                             <div class="form-group">
-                                <input id="deleteDistrictName" type="text" class="form-control" asp-for="siteLocationVM.DistrictName" placeholder="District here..." disabled>
+                                <input id="deleteDistrictName" type="text" class="form-control" asp-for="siteLocationVM.DistrictName" placeholder="District Name here..." disabled>
                             </div>
                             <span asp-validation-for="siteLocationVM.DistrictName" class="text-danger fw-bold"></span>
                         </div>
@@ -344,7 +344,7 @@
                         <label class="col-sm-2 col-form-label" asp-for="siteLocationVM.BranchName"></label>
                         <div class="col-sm-10">
                             <div class="form-group">
-                                <input id="deleteBranchName" type="text" class="form-control" asp-for="siteLocationVM.BranchName" placeholder="Branch here..." disabled>
+                                <input id="deleteBranchName" type="text" class="form-control" asp-for="siteLocationVM.BranchName" placeholder="Branch Name here..." disabled>
                             </div>
                             <span asp-validation-for="siteLocationVM.BranchName" class="text-danger fw-bold"></span>
                         </div>

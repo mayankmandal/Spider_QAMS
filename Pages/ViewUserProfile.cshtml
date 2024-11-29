@@ -11,7 +11,7 @@
         <form>
             <div class="card card-profile">
                 <div class="card-avatar position-relative d-inline-block">
-                    <a href="#pablo">
+                    <a href="#">
                         <img id="profilePicturePreview" src="@Model.CurrentUserDetailsData.ProfilePictureFile" class="img" alt="Profile Picture" />
                     </a>
                 </div>
@@ -220,10 +220,14 @@
             <div class="card-body" style="font-size: 1rem;">
                 <ul class="d-flex flex-wrap p-0">
                     <!-- Populate pages here -->
-                    @foreach (var pageSite in Model.CurrentPageSites)
+                    @for (int i = 0; i < Model.CurrentPageSites.Count(); i++)
                     {
+                        var pageSite = Model.CurrentPageSites[i];
+                        // var bgColorClass = i % 2 == 0 ? "text-primary" : "text-warning";
+
                         <li class="nav-item p-2" style="flex: 1 0 30%; box-sizing: border-box; list-style: none;">
-                            <a href="@pageSite.PageUrl" class="nav-link d-block text-center text-decoration-none" style="border: 1px solid #ddd; border-radius: 8px; transition: all 0.3s;">
+                            <a href="@pageSite.PageUrl" class="nav-link d-block text-center text-decoration-none"
+                               style="border: 1px solid #ddd; border-radius: 8px; transition: all 0.3s;">
                                 <!-- Icon and Page Description -->
                                 <i class="nav-icon material-icons my-2" style="font-size: 2rem;">outbound</i>
                                 <p style="font-size: 1rem; font-weight: bold;">@pageSite.PageDesc</p>

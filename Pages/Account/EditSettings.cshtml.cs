@@ -6,20 +6,21 @@ using System.Net.Http.Headers;
 using System.Text;
 using Spider_QAMS.Models.ViewModels;
 using System.Text.Json;
+using Spider_QAMS.Repositories.Domain;
 
 namespace Spider_QAMS.Pages.Account
 {
     public class EditSettingsModel : PageModel
     {
+        private readonly ApplicationUserBusinessLogic _applicationUserBusinessLogic;
         private readonly IConfiguration _configuration;
         private readonly IHttpClientFactory _clientFactory;
-        private readonly IWebHostEnvironment _webHostEnvironment;
         private ProfileUserAPIVM _userSettings;
-        public EditSettingsModel(IConfiguration configuration, IHttpClientFactory httpClientFactory, IWebHostEnvironment webHostEnvironment)
+        public EditSettingsModel(IConfiguration configuration, IHttpClientFactory httpClientFactory, ApplicationUserBusinessLogic applicationUserBusinessLogic)
         {
             _configuration = configuration;
             _clientFactory = httpClientFactory;
-            _webHostEnvironment = webHostEnvironment;
+            _applicationUserBusinessLogic = applicationUserBusinessLogic;
         }
         [BindProperty]
         public SettingsVM SettingsData { get; set; } = new SettingsVM();
@@ -55,6 +56,7 @@ namespace Spider_QAMS.Pages.Account
         public async Task<IActionResult> OnPostAsync()
         {
             bool isProfilePhotoReUpload = true;
+            bool isEmailChanged = true;
             // Check if _userSettings is already in TempData
             if (TempData.ContainsKey("UserSettings"))
             {
@@ -67,6 +69,7 @@ namespace Spider_QAMS.Pages.Account
                 if (_userSettings.EmailID == SettingsData.SettingEmailID)
                 {
                     ModelState.Remove("SettingsData.SettingEmailID");
+                    isEmailChanged = false;
                 }
             }
 
@@ -111,7 +114,7 @@ namespace Spider_QAMS.Pages.Account
                     SettingsFullName = SettingsData.SettingFullName,
                     SettingsEmailID = SettingsData.SettingEmailID,
                     SettingsProfilePictureFile = SettingsData.SettingPhotoFile != null ? base64String : "",
-                    SettingsProfilePictureName = SettingsData.SettingPhotoFile.FileName,
+                    SettingsProfilePictureName = SettingsData.SettingPhotoFile != null ? SettingsData.SettingPhotoFile.FileName : "",
                     SettingsUserName = SettingsData.SettingUserName,
                     SettingsPassword = SettingsData.Password != null ? SettingsData.Password : "",
                     SettingsReTypePassword = SettingsData.ReTypePassword != null ? SettingsData.ReTypePassword : ""
@@ -127,8 +130,29 @@ namespace Spider_QAMS.Pages.Account
 
                 if (response.IsSuccessStatusCode)
                 {
-                    TempData["success"] = $"{SettingsData.SettingFullName} - Profile Updated Successfully";
                     TempData.Remove("UserSettings");
+
+                    if (isEmailChanged)
+                    {
+                        // Call your custom SignOut method
+                        var result = await _applicationUserBusinessLogic.SignOutAsync();
+
+                        if (result.Succeeded)
+                        {
+                            // Clear the session and redirect to login
+                            HttpContext.Session.Clear();
+                            TempData["success"] = $"{SettingsData.SettingFullName} - Profile Updated Successfully.\nUser logged out Successfully";
+                            return RedirectToPage("/Account/Login");
+                        }
+                        else
+                        {
+                            ModelState.AddModelError(string.Empty, "Failed to log out.");
+                            TempData["error"] = $"Failed to log out.";
+                            return Page();
+                        }
+                    }
+
+                    TempData["success"] = $"{SettingsData.SettingFullName} - Profile Updated Successfully";
                     return RedirectToPage();
                 }
                 else

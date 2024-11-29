@@ -38,8 +38,16 @@ function showDeleteForm(locationId, locationName, streetName, cityId, regionId, 
     // Set region, city, and sponsor dropdowns and disable them
     $('#deleteRegionId').val(regionId).prop('disabled', true);
     $('#deleteRegionId').selectpicker('refresh');
-    $('#deleteCitySelect').val(cityId).prop('disabled', true);
-    $('#deleteCitySelect').selectpicker('refresh');
+
+    // Update the city dropdown with the provided cityId and cityName
+    const cityDropdown = $('#deleteCitySelect');
+    cityDropdown.empty(); // Clear existing options
+    cityDropdown.append('<option value="" disabled>--Select City--</option>'); // Add default option
+    cityDropdown.append(
+        `<option value="${cityId}" selected>${cityName}</option>` // Add and select the city
+    );
+    cityDropdown.prop('disabled', true).selectpicker('refresh'); // Disable and refresh the dropdown
+
     $('#deleteSponsorId').val(sponsorId).prop('disabled', true);
     $('#deleteSponsorId').selectpicker('refresh');
 }
@@ -57,25 +65,28 @@ function loadCities(regionId, selectedCityId = null, formType = "create") {
 
     // Clear the current city options
     $(citySelectId).empty();
+
+    // Add the default "Select City" option
     $(citySelectId).append('<option value="" disabled selected>--Select City--</option>');
 
-    // Find the selected region's cities from regionData
-    var selectedRegion = regionData.find(r => r.regionId == parseInt(regionId));
+    // Find the selected region's cities from `regionData`
+    var selectedRegion = regionData.find(r => r.regionId === parseInt(regionId));
 
-    // Check if selectedRegion has cities
     if (selectedRegion && selectedRegion.cities) {
-        // Add cities to the city dropdown
+        // Populate cities in the dropdown
         selectedRegion.cities.forEach(function (city) {
-            $(citySelectId).append(`<option value="${city.cityId}">${city.cityName}</option>`);
+            $(citySelectId).append(
+                `<option value="${city.cityId}" ${city.cityId === parseInt(selectedCityId) ? 'selected' : ''}>
+                    ${city.cityName}
+                </option>`
+            );
         });
     }
-    // If there's a city to be selected, set it after cities are loaded
-    if (selectedCityId) {
-        $(citySelectId).val(selectedCityId);
-    }
 
-    // Refresh the selectpicker for the city dropdown
-    $(citySelectId).selectpicker('refresh');
+    // Refresh the selectpicker UI
+    if ($(citySelectId).hasClass('selectpicker')) {
+        $(citySelectId).selectpicker('refresh');
+    }
 }
 
 $(document).ready(function () {

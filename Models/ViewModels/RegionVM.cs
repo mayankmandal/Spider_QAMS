@@ -6,9 +6,9 @@ namespace Spider_QAMS.Models.ViewModels
 {
     public class RegionVM
     {
-        [DisplayName("Region Id")]
+        [DisplayName("Region")]
         public int RegionId { get; set; }
-        [Required(ErrorMessage = "Region Name is required")]
+        [Required(ErrorMessage = "Region is required")]
         [DisplayName("Region Name")]
         [StringLength(100, ErrorMessage = "Region Name must be 100 characters or fewer")]
         [CheckUniquenessinDB("RegionName")]

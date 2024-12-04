@@ -20,8 +20,8 @@ BEGIN
 
     BEGIN TRY
 
-		-- Validate the value of @TextCriteria currently 1 to 15 only
-        IF @TextCriteria NOT BETWEEN 1 AND 16
+		-- Validate the value of @TextCriteria currently 1 to 17 only
+        IF @TextCriteria NOT BETWEEN 1 AND 17
 		BEGIN
 				
 			SELECT -1 AS RowsAffected;
@@ -123,6 +123,7 @@ BEGIN
 			SELECT a.Class FROM ATMClass a WITH (NOLOCK)
 		END
 
+
 		-- GetAllPicCategories
 		ELSE IF @TextCriteria = 15
 		BEGIN
@@ -197,6 +198,14 @@ BEGIN
 				LEFT JOIN SignBoardType sbt WITH (NOLOCK) ON sd.SiteID = sbt.SiteID
 				LEFT JOIN SiteMiscInformation smi WITH (NOLOCK) ON sd.SiteID = smi.SiteID
 				LEFT JOIN BranchMiscInformation bmi WITH (NOLOCK) ON sd.SiteID = bmi.SiteID
+		END
+
+		-- GetAllProfilePagesAssociation
+		ELSE IF @TextCriteria = 17
+		BEGIN
+			SELECT DISTINCT vupa.ProfileId, p.ProfileName, PageId, PageUrl, PageDesc FROM vwUserPageAccess vupa WITH (NOLOCK)
+			INNER JOIN Profiles p WITH (NOLOCK) ON vupa.ProfileId = p.ProfileID
+			ORDER BY 1
 		END
 
 		-- Capture number of rows affected

@@ -51,6 +51,7 @@ namespace Spider_QAMS.Repositories.Skeleton
         Task<List<ProfileSite>> GetAllProfilesAsync();
         Task<List<PageSite>> GetAllPagesAsync();
         Task<List<PageCategory>> GetAllCategoriesAsync();
+        Task<List<ProfilePagesAccess>> GetAllProfilePagesAsync();
         Task<List<Region>> GetAllRegionsAsync();
         Task<List<City>> GetAllCitiesAsync();
         Task<List<SiteLocation>> GetAllLocationsAsync();

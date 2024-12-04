@@ -24,8 +24,8 @@ BEGIN
 		
 		DECLARE @NewSiteId BIGINT;
 
-		-- Validate the value of @TextCriteria currently 1 to 13 only
-        IF @TextCriteria NOT BETWEEN 1 AND 14
+		-- Validate the value of @TextCriteria currently 1 to 15 only
+        IF @TextCriteria NOT BETWEEN 1 AND 15
 		BEGIN
 				
 			SELECT -1 AS RowsAffected;
@@ -220,6 +220,15 @@ BEGIN
 				SitePictures sp WITH (NOLOCK)
 			WHERE 
 				sp.SitePicID = @InputInt;
+		END
+
+		-- GetProfilePagesData
+		ELSE IF @TextCriteria = 15
+		BEGIN
+			-- Retrieve profile pages datat using ProfileId
+			SELECT upa.ProfileId, p.ProfileName, upa.PageId, upa.PageUrl, upa.PageDesc, upa.UserId FROM vwUserPageAccess upa WITH (NOLOCK) 
+			INNER JOIN Profiles p WITH (NOLOCK) ON upa.ProfileId = p.ProfileID
+			WHERE upa.ProfileId = @InputInt
 		END
 
 		-- Capture number of rows affected

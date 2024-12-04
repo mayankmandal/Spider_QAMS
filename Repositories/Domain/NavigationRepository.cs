@@ -1969,7 +1969,7 @@ namespace Spider_QAMS.Repositories.Domain
                             ProfileSite profile = new ProfileSite
                             {
                                 ProfileId = (int)dataRow["ProfileId"],
-                                ProfileName = dataRow["ProfileName"].ToString()
+                                ProfileName = GetString(dataRow["ProfileName"])
                             };
                             profiles.Add(profile);
                         }
@@ -2003,7 +2003,7 @@ namespace Spider_QAMS.Repositories.Domain
             {
                 SqlParameter[] sqlParameters = new SqlParameter[]
                 {
-                    new SqlParameter("@TextCriteria", SqlDbType.Int) { Value = GetTableData.GetAllProfiles },
+                    new SqlParameter("@TextCriteria", SqlDbType.Int) { Value = GetTableData.GetAllPages },
                     new SqlParameter("@RowsAffected", SqlDbType.Int) { Direction = ParameterDirection.Output }
                 };
                 List<DataTable> dataTables = SqlDBHelper.ExecuteParameterizedNonQueryWithTransaction(_transaction,SP_GetTableAllData, CommandType.StoredProcedure, sqlParameters);
@@ -2019,8 +2019,8 @@ namespace Spider_QAMS.Repositories.Domain
                                 PageId = (int)row["PageId"],
                                 PageUrl = row["PageUrl"].ToString(),
                                 PageDesc = row["PageDesc"].ToString(),
-                                PageSeq = (int)row["PageSeq"],
-                                PageCat = (int)row["PageCat"],
+                                PageSeq = GetNullableInt(row["PageSeq"]),
+                                PageCatId = GetNullableInt(row["PageCatId"]),
                                 PageImgUrl = row["PageImgUrl"].ToString(),
                                 PageName = row["PageName"].ToString(),
                             };
@@ -2048,6 +2048,79 @@ namespace Spider_QAMS.Repositories.Domain
                 throw new Exception("Error in Getting All the Pages.", ex);
             }
             return pages;
+        }
+        public async Task<List<ProfilePagesAccess>> GetAllProfilePagesAsync()
+        {
+            List<ProfilePagesAccess> profilepages = new List<ProfilePagesAccess>();
+            try
+            {
+                SqlParameter[] sqlParameters = new SqlParameter[]
+                {
+                    new SqlParameter("@TextCriteria", SqlDbType.Int) { Value = GetTableData.GetAllProfilePagesAssociation },
+                    new SqlParameter("@RowsAffected", SqlDbType.Int) { Direction = ParameterDirection.Output }
+                };
+                List<DataTable> dataTables = SqlDBHelper.ExecuteParameterizedNonQueryWithTransaction(_transaction, SP_GetTableAllData, CommandType.StoredProcedure, sqlParameters);
+                if (dataTables.Count > 0)
+                {
+                    DataTable dataTable = dataTables[0];
+                    if (dataTable.Rows.Count > 0)
+                    {
+                        // Group the data by ProfileId and ProfileName
+                        var groupedData = dataTable.AsEnumerable()
+                            .GroupBy(row => new
+                            {
+                                ProfileId = row.Field<int>("ProfileId"),
+                                ProfileName = row.Field<string>("ProfileName")
+                            });
+                        foreach(var group in groupedData)
+                        {
+                            // Create a ProfileSite for the current group
+                            ProfileSite profile = new ProfileSite
+                            {
+                                ProfileId = group.Key.ProfileId,
+                                ProfileName = group.Key.ProfileName
+                            };
+
+                            List<PageSite> pages = group.Select(row => new PageSite
+                            {
+                                PageId = row.Field<int>("PageId"),
+                                PageUrl = row.Field<string>("PageUrl"),
+                                PageDesc = row.Field<string>("PageDesc"),
+                                PageSeq = null,        // Initialize non-matching fields as null or defaults
+                                PageCatId = null,
+                                PageImgUrl = null,
+                                PageName = null,
+                                isSelected = true
+                            }).ToList();
+
+                            profilepages.Add(new ProfilePagesAccess
+                            {
+                                Profile = profile,
+                                Pages = pages
+                            });
+                        }
+                    }
+                    else
+                    {
+                        return null;
+                    }
+                }
+                else
+                {
+                    return null;
+                }
+            }
+            catch (SqlException sqlEx)
+            {
+                // Log or handle SQL exceptions
+                throw new Exception("Error executing SQL command.", sqlEx);
+            }
+            catch (Exception ex)
+            {
+                // Log or handle other exceptions
+                throw new Exception("Error in Getting All the Pages.", ex);
+            }
+            return profilepages;
         }
         public async Task<List<PageCategory>> GetAllCategoriesAsync()
         {

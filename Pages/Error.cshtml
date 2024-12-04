@@ -5,23 +5,105 @@
     TempData["NavigationalPageName"] = "Error";
 }
 
-<h1 class="text-danger">Error.</h1>
-<h2 class="text-danger">An error occurred while processing your request.</h2>
+<!-- Navbar -->
+<nav class="navbar navbar-expand-lg navbar-transparent navbar-absolute fixed-top text-white">
+    <div class="container">
+        <div class="navbar-wrapper">
+            <a class="navbar-brand" href="#">@TempData["NavigationalPageName"]</a>
+        </div>
+        <button class="navbar-toggler" type="button" data-toggle="collapse" aria-controls="navigation-index" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="sr-only">Toggle navigation</span>
+            <span class="navbar-toggler-icon icon-bar"></span>
+            <span class="navbar-toggler-icon icon-bar"></span>
+            <span class="navbar-toggler-icon icon-bar"></span>
+        </button>
+        <div class="collapse navbar-collapse justify-content-end">
+            <ul class="navbar-nav">
+                <li class="nav-item">
+                    <a href="/Dashboard" class="nav-link">
+                        <i class="material-icons">dashboard</i>
+                        Dashboard
+                    </a>
+                </li>
+                <li class="nav-item ">
+                    <a href="#" class="nav-link">
+                        <i class="material-icons">person_add</i>
+                        Register
+                    </a>
+                </li>
+                <li class="nav-item  active ">
+                    <a href="/Account/Login" class="nav-link">
+                        <i class="material-icons">fingerprint</i>
+                        Login
+                    </a>
+                </li>
+                <li class="nav-item ">
+                    <a href="/Account/Logout" class="nav-link">
+                        <i class="material-icons">lock_open</i>
+                        Logout
+                    </a>
+                </li>
+            </ul>
+        </div>
+    </div>
+</nav>
+<!-- End Navbar -->
+<div class="wrapper wrapper-full-page">
+    <div class="page-header error-page header-filter" filter-color="black" style="background-image: url('../../assets/img/clint-mckoy.jpg');">
+        <!--   you can change the color of the filter page using: data-color="blue | purple | green | orange | red | rose " -->
+        <div class="content-center">
+            <div class="row">
+                <div class="col-md-12">
+                    <h1 class="title">404</h1>
+                    <h2>Page not found :(</h2>
+                    <h4>Ooooups! Looks like you got lost.</h4>
+                </div>
+            </div>
+        </div>
+        <footer class="footer">
+            <div class="container">
+                <nav class="float-left">
+                    <ul>
+                        <li>
+                            <a href="#">
+                                Spider QAMS
+                            </a>
+                        </li>
+                        <li>
+                            <a href="#">
+                                About Us
+                            </a>
+                        </li>
+                        <li>
+                            <a href="#">
+                                Blog
+                            </a>
+                        </li>
+                        <li>
+                            <a href="#">
+                                Licenses
+                            </a>
+                        </li>
+                    </ul>
+                </nav>
+                <div class="copyright float-right">
+                    &copy;
+                    <script>
+                        document.write(new Date().getFullYear())
+                    </script>, made with <i class="material-icons">favorite</i> by
+                    <a href="#" target="_blank">Spider QAMS</a> for a better web.
+                </div>
+            </div>
+        </footer>
+    </div>
+</div>
 
-@if (Model.ShowRequestId)
-{
-    <p>
-        <strong>Request ID:</strong> <code>@Model.RequestId</code>
-    </p>
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script>
+        $(document).ready(function () {
+            md.checkFullPageBackgroundImage();
+        });
+    </script>
 }
 
-<h3>Development Mode</h3>
-<p>
-    Swapping to the <strong>Development</strong> environment displays detailed information about the error that occurred.
-</p>
-<p>
-    <strong>The Development environment shouldn't be enabled for deployed applications.</strong>
-    It can result in displaying sensitive information from exceptions to end users.
-    For local debugging, enable the <strong>Development</strong> environment by setting the <strong>ASPNETCORE_ENVIRONMENT</strong> environment variable to <strong>Development</strong>
-    and restarting the app.
-</p>

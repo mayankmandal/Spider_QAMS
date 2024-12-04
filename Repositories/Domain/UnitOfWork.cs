@@ -13,8 +13,8 @@ namespace Spider_QAMS.Repositories.Domain
 
         public UnitOfWork(
             string connectionString,
-            INavigationRepository navigationRepository = null,
-            IUserRepository userRepository = null)
+            INavigationRepository navigationRepository,
+            IUserRepository userRepository)
         {
             _connection = new SqlConnection(connectionString);
             _connection.Open();

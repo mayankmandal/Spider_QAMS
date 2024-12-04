@@ -91,6 +91,7 @@ namespace Spider_QAMS.Utilities
             GetSiteDetail = 12,                          // Fetch site detail data
             GetSitePictureBySiteId = 13,                 // Fetch site picture data
             GetSitePictureBySitePicID = 14,              // Fetch site picture data
+            GetProfilePagesData = 15                     // Fetch profile pages data
         }
 
         public static class FetchRecordTypeMapper
@@ -111,6 +112,7 @@ namespace Spider_QAMS.Utilities
                 { FetchRecordByIdOrTextEnum.GetSiteDetail, typeof(SiteDetail) },
                 { FetchRecordByIdOrTextEnum.GetSitePictureBySiteId, typeof(List<SitePictures>) },
                 { FetchRecordByIdOrTextEnum.GetSitePictureBySitePicID, typeof(SitePictures) },
+                { FetchRecordByIdOrTextEnum.GetSitePictureBySitePicID, typeof(ProfilePagesAccess) },
             };
             public static Type GetTypeByEnum(FetchRecordByIdOrTextEnum recordType)
             {
@@ -125,22 +127,23 @@ namespace Spider_QAMS.Utilities
         public enum GetTableData
         {
             None = 0,
-            GetAllUsersData = 1,            // Fetch all users
-            GetAllProfiles = 2,             // Fetch al profiles
-            GetAllPages = 3,                // Fetch all pages
-            GetAllCategories = 4,           // Fetch all categories
-            GetAllRegions = 5,              // Fetch all regions
-            GetAllCities = 6,               // Fetch all cities
-            GetAllLocations = 7,            // Fetch all cities
-            GetRegionListOfCities = 8,      // Fetch all cities
-            GetAllSponsors = 9,             // Fetch all sponsors
-            GetAllContacts = 10,            // Fetch all contacts
-            GetAllSiteTypes = 11,           // Fetch all site types
-            GetAllBranchTypes = 12,         // Fetch all branch types
-            GetAllVisitStatuses = 13,       // Fetch all visit statuses
-            GetAllATMClasses = 14,          // Fetch all atm classes
-            GetAllPicCategories = 15,       // Fetch all picture categories
-            GetAllSiteDetails = 16,         // Fetch all site details
+            GetAllUsersData = 1,                        // Fetch all users
+            GetAllProfiles = 2,                         // Fetch al profiles
+            GetAllPages = 3,                            // Fetch all pages
+            GetAllCategories = 4,                       // Fetch all categories
+            GetAllRegions = 5,                          // Fetch all regions
+            GetAllCities = 6,                           // Fetch all cities
+            GetAllLocations = 7,                        // Fetch all cities
+            GetRegionListOfCities = 8,                  // Fetch all cities
+            GetAllSponsors = 9,                         // Fetch all sponsors
+            GetAllContacts = 10,                        // Fetch all contacts
+            GetAllSiteTypes = 11,                       // Fetch all site types
+            GetAllBranchTypes = 12,                     // Fetch all branch types
+            GetAllVisitStatuses = 13,                   // Fetch all visit statuses
+            GetAllATMClasses = 14,                      // Fetch all atm classes
+            GetAllPicCategories = 15,                   // Fetch all picture categories
+            GetAllSiteDetails = 16,                     // Fetch all site details
+            GetAllProfilePagesAssociation = 17,         // Fetch all site details
         }
 
         public enum TableNameCheckUniqueness

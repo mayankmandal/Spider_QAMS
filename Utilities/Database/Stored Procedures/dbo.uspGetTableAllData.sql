@@ -32,8 +32,9 @@ BEGIN
 		IF @TextCriteria = 1
 		BEGIN
 			SELECT p.ProfileID, p.ProfileName, u.UserId, u.Designation, u.FullName, u.EmailID, u.PhoneNumber, u.Username, u.ProfilePicName, u.IsActive, U.IsADUser, U.IsDeleted FROM Users u WITH (NOLOCK) 
-			INNER JOIN UserProfile up WITH (NOLOCK) on up.UserId = u.UserId 
-			INNER JOIN Profiles p WITH (NOLOCK) on p.ProfileID = up.ProfileID AND u.IsDeleted != 1
+			LEFT JOIN UserProfile up WITH (NOLOCK) on up.UserId = u.UserId		-- Include Users with No Profile when Profile is Deleted explicilty
+			LEFT JOIN Profiles p WITH (NOLOCK) on p.ProfileID = up.ProfileID	-- Include Users with No Profile when Profile is Deleted explicilty
+			WHERE u.IsDeleted != 1
 		END
 
 		-- GetAllProfiles
@@ -203,8 +204,9 @@ BEGIN
 		-- GetAllProfilePagesAssociation
 		ELSE IF @TextCriteria = 17
 		BEGIN
-			SELECT DISTINCT vupa.ProfileId, p.ProfileName, PageId, PageUrl, PageDesc FROM vwUserPageAccess vupa WITH (NOLOCK)
-			INNER JOIN Profiles p WITH (NOLOCK) ON vupa.ProfileId = p.ProfileID
+			SELECT DISTINCT up.ProfileId, p.ProfileName, p1.PageId, PageUrl, PageDesc FROM UserPermission up WITH (NOLOCK)
+			INNER JOIN tblPage p1 WITH (NOLOCK) ON up.PageId = p1.PageId
+			INNER JOIN Profiles p WITH (NOLOCK) ON up.ProfileId = p.ProfileID
 			ORDER BY 1
 		END
 

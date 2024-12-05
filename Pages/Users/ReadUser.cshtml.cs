@@ -6,10 +6,11 @@ using System.Text.Json;
 using System.Text;
 using static Spider_QAMS.Utilities.Constants;
 using System.Net.Http.Headers;
+using Microsoft.AspNetCore.Authorization;
 
 namespace Spider_QAMS.Pages.Users
 {
-    // [Authorize(Policy = "PageAccess")]
+    [Authorize(Policy = "PageAccess")]
     public class ReadUserModel : PageModel
     {
         private readonly IConfiguration _configuration;

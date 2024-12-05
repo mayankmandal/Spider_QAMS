@@ -54,6 +54,8 @@ namespace Spider_QAMS.Repositories.Domain
                     return await GetSitePicturesDataAsync(record);
                 case (int)FetchRecordByIdOrTextEnum.GetSitePictureBySitePicID:
                     return await GetSitePictureDataAsync(record);
+                case (int)FetchRecordByIdOrTextEnum.GetProfilePagesData:
+                    return await GetProfilePagesDataAsync(record.RecordId);
                 default:
                     throw new Exception("Invalid Record Type");
             }
@@ -252,7 +254,7 @@ namespace Spider_QAMS.Repositories.Domain
                 SqlParameter[] sqlParameters = new SqlParameter[]
                 {
                     new SqlParameter("@TextCriteria", SqlDbType.Int) { Value = FetchRecordByIdOrTextEnum.GetSettingsData },
-                    new SqlParameter("@InputInt", SqlDbType.Int) { Value = CurrentUserId },
+                    new SqlParameter("@InputInt", SqlDbType.Int) { Value = userProfileData.UserId },
                     new SqlParameter("@RowsAffected", SqlDbType.Int) { Direction = ParameterDirection.Output }
                 };
                 List<DataTable> dataTables = SqlDBHelper.ExecuteParameterizedNonQueryWithTransaction(_transaction,SP_FetchRecordByIdOrText, CommandType.StoredProcedure, sqlParameters);
@@ -274,7 +276,7 @@ namespace Spider_QAMS.Repositories.Domain
                             ProfileSiteData = new ProfileSite
                             {
                                 ProfileId = dataRow["ProfileId"] != DBNull.Value ? Convert.ToInt32(dataRow["ProfileId"]) : 0,
-                                ProfileName = string.Empty
+                                ProfileName = dataRow["ProfileId"] != DBNull.Value ? dataRow["ProfileId"].ToString() : string.Empty
                             },
                             UserName = dataRow["UserName"] != DBNull.Value ? dataRow["UserName"].ToString() : string.Empty,
                             ProfilePicName = dataRow["ProfilePicName"] != DBNull.Value ? dataRow["ProfilePicName"].ToString() : string.Empty,
@@ -438,7 +440,7 @@ namespace Spider_QAMS.Repositories.Domain
                 SqlParameter[] sqlParameters = new SqlParameter[]
                 {
                     new SqlParameter("@NewIntInput1", SqlDbType.Int){Value = region.RegionId},
-                    new SqlParameter("@NewInput1", SqlDbType.VarChar, 200){Value = region.RegionName},
+                    new SqlParameter("@NewInput1", SqlDbType.VarChar, -1){Value = region.RegionName},
                     new SqlParameter("@Type", SqlDbType.VarChar, 10){Value = DeleteEntityType.Region},
                     new SqlParameter("@RowsAffected", SqlDbType.Int) { Direction = ParameterDirection.Output }
                 };
@@ -469,7 +471,7 @@ namespace Spider_QAMS.Repositories.Domain
             {
                 SqlParameter[] sqlParameters = new SqlParameter[]
                 {
-                    new SqlParameter("@NewInput1", SqlDbType.VarChar, 200){Value = region.RegionName},
+                    new SqlParameter("@NewInput1", SqlDbType.VarChar, -1){Value = region.RegionName},
                     new SqlParameter("@Type", SqlDbType.VarChar, 10){Value = DeleteEntityType.Region},
                     new SqlParameter("@NewID", SqlDbType.Int) { Direction = ParameterDirection.Output }
                 };
@@ -501,7 +503,7 @@ namespace Spider_QAMS.Repositories.Domain
                 SqlParameter[] sqlParameters = new SqlParameter[]
                 {
                     new SqlParameter("@NewIntInput1", SqlDbType.Int){Value = city.CityId},
-                    new SqlParameter("@NewInput1", SqlDbType.VarChar, 200){Value = city.CityName},
+                    new SqlParameter("@NewInput1", SqlDbType.VarChar, -1){Value = city.CityName},
                     new SqlParameter("@NewIntInput2", SqlDbType.Int){Value = city.RegionData.RegionId},
                     new SqlParameter("@Type", SqlDbType.VarChar, 10){Value = DeleteEntityType.City},
                     new SqlParameter("@RowsAffected", SqlDbType.Int) { Direction = ParameterDirection.Output }
@@ -533,7 +535,7 @@ namespace Spider_QAMS.Repositories.Domain
             {
                 SqlParameter[] sqlParameters = new SqlParameter[]
                 {
-                    new SqlParameter("@NewInput1", SqlDbType.VarChar, 200){Value = city.CityName},
+                    new SqlParameter("@NewInput1", SqlDbType.VarChar, -1){Value = city.CityName},
                     new SqlParameter("@NewIntInput1", SqlDbType.Int){Value = city.RegionData.RegionId},
                     new SqlParameter("@Type", SqlDbType.VarChar, 10){Value = DeleteEntityType.City},
                     new SqlParameter("@NewID", SqlDbType.Int) { Direction = ParameterDirection.Output }
@@ -566,8 +568,8 @@ namespace Spider_QAMS.Repositories.Domain
                 SqlParameter[] sqlParameters = new SqlParameter[]
                 {
                     new SqlParameter("@NewIntInput1", SqlDbType.Int){Value = contact.ContactId},
-                    new SqlParameter("@NewInput1", SqlDbType.VarChar, 200){Value = contact.Name},
-                    new SqlParameter("@NewInput2", SqlDbType.VarChar, 200){Value = contact.Designation},
+                    new SqlParameter("@NewInput1", SqlDbType.VarChar, -1){Value = contact.Name},
+                    new SqlParameter("@NewInput2", SqlDbType.VarChar, -1){Value = contact.Designation},
                     new SqlParameter("@NewInput3", SqlDbType.VarChar, 200){Value = contact.OfficePhone},
                     new SqlParameter("@NewInput4", SqlDbType.VarChar, 200){Value = contact.Mobile},
                     new SqlParameter("@NewInput5", SqlDbType.VarChar, 200){Value = contact.EmailID},
@@ -604,8 +606,8 @@ namespace Spider_QAMS.Repositories.Domain
             {
                 SqlParameter[] sqlParameters = new SqlParameter[]
                 {
-                    new SqlParameter("@NewInput1", SqlDbType.VarChar, 200){Value = contact.Name},
-                    new SqlParameter("@NewInput2", SqlDbType.VarChar, 200){Value = contact.Designation},
+                    new SqlParameter("@NewInput1", SqlDbType.VarChar, -1){Value = contact.Name},
+                    new SqlParameter("@NewInput2", SqlDbType.VarChar, -1){Value = contact.Designation},
                     new SqlParameter("@NewInput3", SqlDbType.VarChar, 200){Value = contact.OfficePhone},
                     new SqlParameter("@NewInput4", SqlDbType.VarChar, 200){Value = contact.Mobile},
                     new SqlParameter("@NewInput5", SqlDbType.VarChar, 200){Value = contact.EmailID},
@@ -632,6 +634,81 @@ namespace Spider_QAMS.Repositories.Domain
             catch (Exception ex)
             {
                 throw new Exception($"Error creating record for {contact.Name}.", ex);
+            }
+            return true;
+        }
+
+        public async Task<bool> UpdateProfileAsync(ProfilePagesAccess profilePagesAccess, int CurrentUserId)
+        {
+            try
+            {
+                // Create a comma-separated string of PageIds
+                string pageIds = string.Join(",", profilePagesAccess.Pages.Select(page => page.PageId));
+
+                SqlParameter[] sqlParameters = new SqlParameter[]
+                {
+                    new SqlParameter("@NewInput1", SqlDbType.VarChar, -1){Value = profilePagesAccess.Profile.ProfileName},
+                    new SqlParameter("@NewInput2", SqlDbType.VarChar, 200){Value = pageIds},
+                    new SqlParameter("@NewIntInput1", SqlDbType.Int){Value = profilePagesAccess.Profile.ProfileId},
+                    new SqlParameter("@NewIntInput2", SqlDbType.Int){Value = CurrentUserId},
+                    new SqlParameter("@NewIntInput3", SqlDbType.Int){Value = CurrentUserId},
+                    new SqlParameter("@Type", SqlDbType.VarChar, 10){Value = DeleteEntityType.Profile},
+                    new SqlParameter("@RowsAffected", SqlDbType.Int) { Direction = ParameterDirection.Output }
+                };
+
+                bool isFailure = SqlDBHelper.ExecuteNonQueryWithTransaction(_transaction, SP_UpdateEntityRecord, CommandType.StoredProcedure, sqlParameters);
+
+                int RowsAffected = (sqlParameters[6].Value != DBNull.Value) ? (int)sqlParameters[6].Value : -1;
+
+                if (RowsAffected <= 0)
+                {
+                    return false;
+                }
+            }
+            catch (SqlException sqlEx)
+            {
+                throw new Exception($"Error updating record for {profilePagesAccess.Profile.ProfileName} - SQL Exception.", sqlEx);
+            }
+            catch (Exception ex)
+            {
+                throw new Exception($"Error updating record for {profilePagesAccess.Profile.ProfileName}.", ex);
+            }
+            return true;
+        }
+        public async Task<bool> CreateProfileAsync(ProfilePagesAccess profilePagesAccess, int CurrentUserId)
+        {
+            int newId = -1;
+            try
+            {
+                // Create a comma-separated string of PageIds
+                string pageIds = string.Join(",", profilePagesAccess.Pages.Select(page => page.PageId));
+
+                SqlParameter[] sqlParameters = new SqlParameter[]
+                {
+                    new SqlParameter("@NewInput1", SqlDbType.VarChar, -1){Value = profilePagesAccess.Profile.ProfileName},
+                    new SqlParameter("@NewInput2", SqlDbType.VarChar, -1){Value = pageIds},
+                    new SqlParameter("@NewIntInput1", SqlDbType.Int){Value = CurrentUserId},
+                    new SqlParameter("@NewIntInput2", SqlDbType.Int){Value = CurrentUserId},
+                    new SqlParameter("@Type", SqlDbType.VarChar, 10){Value = DeleteEntityType.Profile},
+                    new SqlParameter("@NewID", SqlDbType.Int) { Direction = ParameterDirection.Output }
+                };
+
+                bool isFailure = SqlDBHelper.ExecuteNonQueryWithTransaction(_transaction, SP_CreateEntityRecord, CommandType.StoredProcedure, sqlParameters);
+
+                newId = (sqlParameters[5].Value != DBNull.Value) ? (int)sqlParameters[5].Value : -1;
+                // Validate if the newId is greater than 0
+                if (newId <= 0)
+                {
+                    return false;
+                }
+            }
+            catch (SqlException sqlEx)
+            {
+                throw new Exception($"Error creating record for {profilePagesAccess.Profile.ProfileName} - SQL Exception.", sqlEx);
+            }
+            catch (Exception ex)
+            {
+                throw new Exception($"Error creating record for {profilePagesAccess.Profile.ProfileName}.", ex);
             }
             return true;
         }
@@ -680,8 +757,8 @@ namespace Spider_QAMS.Repositories.Domain
             {
                 SqlParameter[] sqlParameters = new SqlParameter[]
                 {
-                    new SqlParameter("@NewInput1", SqlDbType.VarChar, 200){Value = siteLocation.Location},
-                    new SqlParameter("@NewInput2", SqlDbType.VarChar, 200){Value = siteLocation.StreetName},
+                    new SqlParameter("@NewInput1", SqlDbType.VarChar, -1){Value = siteLocation.Location},
+                    new SqlParameter("@NewInput2", SqlDbType.VarChar, -1){Value = siteLocation.StreetName},
                     new SqlParameter("@NewIntInput1", SqlDbType.Int){Value = siteLocation.City.CityId},
                     new SqlParameter("@NewIntInput2", SqlDbType.Int){Value = siteLocation.City.RegionData.RegionId},
                     new SqlParameter("@NewInput3", SqlDbType.VarChar, 200){Value = siteLocation.DistrictName},
@@ -1123,7 +1200,7 @@ namespace Spider_QAMS.Repositories.Domain
                                 PageId = (int)row["PageId"],
                                 PageDesc = row["PageDesc"].ToString(),
                                 PageUrl = row["PageUrl"].ToString(),
-                                isSelected = true
+                                IsSelected = true
                             };
                             pages.Add(page);
                         }
@@ -1253,7 +1330,7 @@ namespace Spider_QAMS.Repositories.Domain
             }
             return userSettings;
         }
-        public async Task<ProfileSite> GetProfileDataAsync(int newUserId)
+        public async Task<ProfileSite> GetProfileDataAsync(int profileId)
         {
             ProfileSite profileSite = new ProfileSite();
             try
@@ -1261,7 +1338,7 @@ namespace Spider_QAMS.Repositories.Domain
                 SqlParameter[] sqlParameters = new SqlParameter[]
                 {
                     new SqlParameter("@TextCriteria", SqlDbType.Int) { Value = FetchRecordByIdOrTextEnum.GetProfileData },
-                    new SqlParameter("@InputInt", SqlDbType.Int) { Value = newUserId },
+                    new SqlParameter("@InputInt", SqlDbType.Int) { Value = profileId },
                     new SqlParameter("@RowsAffected", SqlDbType.Int) { Direction = ParameterDirection.Output }
                 };
                 List<DataTable> dataTables = SqlDBHelper.ExecuteParameterizedNonQueryWithTransaction(_transaction,SP_FetchRecordByIdOrText, CommandType.StoredProcedure, sqlParameters);
@@ -1886,6 +1963,78 @@ namespace Spider_QAMS.Repositories.Domain
             }
             return sitePicture;
         }
+        public async Task<ProfilePagesAccess> GetProfilePagesDataAsync(int profileId)
+        {
+            ProfilePagesAccess profilePagesAccess = new ProfilePagesAccess();
+            try
+            {
+                SqlParameter[] sqlParameters = new SqlParameter[]
+                {
+                    new SqlParameter("@TextCriteria", SqlDbType.Int) { Value = FetchRecordByIdOrTextEnum.GetProfilePagesData },
+                    new SqlParameter("@InputInt", SqlDbType.Int) { Value = profileId },
+                    new SqlParameter("@RowsAffected", SqlDbType.Int) { Direction = ParameterDirection.Output }
+                };
+                List<DataTable> dataTables = SqlDBHelper.ExecuteParameterizedNonQueryWithTransaction(_transaction, SP_FetchRecordByIdOrText, CommandType.StoredProcedure, sqlParameters);
+                if (dataTables.Count > 0)
+                {
+                    DataTable dataTable = dataTables[0];
+                    if (dataTable.Rows.Count > 0)
+                    {
+                        // Group the data by ProfileId and ProfileName
+                        var groupedData = dataTable.AsEnumerable()
+                        .GroupBy(row => new
+                        {
+                            ProfileId = row.Field<int>("ProfileId"),
+                            ProfileName = row.Field<string>("ProfileName")
+                        });
+
+                        // Create a ProfileSite for the current group
+                        ProfileSite profile = new ProfileSite
+                        {
+                            ProfileId = groupedData.FirstOrDefault().Key.ProfileId,
+                            ProfileName = groupedData.FirstOrDefault().Key.ProfileName
+                        };
+
+                        List<PageSite> pages = groupedData.FirstOrDefault().Select(row => new PageSite
+                        {
+                            PageId = row.Field<int>("PageId"),
+                            PageUrl = row.Field<string>("PageUrl"),
+                            PageDesc = row.Field<string>("PageDesc"),
+                            isSelected = true,
+                            PageSeq = null,        // Initialize non-matching fields as null or defaults
+                            PageCatId = null,
+                            PageImgUrl = null,
+                            PageName = null,
+                        }).ToList();
+
+                        profilePagesAccess = new ProfilePagesAccess
+                        {
+                            Profile = profile,
+                            Pages = pages
+                        };
+                    }
+                    else
+                    {
+                        return null;
+                    }
+                }
+                else
+                {
+                    return null;
+                }
+            }
+            catch (SqlException sqlEx)
+            {
+                // Log or handle SQL exceptions
+                throw new Exception("Error executing SQL command.", sqlEx);
+            }
+            catch (Exception ex)
+            {
+                // Log or handle other exceptions
+                throw new Exception("Error in Getting Settings.", ex);
+            }
+            return profilePagesAccess;
+        }
 
         public async Task<List<ProfileUserAPIVM>> GetAllUsersDataAsync()
         {
@@ -1912,16 +2061,16 @@ namespace Spider_QAMS.Repositories.Domain
                                 FullName = dataRow["FullName"].ToString(),
                                 EmailID = dataRow["EmailID"].ToString(),
                                 PhoneNumber = dataRow["PhoneNumber"].ToString(),
-                                ProfileSiteData = new ProfileSite
-                                {
-                                    ProfileId = Convert.ToInt32(dataRow["ProfileId"]),
-                                    ProfileName = dataRow["ProfileName"].ToString()
-                                },
                                 UserName = dataRow["UserName"].ToString(),
                                 ProfilePictureFile = dataRow["ProfilePicName"].ToString(),
                                 IsActive = Convert.ToBoolean(dataRow["IsActive"]),
                                 IsADUser = Convert.ToBoolean(dataRow["IsADUser"]),
                                 IsDeleted = Convert.ToBoolean(dataRow["IsDeleted"]),
+                            };
+                            profileUser.ProfileSiteData = new ProfileSite
+                            {
+                                ProfileId = dataRow["ProfileId"] == DBNull.Value ? 0 : Convert.ToInt32(dataRow["ProfileId"]), // Default to 0 if NULL
+                                ProfileName = dataRow["ProfileName"] == DBNull.Value ? string.Empty : dataRow["ProfileName"].ToString() // Default to empty string if NULL
                             };
                             users.Add(profileUser);
                         }

@@ -19,186 +19,48 @@ button, a.btn {
     text-align: center;
 }
 
-/* Create button styling */
-.create-btn {
-    background-color: #17a2b8; /* Flat cyan */
-    color: white;
-    border: none;
-    transition: background-color 0.3s ease, box-shadow 0.3s ease;
-    padding: 10px 20px;
-    border-radius: 5px;
-    width: auto;
-    margin-right: 10px; /* Small gap between buttons */
-}
-
-.create-btn:hover {
-    background-color: #0e7788;
-    color: white;
-    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.2);
-    box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.2);
-}
-
-.create-btn:active {
-    background-color: #117a8b;
-    color: white;
-}
-
-/* Update button styling */
-.update-btn {
-    background-color: #28a745; /* Flat green */
-    color: white;
-    border: none;
-    transition: background-color 0.3s ease, box-shadow 0.3s ease;
-    padding: 10px 20px;
-    border-radius: 5px;
-    width: auto;
-    margin-right: 10px;
-}
-
-.update-btn:hover {
-    background-color: #218838;
-    color: white;
-    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.2);
-    box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.2);
-}
-
-.update-btn:active {
-    background-color: #1e7e34;
-    color: white;
-}
-
-/* Delete button styling */
-.delete-btn {
-    background-color: #D63636; /* Flat red */
-    color: white;
-    border: none;
-    transition: background-color 0.3s ease, box-shadow 0.3s ease;
-    padding: 10px 20px;
-    border-radius: 5px;
-    width: auto;
-    margin-right: 10px;
-}
-
-.delete-btn:hover {
-    background-color: #DB2D28;
-    color: white;
-    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.2);
-    box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.2);
-}
-
-.delete-btn:active {
-    background-color: #CC1F16;
-    color: white;
-}
-
-/* Secondary button styling */
-.btn-secondary {
-    background-color: #6c757d; /* Flat gray */
-    color: white;
-    border: none;
-    transition: background-color 0.3s ease, box-shadow 0.3s ease;
-    padding: 10px 20px;
-    border-radius: 5px;
-    width: auto;
-}
-
-.btn-secondary:hover {
-    background-color: #5a6268;
-    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.2);
-    box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.2);
-}
-
-.btn-secondary:active {
-    background-color: #545b62;
-}
-
-/* Striped select for dropdowns */
-.striped-select option:nth-child(2n) {
-    background-color: #EAEFF2;
-    color: #474440;
-}
-
-.striped-select option:nth-child(2n+1) {
-    background-color: white;
-    color: #474440;
-}
-
-/* Logout button styling */
-.logout-action-btn {
-    background-color: #dc3545; /* Flat red for logout */
-    color: white;
-    border: none;
-    transition: background-color 0.3s ease, box-shadow 0.3s ease;
-    width: 9rem;
-}
-
-.logout-action-btn:hover {
-    background-color: #c82333;
-    box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
-}
-
-.logout-action-btn:active {
-    background-color: #bd2130;
-}
-
-/* Cancel button styling */
-.cancel-action-btn {
-    background-color: #6c757d; /* Flat muted gray */
-    color: white;
-    border: none;
-    width: 9rem;
-}
-
-.cancel-action-btn:hover {
-    background-color: #5a6268;
-    box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
-}
-
-.cancel-action-btn:active {
-    background-color: #495057;
-}
-
-/* Login button styling */
-.login-btn {
-    background-color: #007bff; /* Flat blue for login */
-    color: white;
-    border: none;
-    transition: background-color 0.3s ease, box-shadow 0.3s ease;
-    width: 8rem;
-}
-
-.login-btn:hover {
-    background-color: #0069d9;
-    box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
-}
-
-.login-btn:active {
-    background-color: #005cbf;
-}
-
-/* Adjust container for login button */
-.button-login-container {
-    margin-top: 10px;
-    height: auto;
-}
-
-#searchResults {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 10px;
-}
-
-.search-result-item {
-    border: 1px solid #ccc;
-    padding: 10px;
-    margin: 5px;
-    flex: 0 1 45%; /* Adjusting for two-column layout */
+.badge.filter.custom-color {
+    position: relative;
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    background-color: #f6f6f6; /* Default background for custom color badge */
     cursor: pointer;
 }
 
-.search-result-item.selected {
-    background-color: #e0f7fa; /* Highlight color */
-    border-color: #007bff;
+/* Ensures the uploaded image fits the container */
+.img-holder.custom-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 4px;
+    position: absolute;
+    top: 0;
+    left: 0;
+}
+
+/* Styling the upload icon */
+.upload-icon {
+    background: rgba(255, 255, 255, 0.8); /* Slightly transparent white */
+    border-radius: 50%;
+    padding: 5px;
+    box-shadow: 0px 1px 2px rgba(0, 0, 0, 0.2);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+    /* Icon interaction effects */
+    .upload-icon:hover {
+        background: rgba(240, 240, 240, 0.9);
+        box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.3);
+    }
+
+/* Active Class for the uploaded image section */
+.upload-section.active {
+    border-color: #007bff; /* Active border color for the uploaded image section */
+    box-shadow: 0px 1px 5px rgba(0, 123, 255, 0.5); /* Active box-shadow for better visibility */
 }
 
 .jsgrid-grid-body tr:nth-child(even) {

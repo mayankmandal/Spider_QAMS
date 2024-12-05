@@ -41,6 +41,49 @@ function getAbbreviation(text) {
 
 $(document).ready(function () {
 
+    // Handle color picker interaction
+    $('#customColorPicker').on('input', function () {
+        const selectedColor = $(this).val();
+        $('.badge.custom-color').css('background-color', selectedColor); // Reflect color in the span
+        // You can save this color to localStorage or backend as needed
+        localStorage.setItem('customSidebarColor', selectedColor);
+    });
+
+    // Load saved custom color (if any)
+    const savedColor = localStorage.getItem('customSidebarColor');
+    if (savedColor) {
+        $('.badge.custom-color').css('background-color', savedColor);
+        $('#customColorPicker').val(savedColor);
+    }
+
+    // Trigger file input when the upload icon is clicked
+    $('.upload-icon').on('click', function () {
+        $('#uploadSidebarImage').click();
+    });
+
+    // Handle image upload and rendering
+    $('#uploadSidebarImage').on('change', function (event) {
+        const file = event.target.files[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = function (e) {
+                const imageUrl = e.target.result;
+                $('#customSidebarImage').attr('src', imageUrl); // Set the uploaded image
+                localStorage.setItem('customSidebarImage', imageUrl); // Save to localStorage
+                // Make the section active to indicate the upload
+                $('.upload-section').addClass('active');
+            };
+            reader.readAsDataURL(file);
+        }
+    });
+
+    // Load saved custom image (if any) when the page is loaded
+    const savedImage = localStorage.getItem('customSidebarImage');
+    if (savedImage) {
+        $('#customSidebarImage').attr('src', savedImage); // Set the saved image as the src
+        $('.upload-section').addClass('active'); // Make the section active since the image is loaded
+    }
+
     var currentYear = new Date().getFullYear();
     $('#copyright-year').text(currentYear);
     toastr.options = {

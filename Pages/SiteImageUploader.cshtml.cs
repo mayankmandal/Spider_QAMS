@@ -8,9 +8,11 @@ using System.Text.Json;
 using System.Text;
 using Spider_QAMS.Utilities.ValidationAttributes;
 using System.Reflection;
+using Microsoft.AspNetCore.Authorization;
 
 namespace Spider_QAMS.Pages
 {
+    [Authorize(Policy = "PageAccess")]
     public class SiteImageUploaderModel : PageModel
     {
         private readonly IConfiguration _configuration;

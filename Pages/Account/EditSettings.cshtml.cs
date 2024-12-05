@@ -7,9 +7,11 @@ using System.Text;
 using Spider_QAMS.Models.ViewModels;
 using System.Text.Json;
 using Spider_QAMS.Repositories.Domain;
+using Microsoft.AspNetCore.Authorization;
 
 namespace Spider_QAMS.Pages.Account
 {
+    [Authorize(Policy = "PageAccess")]
     public class EditSettingsModel : PageModel
     {
         private readonly ApplicationUserBusinessLogic _applicationUserBusinessLogic;

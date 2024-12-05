@@ -5,9 +5,11 @@ using Spider_QAMS.Models;
 using static Spider_QAMS.Utilities.Constants;
 using System.Net.Http.Headers;
 using System.Text.Json;
+using Microsoft.AspNetCore.Authorization;
 
 namespace Spider_QAMS.Pages
 {
+    [Authorize(Policy = "PageAccess")]
     public class ViewUserProfileModel : PageModel
     {
         private readonly IConfiguration _configuration;

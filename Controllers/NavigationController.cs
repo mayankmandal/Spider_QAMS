@@ -381,20 +381,14 @@ namespace Spider_QAMS.Controllers
                 var userId = await GetAuthenticatedUserIdAsync();
                 if (userId == null)
                     return Unauthorized("User is not authenticated.");
+
                 if (profileUserAPIVM == null || string.IsNullOrEmpty(profileUserAPIVM.EmailID))
                 {
                     return BadRequest("Invalid user profile data");
                 }
 
-                // Fetch target user by email from profileUserAPIVM
-                var targetUser = await _applicationUserBusinessLogic.GetUserByEmailAsync(profileUserAPIVM.EmailID);
-                if (targetUser == null)
-                {
-                    return NotFound($"User with email {profileUserAPIVM.EmailID} not found.");
-                }
-
                 // Fetch the role of the target user
-                var targetUserRole = await _unitOfWork.UserRepository.GetUserRolesAsyncRepo(profileUserAPIVM.UserId);
+                var targetUserRole = await _unitOfWork.UserRepository.GetUserRolesAsyncRepo(userId.Value);
                 if (targetUserRole == null)
                 {
                     return NotFound("Target user does not have an associated role.");
@@ -438,13 +432,13 @@ namespace Spider_QAMS.Controllers
                 // Update profile in the database and get previous profile photo path
                 string PreviousProfilePhotoPath = await _unitOfWork.NavigationRepository.UpdateUserProfileAsync(profileUser, userId.Value);
 
+                // Commit the transaction
+                await _unitOfWork.CommitAsync();
+
                 // Remove the cached item to force a refresh next time
                 _applicationUserBusinessLogic.UserContext.Session.Remove(SessionKeys.CurrentUserProfileKey);
                 _applicationUserBusinessLogic.UserContext.Session.Remove(SessionKeys.CurrentUserPagesKey);
                 _applicationUserBusinessLogic.UserContext.Session.Remove(SessionKeys.CurrentUserCategoriesKey);
-
-                // Commit the transaction
-                await _unitOfWork.CommitAsync();
 
                 if (!string.IsNullOrEmpty(profileUserAPIVM.ProfilePictureFile) && !string.IsNullOrEmpty(PreviousProfilePhotoPath))
                 {
@@ -846,12 +840,18 @@ namespace Spider_QAMS.Controllers
                     return Unauthorized("User is not authenticated.");
 
                 bool isSuccess = false;
-                // isSuccess = await _unitOfWork.NavigationRepository.UpdateProfileAsync(profilePagesAccess);
+                isSuccess = await _unitOfWork.NavigationRepository.UpdateProfileAsync(profilePagesAccess, userId.Value);
 
                 if (isSuccess)
                 {
                     // Commit the transaction
                     await _unitOfWork.CommitAsync();
+
+                    // Remove the cached item to force a refresh next time
+                    _applicationUserBusinessLogic.UserContext.Session.Remove(SessionKeys.CurrentUserProfileKey);
+                    _applicationUserBusinessLogic.UserContext.Session.Remove(SessionKeys.CurrentUserPagesKey);
+                    _applicationUserBusinessLogic.UserContext.Session.Remove(SessionKeys.CurrentUserCategoriesKey);
+
                     return Ok(isSuccess);
                 }
                 else
@@ -880,7 +880,7 @@ namespace Spider_QAMS.Controllers
                     return Unauthorized("User is not authenticated.");
 
                 bool isSuccess = false;
-                // isSuccess = await _unitOfWork.NavigationRepository.CreateProfileAsync(profilePagesAccess);
+                isSuccess = await _unitOfWork.NavigationRepository.CreateProfileAsync(profilePagesAccess, userId.Value);
 
                 if (isSuccess)
                 {

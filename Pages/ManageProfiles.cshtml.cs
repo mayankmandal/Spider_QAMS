@@ -6,9 +6,11 @@ using static Spider_QAMS.Utilities.Constants;
 using System.Net.Http.Headers;
 using System.Text.Json;
 using System.Text;
+using Microsoft.AspNetCore.Authorization;
 
 namespace Spider_QAMS.Pages
 {
+    [Authorize(Policy = "PageAccess")]
     public class ManageProfilesModel : PageModel
     {
         private readonly IConfiguration _configuration;
@@ -23,7 +25,7 @@ namespace Spider_QAMS.Pages
         public IList<PageSiteVM> AllPages { get; set; }
         public IList<ProfilePagesAccessDTO> AllProfilePages { get; set; }
         [BindProperty]
-        public ProfilePagesAccessDTO profilePagesAccessDTO { get; set; }
+        public ProfileSiteVM profileSiteVM { get; set; }
         [BindProperty]
         public string? SelectedPagesJson { get; set; }
         private async Task LoadAllProfilesData()
@@ -47,7 +49,7 @@ namespace Spider_QAMS.Pages
             AllPages = pages.Select(page => new PageSiteVM
             {
                 PageId = page.PageId,
-                isSelected = page.isSelected,
+                IsSelected = page.isSelected,
                 PageDesc = page.PageDesc,
                 PageUrl = page.PageUrl
             }).ToList();
@@ -71,7 +73,7 @@ namespace Spider_QAMS.Pages
                     PageId = eachpage.PageId,
                     PageUrl = eachpage.PageUrl,
                     PageDesc = eachpage.PageDesc,
-                    isSelected = eachpage.isSelected,
+                    IsSelected = eachpage.isSelected,
                 }).ToList(),
             }).ToList();
         }
@@ -86,7 +88,6 @@ namespace Spider_QAMS.Pages
 
         public async Task<IActionResult> OnPostCreateAsync()
         {
-            ModelState.Remove("CityViewModel.RegionData.RegionName");
             if (!ModelState.IsValid)
             {
                 var errorMessages = ModelState.Values.SelectMany(x => x.Errors).Select(e => e.ErrorMessage).ToList();
@@ -99,18 +100,21 @@ namespace Spider_QAMS.Pages
             try
             {
                 // Deserialize the Json string into a list of PageSite objects
-                var selectedPages = JsonSerializer.Deserialize<List<PageSiteVM>>(SelectedPagesJson);
+                List<PageSiteVM> selectedPages = JsonSerializer.Deserialize<List<PageSiteVM>>(SelectedPagesJson);
 
                 _profilePagesAccess = new ProfilePagesAccess
                 {
                     Profile = new ProfileSite
                     {
-                        ProfileName = profilePagesAccessDTO.Profile.ProfileName,
-                        ProfileId = profilePagesAccessDTO.Profile.ProfileId
+                        ProfileName = profileSiteVM.ProfileName,
+                        ProfileId = profileSiteVM.ProfileId
                     },
-                    Pages = selectedPages.Select(page => new PageSite
+                    // Filter only the pages where IsSelected is true
+                    Pages = selectedPages
+                    .Where(page => page.IsSelected) // Only select pages where IsSelected is true
+                    .Select(page => new PageSite
                     {
-                        isSelected = true,
+                        isSelected = page.IsSelected,
                         PageDesc = page.PageDesc,
                         PageId = page.PageId,
                         PageUrl = page.PageUrl,
@@ -130,7 +134,7 @@ namespace Spider_QAMS.Pages
 
                 if (response.IsSuccessStatusCode)
                 {
-                    TempData["success"] = $"{profilePagesAccessDTO.Profile.ProfileName} - Created Successfully";
+                    TempData["success"] = $"{profileSiteVM.ProfileName} - Created Successfully";
                     return RedirectToPage();
                 }
                 else
@@ -138,7 +142,7 @@ namespace Spider_QAMS.Pages
                     await LoadAllProfilesData();
                     await LoadAllPagesData();
                     await LoadAllProfilePagesData();
-                    TempData["error"] = $"{profilePagesAccessDTO.Profile.ProfileName} - Error occurred in response with status: {response.StatusCode} - {response.ReasonPhrase}";
+                    TempData["error"] = $"{profileSiteVM.ProfileName} - Error occurred in response with status: {response.StatusCode} - {response.ReasonPhrase}";
                     return Page();
                 }
             }
@@ -157,12 +161,12 @@ namespace Spider_QAMS.Pages
         }
         public async Task<IActionResult> OnPostUpdateAsync()
         {
-            if (profilePagesAccessDTO.Profile.ProfileId != null)
+            if (profileSiteVM.ProfileId != null)
             {
                 var client = _clientFactory.CreateClient();
                 client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", JWTCookieHelper.GetJWTCookie(HttpContext));
                 var apiUrl = $"{_configuration["ApiBaseUrl"]}/Navigation/FetchRecord";
-                var requestBody = new Record { RecordId = profilePagesAccessDTO.Profile.ProfileId, RecordType = (int)FetchRecordByIdOrTextEnum.GetProfilePagesData };
+                var requestBody = new Record { RecordId = profileSiteVM.ProfileId, RecordType = (int)FetchRecordByIdOrTextEnum.GetProfilePagesData };
                 var jsonContent = JsonSerializer.Serialize(requestBody);
                 var httpContent = new StringContent(jsonContent, Encoding.UTF8, "application/json");
                 var response = await client.PostAsync(apiUrl, httpContent);
@@ -178,19 +182,15 @@ namespace Spider_QAMS.Pages
                     await LoadAllPagesData();
                     await LoadAllProfilePagesData();
 
-                    ModelState.AddModelError("ProfileUsersData.UserId", $"Error fetching user record for {profilePagesAccessDTO.Profile.ProfileName}. Please ensure the UserId is correct.");
+                    ModelState.AddModelError("ProfileUsersData.UserId", $"Error fetching user record for {profileSiteVM.ProfileName}. Please ensure the UserId is correct.");
                     TempData["error"] = $"Model State Validation Failed. Response status: {response.StatusCode} - {response.ReasonPhrase}";
                     return Page();
                 }
 
-                /*if (_profilePagesAccess.CityName == CityViewModel.CityName)
+                if (_profilePagesAccess.Profile.ProfileName == profileSiteVM.ProfileName)
                 {
-                    ModelState.Remove("CityViewModel.CityName");
+                    ModelState.Remove("profileSiteVM.ProfileName");
                 }
-                if (CityViewModel.RegionData.RegionName == null || _profilePagesAccess.RegionData.RegionName == CityViewModel.RegionData.RegionName)
-                {
-                    ModelState.Remove("CityViewModel.RegionData.RegionName");
-                }*/
             }
             if (!ModelState.IsValid)
             {
@@ -203,16 +203,19 @@ namespace Spider_QAMS.Pages
             try
             {
                 // Deserialize the Json string into a list of PageSite objects
-                var selectedPages = JsonSerializer.Deserialize<List<PageSiteVM>>(SelectedPagesJson);
+                List<PageSiteVM> selectedPages = JsonSerializer.Deserialize<List<PageSiteVM>>(SelectedPagesJson);
 
                 _profilePagesAccess = new ProfilePagesAccess
                 {
                     Profile = new ProfileSite
                     {
-                        ProfileName = profilePagesAccessDTO.Profile.ProfileName,
-                        ProfileId = profilePagesAccessDTO.Profile.ProfileId
+                        ProfileName = profileSiteVM.ProfileName,
+                        ProfileId = _profilePagesAccess.Profile.ProfileId
                     },
-                    Pages = selectedPages.Select(page => new PageSite
+                    // Filter only the pages where IsSelected is true
+                    Pages = selectedPages
+                    .Where(page => page.IsSelected) // Only select pages where IsSelected is true
+                    .Select(page => new PageSite
                     {
                         isSelected = true,
                         PageDesc = page.PageDesc,
@@ -234,7 +237,7 @@ namespace Spider_QAMS.Pages
 
                 if (response.IsSuccessStatusCode)
                 {
-                    TempData["success"] = $"{profilePagesAccessDTO.Profile.ProfileName} - Profile Updated Successfully";
+                    TempData["success"] = $"{profileSiteVM.ProfileName} - Profile Updated Successfully";
                     return RedirectToPage();
                 }
                 else
@@ -242,7 +245,7 @@ namespace Spider_QAMS.Pages
                     await LoadAllProfilesData();
                     await LoadAllPagesData();
                     await LoadAllProfilePagesData();
-                    TempData["error"] = $"{profilePagesAccessDTO.Profile.ProfileName} - Error occurred in response with status: {response.StatusCode} - {response.ReasonPhrase}";
+                    TempData["error"] = $"{profileSiteVM.ProfileName} - Error occurred in response with status: {response.StatusCode} - {response.ReasonPhrase}";
                     return Page();
                 }
             }

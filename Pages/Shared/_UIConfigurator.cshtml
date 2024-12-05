@@ -14,6 +14,10 @@
                         <span class="badge filter badge-warning" data-color="orange"></span>
                         <span class="badge filter badge-danger" data-color="danger"></span>
                         <span class="badge filter badge-rose active" data-color="rose"></span>
+                        <!-- User input color picker -->
+                        <span class="badge filter custom-color">
+                            <input type="color" id="customColorPicker" title="Pick a color" style="opacity: 0; position: absolute; cursor: pointer;">
+                        </span>
                     </div>
                     <div class="clearfix"></div>
                 </a>
@@ -25,6 +29,7 @@
                         <span class="badge filter badge-black active" data-background-color="black"></span>
                         <span class="badge filter badge-white" data-background-color="white"></span>
                         <span class="badge filter badge-red" data-background-color="red"></span>
+                        <span class="badge filter"></span>
                     </div>
                     <div class="clearfix"></div>
                 </a>
@@ -73,10 +78,20 @@
                     <img src="~/assets/img/sidebar-3.jpg" alt="">
                 </a>
             </li>
-            <li>
-                <a class="img-holder switch-trigger" href="javascript:void(0)">
-                    <img src="~/assets/img/sidebar-4.jpg" alt="">
-                </a>
+            <!-- Image Upload Section -->
+            <li class="border border-default rounded pt-2 d-flex align-items-center justify-content-center position-relative upload-section" style="box-shadow: 0px 1px 2px rgba(0, 0, 0, 0.2) !important; width: 52px; height: 98px;">
+                <div class="img-holder switch-trigger custom-image position-relative">
+                    <!-- Image Display Area -->
+                    <img id="customSidebarImage" src="" alt="Upload Image" style="width: 100%; height: 100%; object-fit: cover; border-radius: 4px; position: absolute; top: 0; left: 0;">
+
+                    <!-- Upload Icon -->
+                    <div class="upload-icon position-absolute" style="bottom: 5px; right: 5px; background: rgba(255, 255, 255, 0.8); border-radius: 50%; padding: 5px; box-shadow: 0px 1px 2px rgba(0, 0, 0, 0.2); cursor: pointer;">
+                        <span class="material-icons" style="font-size: 18px;">attach_file</span>
+                    </div>
+
+                    <!-- Hidden File Input -->
+                    <input class="d-none" type="file" id="uploadSidebarImage" accept="image/*">
+                </div>
             </li>
             <li class="button-container">
                 <a href="#" target="_blank" class="btn btn-rose btn-block btn-fill">Buy Now</a>

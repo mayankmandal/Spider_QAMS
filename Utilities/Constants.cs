@@ -16,10 +16,9 @@ namespace Spider_QAMS.Utilities
         public const string SiteInspectorName = "SiteInspector";
         public const string SiteAuditorName = "SiteAuditor";
 
-        public const string SP_RegisterNewUser = "dbo.uspRegisterNewUser";
         public const string SP_UpdateUserFlags = "dbo.uspUpdateUserFlags";
         public const string SP_AddUserPermission = "dbo.uspAddUserPermission";
-        public const string SP_AddNewProfile = "dbo.uspAddNewProfile";
+        
         public const string SP_DeleteUserPermission = "dbo.uspDeleteUserPermission";
         public const string SP_AddNewUser = "dbo.uspAddNewUser";
         public const string SP_UpdateUser = "dbo.uspUpdateUser";
@@ -112,7 +111,7 @@ namespace Spider_QAMS.Utilities
                 { FetchRecordByIdOrTextEnum.GetSiteDetail, typeof(SiteDetail) },
                 { FetchRecordByIdOrTextEnum.GetSitePictureBySiteId, typeof(List<SitePictures>) },
                 { FetchRecordByIdOrTextEnum.GetSitePictureBySitePicID, typeof(SitePictures) },
-                { FetchRecordByIdOrTextEnum.GetSitePictureBySitePicID, typeof(ProfilePagesAccess) },
+                { FetchRecordByIdOrTextEnum.GetProfilePagesData, typeof(ProfilePagesAccess) },
             };
             public static Type GetTypeByEnum(FetchRecordByIdOrTextEnum recordType)
             {
@@ -143,7 +142,7 @@ namespace Spider_QAMS.Utilities
             GetAllATMClasses = 14,                      // Fetch all atm classes
             GetAllPicCategories = 15,                   // Fetch all picture categories
             GetAllSiteDetails = 16,                     // Fetch all site details
-            GetAllProfilePagesAssociation = 17,         // Fetch all site details
+            GetAllProfilePagesAssociation = 17,         // Fetch all profile pages association
         }
 
         public enum TableNameCheckUniqueness
@@ -203,20 +202,5 @@ namespace Spider_QAMS.Utilities
             public static string CurrentUserCategoriesKey = "CurrentUserCategories";
             public static string CurrentUserClaimsKey = "CurrentUserClaims";
         }
-
-        public static class BaseUserScreenAccess // Needs Attention for Change if required for string value
-        {
-            public const string AccessDenied = "/Account/AccessDenied";
-            public const string AuthenticatorWithMFASetup = "/Account/AuthenticatorWithMFASetup";
-            public const string ConfirmEmail = "/Account/ConfirmEmail";
-            public const string Login = "/Account/Login";
-            public const string LoginTwoFactorWithAuthenticator = "/Account/LoginTwoFactorWithAuthenticator";
-            public const string Logout = "/Account/Logout";
-            public const string Register = "/Account/Register";
-            public const string Dashboard = "/Dashboard";
-            public const string ViewUserProfile = "/ViewUserProfile";
-            public const string EditSettings = "/EditSettings";
-            public const string Error = "/Error";
-        };
     }
 }

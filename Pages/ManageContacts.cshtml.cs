@@ -6,9 +6,11 @@ using System.Net.Http.Headers;
 using System.Text.Json;
 using Spider_QAMS.Models.ViewModels;
 using System.Text;
+using Microsoft.AspNetCore.Authorization;
 
 namespace Spider_QAMS.Pages
 {
+    [Authorize(Policy = "PageAccess")]
     public class ManageContactsModel : PageModel
     {
         private readonly IConfiguration _configuration;

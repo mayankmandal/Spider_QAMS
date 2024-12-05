@@ -62,7 +62,9 @@ BEGIN
 		 -- GetSettingsData
 		ELSE IF @TextCriteria = 5
 		BEGIN
-			SELECT u.UserId, u.FullName, u.UserName, u.PasswordHash, u.PasswordSalt, u.EmailID, u.PhoneNumber, u.ProfilePicName, u.ProfileId, u.Designation, u.[Location], u.IsADUser, u.IsActive, u.CreateDate, u.CreateUserId, u.UpdateDate, u.UpdateUserId, u.IsDeleted from Users u WITH (NOLOCK) where u.UserId = @InputInt;
+			SELECT u.UserId, u.FullName, u.UserName, u.PasswordHash, u.PasswordSalt, u.EmailID, u.PhoneNumber, u.ProfilePicName, u.ProfileId, P.ProfileName, u.Designation, u.[Location], u.IsADUser, u.IsActive, u.CreateDate, u.CreateUserId, u.UpdateDate, u.UpdateUserId, u.IsDeleted from Users u WITH (NOLOCK)
+			INNER JOIN Profiles p WITH (NOLOCK) ON u.ProfileId = p.ProfileID
+			where u.UserId = @InputInt;
 		END
 
 		-- GetProfileData
@@ -226,7 +228,7 @@ BEGIN
 		ELSE IF @TextCriteria = 15
 		BEGIN
 			-- Retrieve profile pages datat using ProfileId
-			SELECT upa.ProfileId, p.ProfileName, upa.PageId, upa.PageUrl, upa.PageDesc, upa.UserId FROM vwUserPageAccess upa WITH (NOLOCK) 
+			SELECT DISTINCT upa.ProfileId, p.ProfileName, upa.PageId, upa.PageUrl, upa.PageDesc FROM vwUserPageAccess upa WITH (NOLOCK) 
 			INNER JOIN Profiles p WITH (NOLOCK) ON upa.ProfileId = p.ProfileID
 			WHERE upa.ProfileId = @InputInt
 		END

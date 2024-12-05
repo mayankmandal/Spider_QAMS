@@ -1,133 +1,105 @@
-﻿function populatePageCheckboxes(containerId, pages, selectedPageIds = [], disable = false) {
+﻿function updateSelectedPages(containerId) {
+    const checkboxes = $(`#${containerId} input[type="checkbox"]`);
+    selectedPagesLst = selectedPagesLst.map(page => {
+        const checkbox = checkboxes.filter(`[value="${page.pageId}"]`);
+        if (checkbox.length) {
+            page.isSelected = checkbox.is(":checked");
+        }
+        return page;
+    });
+}
+
+function populatePageCheckboxes(containerId, pagesLst, selectedPageIds = [], disable = false) {
     const container = $(`#${containerId}`);
     container.empty();
 
-    pages.forEach(page => {
+    pagesLst.forEach(page => {
         const isChecked = selectedPageIds.includes(page.pageId);
         const disabledAttr = disable ? 'disabled' : '';
         container.append(`
             <div class="form-check form-check-inline">
                 <label class="form-check-label" for="${containerId}_page_${page.pageId}">
-                    ${page.pageDesc}
                     <input 
                         type="checkbox" 
                         class="form-check-input" 
+                        id="${containerId}_page_${page.pageId}"
+                        onchange="updateSelectedPages('${containerId}')"
                         value="${page.pageId}" 
                         ${isChecked ? 'checked' : ''} 
                         ${disabledAttr} 
-                        onchange="updateSelectedPages('${containerId}')"
                     >
-                    <span class="form-check-sign">
-                        <span class="check"></span>
-                    </span>
+                    ${page.pageDesc}
+                    <span class="form-check-sign"><span class="check"></span></span>
                 </label>
             </div>
         `);
     });
-
-    // Sync selectedPagesLst with the current checkboxes
-    updateSelectedPages(containerId);
 }
-
 
 function getPagesForProfile(profileId) {
-    const availableProfile = availablePagesLst.find(item => item.profile.profileId === profileId);
-    return availableProfile ? availableProfile.pages : [];
+    selectedPagesLst = pages.map(page => {
+        const isSelected = profilespages.some(pp =>
+            pp.profile.profileId === profileId &&
+            pp.pages.some(p => p.pageId === page.pageId)
+        );
+        return { ...page, isSelected };
+    });
+    return selectedPagesLst;
 }
 
-// Function to show the Create form
 function showCreateForm() {
     hideAllForms();
-    populatePageCheckboxes('createPageCheckboxes', pages); // Empty selection
+    selectedPagesLst = pages.map(page => ({ ...page, isSelected: false }));
+    populatePageCheckboxes('createPageCheckboxes', selectedPagesLst);
     $('#createFormDiv').show();
 }
 
-// Function to show the Edit Form
 function showEditForm(profileId, profileName) {
     hideAllForms();
-    const selectedPages = getPagesForProfile(profileId);
+    selectedPagesLst = getPagesForProfile(profileId);
+
     $('#editProfileId').val(profileId);
     $('#editProfileName').val(profileName);
-    // Pre-select pages where isSelected is true
-    const preSelectedPageIds = selectedPages
-        .filter(page => page.isSelected)
-        .map(page => page.pageId);
-    populatePageCheckboxes('editPageCheckboxes', selectedPages, preSelectedPageIds || []);
+
+    const selectedPageIds = selectedPagesLst.filter(page => page.isSelected).map(page => page.pageId);
+    populatePageCheckboxes('editPageCheckboxes', pages, selectedPageIds);
     $('#editFormDiv').show();
 }
-// Function to show the Delete form
+
 function showDeleteForm(profileId, profileName) {
     hideAllForms();
-    const selectedPages = getPagesForProfile(profileId);
+    selectedPagesLst = getPagesForProfile(profileId);
+
     $('#deleteProfileId').val(profileId);
     $('#deleteProfileName').val(profileName);
-    $('#deleteProfilePName').val(profileName);
-    // Pre-select pages where isSelected is true
-    const preSelectedPageIds = selectedPages
-        .filter(page => page.isSelected)
-        .map(page => page.pageId);
-    populatePageCheckboxes('deletePageCheckboxes', selectedPages, preSelectedPageIds || [], true);
+    $('#deleteProfilePName').text(profileName);
+
+    const selectedPageIds = selectedPagesLst.filter(page => page.isSelected).map(page => page.pageId);
+    populatePageCheckboxes('deletePageCheckboxes', pages, selectedPageIds, true);
     $('#deleteFormDiv').show();
 }
 
-
-// Function to hide All Forms
 function hideAllForms() {
     $('#createFormDiv, #editFormDiv, #deleteFormDiv').hide();
-    clearValidationMessages();
 }
 
-// Function to clear validation messages and reset form validation state
-function clearValidationMessages() {
-    // Clear validation messages and reset validation state for the create form
-    var createForm = $('#createCityForm');
-    if (createForm.length > 0) {
-        createForm.validate().resetForm(); // Clear valdiation errors
-        createForm[0].reset(); // Reset form fields
-        $('#regionCreateSelect').selectpicker('refresh');  // Refresh selectpicker for create form
-    }
-
-    // Clear validation messages and reset validation state for the edit form
-    var editForm = $('#editFormDiv form');
-    if (editForm.length > 0) {
-        editForm.validate().resetForm();  // Clear validation errors
-        editForm[0].reset();  // Reset form fields
-        $('#regionUpdateSelect').selectpicker('refresh');  // Refresh selectpicker for create form
-    }
-
-    // Clear validation messages and reset validation state for the delete form
-    var deleteForm = $('#deleteFormDiv form');
-    if (deleteForm.length > 0) {
-        deleteForm.validate().resetForm();  // Clear validation errors
-        deleteForm[0].reset();  // Reset form fields
-        $('#regionDeleteSelect').selectpicker('refresh');  // Refresh selectpicker for create form
-    }
-}
-
-// Function to update SelectedPagesJson hidden input field
-function updateSelectedPages(containerId) {
-    selectedPagesLst = []; // Reset
-    $(`#${containerId} input[type="checkbox"]:checked`).each(function () {
-        selectedPagesLst.push($(this).val());
-    });
-
-    // Update the hidden field
-    $('#SelectedPagesJson').val(JSON.stringify(selectedPagesLst));
-}
 $(document).ready(function () {
-    // For Create Form
-    $('#createFormDiv').on('submit', function () {
-        e.preventDefault(); // Prevent default form submission to handle custom logic
-
-        $('#SelectedPagesJson').val(JSON.stringify(selectedPagesLst));
+    $('#createFormDiv').on('submit', function (e) {
+        e.preventDefault();
+        $('#createFormDiv input[name="SelectedPagesJson"]').val(JSON.stringify(selectedPagesLst));
+        this.submit();
     });
 
-    $('#editFormDiv').on('submit', function () {
-        $('#SelectedPagesJson').val(JSON.stringify(selectedPagesLst));
+    $('#editFormDiv').on('submit', function (e) {
+        e.preventDefault();
+        $('#editFormDiv input[name="SelectedPagesJson"]').val(JSON.stringify(selectedPagesLst));
+        this.submit();
     });
 
-    $('#deleteFormDiv').on('submit', function () {
-        $('#SelectedPagesJson').val(JSON.stringify(selectedPagesLst));
+    $('#deleteFormDiv').on('submit', function (e) {
+        e.preventDefault();
+        $('#deleteFormDiv input[name="SelectedPagesJson"]').val(JSON.stringify(selectedPagesLst));
+        this.submit();
     });
 
     // Initialize DataTables

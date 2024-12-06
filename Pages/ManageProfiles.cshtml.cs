@@ -23,6 +23,7 @@ namespace Spider_QAMS.Pages
         }
         public IList<ProfileSiteVM> AllProfiles { get; set; }
         public IList<PageSiteVM> AllPages { get; set; }
+        public IList<PageCategoryVM> AllCategories { get; set; }
         public IList<ProfilePagesAccessDTO> AllProfilePages { get; set; }
         [BindProperty]
         public ProfileSiteVM profileSiteVM { get; set; }
@@ -51,7 +52,20 @@ namespace Spider_QAMS.Pages
                 PageId = page.PageId,
                 IsSelected = page.isSelected,
                 PageDesc = page.PageDesc,
-                PageUrl = page.PageUrl
+                PageUrl = page.PageUrl,
+                PageCatId = page.PageCatId,
+            }).ToList();
+        }
+        private async Task LoadAllCategoriesData()
+        {
+            var client = _clientFactory.CreateClient();
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", JWTCookieHelper.GetJWTCookie(HttpContext));
+            var response = await client.GetStringAsync($"{_configuration["ApiBaseUrl"]}/Navigation/GetAllCategories");
+            var pageCategories = string.IsNullOrEmpty(response) ? new List<PageCategory>() : JsonSerializer.Deserialize<List<PageCategory>>(response, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+            AllCategories = pageCategories.Select(category => new PageCategoryVM
+            {
+                PageCatId= category.PageCatId,
+                CategoryName = category.CategoryName
             }).ToList();
         }
         private async Task LoadAllProfilePagesData()
@@ -74,6 +88,7 @@ namespace Spider_QAMS.Pages
                     PageUrl = eachpage.PageUrl,
                     PageDesc = eachpage.PageDesc,
                     IsSelected = eachpage.isSelected,
+                    PageCatId = eachpage.PageCatId,
                 }).ToList(),
             }).ToList();
         }
@@ -83,6 +98,7 @@ namespace Spider_QAMS.Pages
             await LoadAllProfilesData();
             await LoadAllPagesData();
             await LoadAllProfilePagesData();
+            await LoadAllCategoriesData();
             return Page();
         }
 
@@ -94,6 +110,7 @@ namespace Spider_QAMS.Pages
                 TempData["error"] = "Model State Validation Failed: " + string.Join("; ", errorMessages);
                 await LoadAllProfilesData();
                 await LoadAllPagesData();
+                await LoadAllCategoriesData();
                 await LoadAllProfilePagesData();
                 return Page();
             }
@@ -141,6 +158,7 @@ namespace Spider_QAMS.Pages
                 {
                     await LoadAllProfilesData();
                     await LoadAllPagesData();
+                    await LoadAllCategoriesData();
                     await LoadAllProfilePagesData();
                     TempData["error"] = $"{profileSiteVM.ProfileName} - Error occurred in response with status: {response.StatusCode} - {response.ReasonPhrase}";
                     return Page();
@@ -180,6 +198,7 @@ namespace Spider_QAMS.Pages
                 {
                     await LoadAllProfilesData();
                     await LoadAllPagesData();
+                    await LoadAllCategoriesData();
                     await LoadAllProfilePagesData();
 
                     ModelState.AddModelError("ProfileUsersData.UserId", $"Error fetching user record for {profileSiteVM.ProfileName}. Please ensure the UserId is correct.");
@@ -196,6 +215,7 @@ namespace Spider_QAMS.Pages
             {
                 await LoadAllProfilesData();
                 await LoadAllPagesData();
+                await LoadAllCategoriesData();
                 await LoadAllProfilePagesData();
                 TempData["error"] = "Model State Validation Failed.";
                 return Page();
@@ -244,6 +264,7 @@ namespace Spider_QAMS.Pages
                 {
                     await LoadAllProfilesData();
                     await LoadAllPagesData();
+                    await LoadAllCategoriesData();
                     await LoadAllProfilePagesData();
                     TempData["error"] = $"{profileSiteVM.ProfileName} - Error occurred in response with status: {response.StatusCode} - {response.ReasonPhrase}";
                     return Page();
@@ -286,6 +307,7 @@ namespace Spider_QAMS.Pages
                 {
                     await LoadAllProfilesData();
                     await LoadAllPagesData();
+                    await LoadAllCategoriesData();
                     await LoadAllProfilePagesData();
                     TempData["error"] = $"Profile - {ProfileId} - Error occurred in response with status: {response.StatusCode} - {response.ReasonPhrase}";
                     return Page();

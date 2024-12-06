@@ -1433,19 +1433,6 @@ namespace Spider_QAMS.Controllers
                     return Unauthorized("User is not authenticated.");
                 var allPageCategoryData = await _unitOfWork.NavigationRepository.GetAllCategoriesAsync();
 
-                /*List<PageCategoryVM> pageCategoryVMs = new List<PageCategoryVM>();
-
-                foreach (var pageCategoryData in allPageCategoryData)
-                {
-                    PageCategoryVM pageCategoryVM = new PageCategoryVM
-                    {
-                        CategoryName = pageCategoryData.CategoryName,
-                        PageCatId = pageCategoryData.PageCatId,
-                        PageId = pageCategoryData.PageId,
-                    };
-                    pageCategoryVMs.Add(pageCategoryVM);
-                }*/
-
                 // Commit the transaction
                 await _unitOfWork.CommitAsync();
                 return Ok(allPageCategoryData);

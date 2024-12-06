@@ -1398,7 +1398,6 @@ namespace Spider_QAMS.Repositories.Domain
                         {
                             PageCatId = dataRow["PageCatId"] != DBNull.Value ? (int)dataRow["PageCatId"] : 0,
                             CategoryName = dataRow["CategoryName"] != DBNull.Value ? dataRow["CategoryName"].ToString() : string.Empty,
-                            PageId = 0
                         };
                     }
                     else
@@ -2236,7 +2235,7 @@ namespace Spider_QAMS.Repositories.Domain
                                 PageUrl = row.Field<string>("PageUrl"),
                                 PageDesc = row.Field<string>("PageDesc"),
                                 PageSeq = null,        // Initialize non-matching fields as null or defaults
-                                PageCatId = null,
+                                PageCatId = row.Field<int>("PageCatId"),
                                 PageImgUrl = null,
                                 PageName = null,
                                 isSelected = true
@@ -2278,7 +2277,7 @@ namespace Spider_QAMS.Repositories.Domain
             {
                 SqlParameter[] sqlParameters = new SqlParameter[]
                 {
-                    new SqlParameter("@TextCriteria", SqlDbType.Int) { Value = GetTableData.GetAllProfiles },
+                    new SqlParameter("@TextCriteria", SqlDbType.Int) { Value = GetTableData.GetAllCategories },
                     new SqlParameter("@RowsAffected", SqlDbType.Int) { Direction = ParameterDirection.Output }
                 };
                 List<DataTable> dataTables = SqlDBHelper.ExecuteParameterizedNonQueryWithTransaction(_transaction,SP_GetTableAllData, CommandType.StoredProcedure, sqlParameters);
@@ -2293,7 +2292,6 @@ namespace Spider_QAMS.Repositories.Domain
                             {
                                 PageCatId = (int)row["PageCatId"],
                                 CategoryName = row["CategoryName"].ToString(),
-                                PageId = 0,
                             };
                             pageCategories.Add(pageCategory);
                         }

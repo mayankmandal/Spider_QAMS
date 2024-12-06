@@ -12,5 +12,7 @@ namespace Spider_QAMS.Models.ViewModels
         public string PageDesc { get; set; }
         [JsonPropertyName("isSelected")]
         public bool IsSelected { get; set; }
+        [JsonPropertyName("pageCatId")]
+        public int? PageCatId { get; set; }
     }
 }

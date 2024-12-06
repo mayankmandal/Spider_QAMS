@@ -1,5 +1,24 @@
-﻿function updateSelectedPages(containerId) {
-    const checkboxes = $(`#${containerId} input[type="checkbox"]`);
+﻿// Function to update selected pages when category checkbox changes
+function updateSelectedCategories(containerId) {
+    const categoryCheckboxes = $(`#${containerId} .category-checkbox`);
+    categoryCheckboxes.each(function () {
+        const categoryCheckbox = $(this);
+        const categoryId = categoryCheckbox.val();
+        const isChecked = categoryCheckbox.is(":checked");
+
+        $(`#${containerId} .category-${categoryId} .page-checkbox`).each(function () {
+            $(this).prop("checked", isChecked);
+            const pageId = $(this).val();
+            const page = selectedPagesLst.find(p => p.pageId == pageId);
+            if (page) {
+                page.isSelected = isChecked;
+            }
+        });
+    });
+}
+
+function updateSelectedPages(containerId) {
+    const checkboxes = $(`#${containerId} .page-checkbox`);
     selectedPagesLst = selectedPagesLst.map(page => {
         const checkbox = checkboxes.filter(`[value="${page.pageId}"]`);
         if (checkbox.length) {
@@ -7,34 +26,88 @@
         }
         return page;
     });
+
+    const categoryCheckboxes = $(`#${containerId} .category-checkbox`);
+    categoryCheckboxes.each(function () {
+        const categoryCheckbox = $(this);
+        const categoryId = categoryCheckbox.val();
+        const allPages = $(`#${containerId} .category-${categoryId} .page-checkbox`);
+        const selectedPages = allPages.filter(":checked");
+
+        categoryCheckbox.prop("checked", allPages.length === selectedPages.length);
+    });
 }
 
-function populatePageCheckboxes(containerId, pagesLst, selectedPageIds = [], disable = false) {
+function populateCategoryCheckboxes(containerId, pagesLst, categories, selectedPageIds = [], disable = false) {
     const container = $(`#${containerId}`);
     container.empty();
 
+    // Group pages by category
+    const categorizedPages = {};
     pagesLst.forEach(page => {
-        const isChecked = selectedPageIds.includes(page.pageId);
+        if (!categorizedPages[page.pageCatId]) {
+            categorizedPages[page.pageCatId] = [];
+        }
+        categorizedPages[page.pageCatId].push(page);
+    });
+
+    categories.forEach(category => {
+        const categoryId = category.pageCatId;
+        const categoryName = category.categoryName;
+        const categoryPages = categorizedPages[categoryId] || [];
+        const isCategoryChecked = categoryPages.every(page => selectedPageIds.includes(page.pageId));
         const disabledAttr = disable ? 'disabled' : '';
+        const totalPages = categoryPages.length;
+
         container.append(`
-            <div class="form-check form-check-inline">
-                <label class="form-check-label" for="${containerId}_page_${page.pageId}">
-                    <input 
-                        type="checkbox" 
-                        class="form-check-input" 
-                        id="${containerId}_page_${page.pageId}"
-                        onchange="updateSelectedPages('${containerId}')"
-                        value="${page.pageId}" 
-                        ${isChecked ? 'checked' : ''} 
-                        ${disabledAttr} 
-                    >
-                    ${page.pageDesc}
-                    <span class="form-check-sign"><span class="check"></span></span>
-                </label>
+            <div class="col">
+                <div class="card">
+                    <div class="card-header card-header-text card-header-info">
+                        <div class="card-text">
+                            <div class="form-check">
+                                <label class="card-title form-check-label">
+                                    <input
+                                        type="checkbox"
+                                        class="form-check-input category-checkbox"
+                                        value="${categoryId}" 
+                                        ${isCategoryChecked ? 'checked' : ''} 
+                                        ${disabledAttr} 
+                                        onchange="updateSelectedCategories('${containerId}')"
+                                    /> ${categoryName}
+                                    <span class="form-check-sign">
+                                        <span class="check"></span>
+                                    </span>
+                                </label>
+                            </div>
+                            <div class="card-category">(${totalPages} pages)</div>
+                        </div>
+                    </div>
+                    <div class="card-body category-pages category-${categoryId}">
+                        ${categoryPages.map(page => `
+                            <div class="form-check">
+                                <label class="form-check-label">
+                                    <input 
+                                        type="checkbox" 
+                                        class="form-check-input page-checkbox me-2" 
+                                        value="${page.pageId}" 
+                                        ${selectedPageIds.includes(page.pageId) ? 'checked' : ''} 
+                                        ${disabledAttr} 
+                                        onchange="updateSelectedPages('${containerId}')"
+                                    >
+                                    <span class="form-check-sign">
+                                        <span class="check"></span>
+                                    </span>
+                                    ${page.pageDesc}
+                                </label>
+                            </div>
+                        `).join("")}
+                    </div>
+                </div>
             </div>
         `);
     });
 }
+
 
 function getPagesForProfile(profileId) {
     selectedPagesLst = pages.map(page => {
@@ -46,11 +119,10 @@ function getPagesForProfile(profileId) {
     });
     return selectedPagesLst;
 }
-
 function showCreateForm() {
     hideAllForms();
     selectedPagesLst = pages.map(page => ({ ...page, isSelected: false }));
-    populatePageCheckboxes('createPageCheckboxes', selectedPagesLst);
+    populateCategoryCheckboxes('createcategoriesContainer', selectedPagesLst, categories);
     $('#createFormDiv').show();
 }
 
@@ -62,7 +134,7 @@ function showEditForm(profileId, profileName) {
     $('#editProfileName').val(profileName);
 
     const selectedPageIds = selectedPagesLst.filter(page => page.isSelected).map(page => page.pageId);
-    populatePageCheckboxes('editPageCheckboxes', pages, selectedPageIds);
+    populateCategoryCheckboxes('editcategoriesContainer', pages, categories, selectedPageIds);
     $('#editFormDiv').show();
 }
 
@@ -75,7 +147,7 @@ function showDeleteForm(profileId, profileName) {
     $('#deleteProfilePName').text(profileName);
 
     const selectedPageIds = selectedPagesLst.filter(page => page.isSelected).map(page => page.pageId);
-    populatePageCheckboxes('deletePageCheckboxes', pages, selectedPageIds, true);
+    populateCategoryCheckboxes('deletecategoriesContainer', pages, categories, selectedPageIds, true);
     $('#deleteFormDiv').show();
 }
 

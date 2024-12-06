@@ -63,7 +63,7 @@ BEGIN
 		ELSE IF @TextCriteria = 5
 		BEGIN
 			SELECT u.UserId, u.FullName, u.UserName, u.PasswordHash, u.PasswordSalt, u.EmailID, u.PhoneNumber, u.ProfilePicName, u.ProfileId, P.ProfileName, u.Designation, u.[Location], u.IsADUser, u.IsActive, u.CreateDate, u.CreateUserId, u.UpdateDate, u.UpdateUserId, u.IsDeleted from Users u WITH (NOLOCK)
-			INNER JOIN Profiles p WITH (NOLOCK) ON u.ProfileId = p.ProfileID
+			LEFT JOIN Profiles p WITH (NOLOCK) ON u.ProfileId = p.ProfileID
 			where u.UserId = @InputInt;
 		END
 

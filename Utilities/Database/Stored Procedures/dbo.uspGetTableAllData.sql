@@ -204,7 +204,7 @@ BEGIN
 		-- GetAllProfilePagesAssociation
 		ELSE IF @TextCriteria = 17
 		BEGIN
-			SELECT DISTINCT up.ProfileId, p.ProfileName, p1.PageId, PageUrl, PageDesc FROM UserPermission up WITH (NOLOCK)
+			SELECT DISTINCT up.ProfileId, p.ProfileName, p1.PageId, p1.PageCatId, PageUrl, PageDesc FROM UserPermission up WITH (NOLOCK)
 			INNER JOIN tblPage p1 WITH (NOLOCK) ON up.PageId = p1.PageId
 			INNER JOIN Profiles p WITH (NOLOCK) ON up.ProfileId = p.ProfileID
 			ORDER BY 1

@@ -13,7 +13,5 @@ namespace Spider_QAMS.Models.ViewModels
         [StringLength(100, ErrorMessage = "Category Name cannot exceed 100 characters.")]
         [CheckUniquenessinDB("CategoryName")]
         public string CategoryName { get; set; }
-        // Navigation property for Pages
-        public int PageId { get; set; }
     }
 }

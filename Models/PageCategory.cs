@@ -6,7 +6,5 @@ namespace Spider_QAMS.Models
     {
         public int PageCatId { get; set; }
         public string CategoryName { get; set; }
-        // Navigation property for Pages
-        public int PageId { get; set; }
     }
 }
